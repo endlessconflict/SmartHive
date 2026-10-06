@@ -4,6 +4,7 @@
 
 **Remote hive monitoring with edge computer vision, built by six students on free and open-source software.**
 
+![tests](https://github.com/endlessconflict/SmartHive/actions/workflows/tests.yml/badge.svg)
 ![status](https://img.shields.io/badge/status-building-orange)
 ![prototype](https://img.shields.io/badge/prototype-1%20(MVP)-blue)
 ![edge](https://img.shields.io/badge/edge-Raspberry%20Pi%203B-c51a4a)
