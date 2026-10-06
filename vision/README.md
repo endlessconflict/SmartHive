@@ -2,7 +2,7 @@
 
 Training, real-image evaluation, export and benchmarking of the two-stage pest detector, plus the torch-free inference pipeline the node runs.
 
-Status: v0.1 trained on synthetic data. Results and iterations: [docs/03-vision/07-results.md](../docs/03-vision/07-results.md).
+Status: three iterations trained on synthetic data; v0.2 is released in [`models/v0.2`](../models/v0.2/MODEL_CARD.md). Results and iterations: [docs/03-vision/07-results.md](../docs/03-vision/07-results.md).
 
 | File | What it does |
 |---|---|

@@ -1,6 +1,6 @@
 # Vision: pest and threat detection
 
-Status: v0.1 implemented and trained on synthetic data. Results: [07-results.md](07-results.md)
+Status: implemented; three iterations trained on synthetic data, v0.2 released ([model card](../../models/v0.2/MODEL_CARD.md)). Results: [07-results.md](07-results.md)
 
 Owner: Adrien Cubilla. Hardware side with Ricardo Villarreal.
 
@@ -32,7 +32,7 @@ flowchart LR
 | 4 | [Model architecture](04-model-architecture.md) | Two-stage design for a Pi 3B, model candidates, licenses |
 | 5 | [Training and evaluation](05-training-and-evaluation.md) | Splits, metrics, sim-to-real protocol, acceptance criteria |
 | 6 | [Edge deployment](06-edge-deployment.md) | Runtime pipeline, export to NCNN, benchmarks to run |
-| 7 | [Results](07-results.md) | What v0.1 achieves per data tier, and what changed between iterations |
+| 7 | [Results](07-results.md) | What v0.1 to v0.3 achieve per data tier, why v0.2 is the release, and what v0.4 changes |
 
 ## Main decisions
 

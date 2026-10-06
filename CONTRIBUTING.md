@@ -62,6 +62,7 @@ A user story is done when:
 ## Data and models
 
 - Never commit datasets, images in bulk or model weights to git. They go through DVC (see [docs/04-data/05-dataset-versioning-and-governance.md](docs/04-data/05-dataset-versioning-and-governance.md)).
+- One exception until DVC is set up (Jira EN-06): released ncnn models (`models/<version>/`, a few MB each) are committed with a model card, `SHA256SUMS` and the attribution list. Training checkpoints (`.pt`) and exports that are not releases stay out.
 - Every external asset (a photo, a texture, a 3D model, a dataset) gets an entry in the asset manifest with its source URL and license. If we cannot name the license, we do not use it.
 - Generators take a seed. A dataset that cannot be regenerated from a config file and a seed is not finished.
 

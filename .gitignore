@@ -49,3 +49,5 @@ Thumbs.db
 
 # Model weights downloaded by tools (YOLOE text encoder, SAM, ...)
 mobileclip*.ts
+!models/**/*.ncnn.bin
+!models/**/*.ncnn.param

@@ -384,7 +384,7 @@ stories:
     docs: [docs/03-vision/04-model-architecture.md, docs/03-vision/05-training-and-evaluation.md]
     evidence: [vision/pipeline.py, docs/03-vision/07-results.md]
     subtasks:
-      - {summary: "Train stage 2 classifier on synthetic crops (v0.1)", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Train stage 2 classifier on hybrid synthetic crops (v0.2)", assignee: adrien, hours: 3, status: Done}
       - {summary: "Varroa index with Wilson interval in the aggregator", assignee: adrien, hours: 2, status: Done}
       - {summary: "Evaluate on public Varroa crops (VarroaDataset) when downloaded", assignee: adrien, hours: 3, status: To Do}
       - {summary: "Bee tracking across frames to count individuals (v2)", assignee: adrien, hours: 8, status: To Do}
@@ -406,7 +406,7 @@ stories:
     docs: [docs/03-vision/04-model-architecture.md, docs/03-vision/07-results.md]
     evidence: [vision/train.py, vision/eval_real.py, vision/pipeline.py]
     subtasks:
-      - {summary: "Train stage 1 detector on synthetic scenes (iterations v0.1+)", assignee: adrien, hours: 6, status: Done}
+      - {summary: "Train stage 1 detector on synthetic scenes (iterations v0.1 to v0.3)", assignee: adrien, hours: 6, status: Done}
       - {summary: "Tier P evaluation script and report", assignee: adrien, hours: 3, status: Done}
       - {summary: "k-of-n aggregator with self-check", assignee: adrien, hours: 2, status: Done}
       - {summary: "Raise SHB tier P coverage (more photos, field captures)", assignee: adrien, hours: 4, status: To Do}
@@ -638,12 +638,16 @@ stories:
     assignee: maria
     components: [infra]
     labels: [ci]
-    status: To Do
+    status: In Progress
     ac:
       - "Given a pull request, when CI runs, then ruff, pytest (simulation tests included) and contract validation must pass"
+      - "Given backlog.yaml, when it changes, then CI fails unless the generated Jira files were rebuilt"
     docs: [docs/05-backend/08-deployment-and-operations.md]
+    evidence: [.github/workflows/tests.yml]
     subtasks:
-      - {summary: "GitHub Actions workflow with Python cache", assignee: maria, hours: 3, status: To Do}
+      - {summary: "GitHub Actions workflow: simulation tests, pipeline self-check, Jira build check (green)", assignee: maria, hours: 3, status: Done}
+      - {summary: "Add ruff lint and format check", assignee: maria, hours: 1, status: To Do}
+      - {summary: "Add contract validation once infra/contracts exists (EN-07)", assignee: karen, hours: 1, status: To Do}
 
   # ---------------------------------------------------------------- E3 Colony dashboard
   - id: US13
@@ -918,3 +922,55 @@ stories:
       - {summary: "Demo script and demo_day scenario rehearsal", assignee: maria, hours: 4, status: To Do}
       - {summary: "Evaluation report (vision, telemetry models)", assignee: adrien, hours: 6, status: To Do}
       - {summary: "Time-series results section", assignee: diego, hours: 3, status: To Do}
+  - id: EN-11
+    epic: E5
+    type: Story
+    summary: Vision iteration v0.3 (distractors), model release v0.2 and per-tier results report
+    story: "As the vision team, we need real wasps, flies and bumblebees to stop being called hornets so that hornet alerts can be trusted."
+    priority: High
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [simulation, vision]
+    labels: [sim-to-real, evaluation]
+    status: Done
+    ac:
+      - "Given a second iNaturalist pool disjoint from tier P and from the first pool, when cutouts are extracted, then real 'other' insects at least double (147 to 339)"
+      - "Given v0.3 data, when stage 1 is fine-tuned from v0.2, then tier P calibration accuracy and the hornet false-positive count on real 'other' photos are compared with v0.2 (result: no gain, hornet false positives rose, v0.3 recorded as a negative result)"
+      - "Given the chosen model (v0.2), when the frozen tier P test split is opened once, then its numbers are reported in the results document next to tier S, the system-level test and the latency estimate"
+      - "Given the release, when published under models/v0.2, then it has a model card, checksums and the attribution list of the real photos"
+    docs: [docs/03-vision/07-results.md, models/v0.2/MODEL_CARD.md]
+    evidence: [docs/03-vision/07-results.md, models/v0.2/MODEL_CARD.md]
+    subtasks:
+      - {summary: "Second disjoint pool (2,100 photos) and cutouts v2", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Generator v0.3: more distractors per scene, several cutout folders", assignee: adrien, hours: 1, status: Done}
+      - {summary: "Fine-tune from v0.2 and compare on tier P calib", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Final tier P test, system-level test, latency estimate, results document", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Package ncnn release v0.2: model card, SHA256SUMS, attribution", assignee: adrien, hours: 1, status: Done}
+  - id: EN-12
+    epic: E5
+    type: Story
+    summary: Vision iteration v0.4 (real backgrounds, hornet versus wasp, thresholds)
+    story: "As the vision team, we need the detector trained on our own board and tuned against real wasps so that hornet alerts reach the 0.70 precision target before the field test."
+    priority: High
+    points: 8
+    sprint: SH Sprint 5
+    assignee: adrien
+    components: [simulation, vision]
+    labels: [sim-to-real, evaluation]
+    status: To Do
+    blocked_by: [HW-01]
+    ac:
+      - "Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then generator v0.4 places insects on them with the camera's measured px/mm"
+      - "Given the tier P calibration photos that v0.2 calls hornet, when reviewed, then their insect groups are added to the generator as other_insect and as hard negatives (test split never used)"
+      - "Given model v0.4, when per-class thresholds are chosen on the calibration split, then tier P hornet precision on the test split is reported against the 0.70 target"
+      - "Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s"
+      - "Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported"
+    docs: [docs/03-vision/07-results.md, docs/03-vision/05-training-and-evaluation.md]
+    subtasks:
+      - {summary: "Capture empty-board backgrounds with the mounted camera", assignee: ricardo, hours: 2, status: To Do}
+      - {summary: "Generator v0.4: tier C backgrounds, wasp negatives", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "Review calib hornet false positives and mine hard negatives", assignee: adrien, hours: 3, status: To Do}
+      - {summary: "Train v0.4 and 416 px trial; estimate latency", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "Per-class thresholds on calib; Varroa threshold at realistic prevalence", assignee: diego, hours: 3, status: To Do}
+      - {summary: "Tier P test, results document update, release v0.4", assignee: adrien, hours: 2, status: To Do}

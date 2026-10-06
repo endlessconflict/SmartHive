@@ -2,15 +2,15 @@
 
 Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Edit the YAML, not this file.
 
-42 stories and tasks, 106 sub-tasks, 223 story points (42 done).
+44 stories and tasks, 119 sub-tasks, 236 story points (47 done).
 
 ## Sprints
 
 | Sprint | Dates | Goal | Points | Done |
 |---|---|---|---|---|
-| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 42 | 42 |
+| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 47 | 47 |
 | SH Sprint 4 | 2026-10-12 to 2026-10-25 | Contracts frozen, Compose stack up, camera chosen, client interview done | 30 | 0 |
-| SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 33 | 0 |
+| SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 41 | 0 |
 | SH Sprint 6 | 2026-11-09 to 2026-11-22 | Vision on the node: detections become events | 27 | 0 |
 | SH Sprint 7 | 2026-11-23 to 2026-12-06 | Alerts: a hornet in front of the camera becomes an email | 31 | 0 |
 | SH Sprint 8 | 2026-12-07 to 2026-12-20 | Intelligence: anomaly detection on synthetic telemetry, Varroa index in the UI | 28 | 0 |
@@ -23,7 +23,7 @@ Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Ed
 |---|---|---|---|---|---|---|---|---|
 | James Tack | 3 |  | 10 |  | 8 |  | 3 |  |
 | Ricardo Villarreal |  | 6 | 10 | 13 |  | 13 |  | 5 |
-| Adrien Cubilla | 31 | 3 |  | 11 | 13 |  |  | 8 |
+| Adrien Cubilla | 36 | 3 | 8 | 11 | 13 |  |  | 8 |
 | Diego Alejandro Vasquez | 8 |  |  |  |  | 13 | 14 |  |
 | Karen Jimenez |  | 10 | 5 |  | 5 |  |  |  |
 | Maria de los Angeles Agudelo |  | 11 | 8 | 3 | 5 | 2 | 2 |  |
@@ -307,7 +307,7 @@ Evidence: [vision/pipeline.py](../../vision/pipeline.py), [docs/03-vision/07-res
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| US09.1 Train stage 2 classifier on synthetic crops (v0.1) | Adrien Cubilla | 3 | Done |
+| US09.1 Train stage 2 classifier on hybrid synthetic crops (v0.2) | Adrien Cubilla | 3 | Done |
 | US09.2 Varroa index with Wilson interval in the aggregator | Adrien Cubilla | 2 | Done |
 | US09.3 Evaluate on public Varroa crops (VarroaDataset) when downloaded | Adrien Cubilla | 3 | To Do |
 | US09.4 Bee tracking across frames to count individuals (v2) | Adrien Cubilla | 8 | To Do |
@@ -330,7 +330,7 @@ Evidence: [vision/train.py](../../vision/train.py), [vision/eval_real.py](../../
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| US10.1 Train stage 1 detector on synthetic scenes (iterations v0.1+) | Adrien Cubilla | 6 | Done |
+| US10.1 Train stage 1 detector on synthetic scenes (iterations v0.1 to v0.3) | Adrien Cubilla | 6 | Done |
 | US10.2 Tier P evaluation script and report | Adrien Cubilla | 3 | Done |
 | US10.3 k-of-n aggregator with self-check | Adrien Cubilla | 2 | Done |
 | US10.4 Raise SHB tier P coverage (more photos, field captures) | Adrien Cubilla | 4 | To Do |
@@ -595,6 +595,8 @@ Owner: Diego Alejandro Vasquez. Component: `simulation`.
 | [EN-05](#en-05) | Story | Real-image check set (tier P) from the iNaturalist Open Dataset | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-06](#en-06) | Task | Dataset versioning with DVC and dataset cards | 3 | Sprint 4 | Maria de los Angeles Agudelo | To Do |
 | [EN-10](#en-10) | Story | Hybrid sprite library with real-photo cutouts (vision iteration v0.2) | 5 | Sprint 3 | Adrien Cubilla | Done |
+| [EN-11](#en-11) | Story | Vision iteration v0.3 (distractors), model release v0.2 and per-tier results report | 5 | Sprint 3 | Adrien Cubilla | Done |
+| [EN-12](#en-12) | Story | Vision iteration v0.4 (real backgrounds, hornet versus wasp, thresholds) | 8 | Sprint 5 | Adrien Cubilla | To Do |
 
 ### EN-01
 
@@ -774,6 +776,58 @@ Evidence: [simulation/images/cutouts.py](../../simulation/images/cutouts.py), [s
 | EN-10.3 Compositor: hybrid library, mites on real bees, random-texture backgrounds | Adrien Cubilla | 3 | Done |
 | EN-10.4 Retrain and compare on tier P calibration split | Adrien Cubilla | 3 | Done |
 
+### EN-11
+
+**Vision iteration v0.3 (distractors), model release v0.2 and per-tier results report** (Story, High, 5 pts, SH Sprint 3, Adrien Cubilla, Done)
+
+> As the vision team, we need real wasps, flies and bumblebees to stop being called hornets so that hornet alerts can be trusted.
+
+Acceptance criteria:
+
+1. Given a second iNaturalist pool disjoint from tier P and from the first pool, when cutouts are extracted, then real 'other' insects at least double (147 to 339)
+2. Given v0.3 data, when stage 1 is fine-tuned from v0.2, then tier P calibration accuracy and the hornet false-positive count on real 'other' photos are compared with v0.2 (result: no gain, hornet false positives rose, v0.3 recorded as a negative result)
+3. Given the chosen model (v0.2), when the frozen tier P test split is opened once, then its numbers are reported in the results document next to tier S, the system-level test and the latency estimate
+4. Given the release, when published under models/v0.2, then it has a model card, checksums and the attribution list of the real photos
+
+Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.2/MODEL_CARD.md](../../models/v0.2/MODEL_CARD.md)
+
+Evidence: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.2/MODEL_CARD.md](../../models/v0.2/MODEL_CARD.md)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-11.1 Second disjoint pool (2,100 photos) and cutouts v2 | Adrien Cubilla | 2 | Done |
+| EN-11.2 Generator v0.3: more distractors per scene, several cutout folders | Adrien Cubilla | 1 | Done |
+| EN-11.3 Fine-tune from v0.2 and compare on tier P calib | Adrien Cubilla | 2 | Done |
+| EN-11.4 Final tier P test, system-level test, latency estimate, results document | Adrien Cubilla | 3 | Done |
+| EN-11.5 Package ncnn release v0.2: model card, SHA256SUMS, attribution | Adrien Cubilla | 1 | Done |
+
+### EN-12
+
+**Vision iteration v0.4 (real backgrounds, hornet versus wasp, thresholds)** (Story, High, 8 pts, SH Sprint 5, Adrien Cubilla, To Do)
+
+> As the vision team, we need the detector trained on our own board and tuned against real wasps so that hornet alerts reach the 0.70 precision target before the field test.
+
+Acceptance criteria:
+
+1. Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then generator v0.4 places insects on them with the camera's measured px/mm
+2. Given the tier P calibration photos that v0.2 calls hornet, when reviewed, then their insect groups are added to the generator as other_insect and as hard negatives (test split never used)
+3. Given model v0.4, when per-class thresholds are chosen on the calibration split, then tier P hornet precision on the test split is reported against the 0.70 target
+4. Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s
+5. Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported
+
+Blocked by: [HW-01](#hw-01)
+
+Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [docs/03-vision/05-training-and-evaluation.md](../../docs/03-vision/05-training-and-evaluation.md)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-12.1 Capture empty-board backgrounds with the mounted camera | Ricardo Villarreal | 2 | To Do |
+| EN-12.2 Generator v0.4: tier C backgrounds, wasp negatives | Adrien Cubilla | 4 | To Do |
+| EN-12.3 Review calib hornet false positives and mine hard negatives | Adrien Cubilla | 3 | To Do |
+| EN-12.4 Train v0.4 and 416 px trial; estimate latency | Adrien Cubilla | 4 | To Do |
+| EN-12.5 Per-class thresholds on calib; Varroa threshold at realistic prevalence | Diego Alejandro Vasquez | 3 | To Do |
+| EN-12.6 Tier P test, results document update, release v0.4 | Adrien Cubilla | 2 | To Do |
+
 ## E6 Backend platform & DevOps
 
 Enablers for every user-facing story: message contract, Compose stack, database, CI.
@@ -784,7 +838,7 @@ Owner: James Tack. Component: `backend`.
 |---|---|---|---|---|---|---|
 | [EN-07](#en-07) | Story | Freeze messaging contract v1 (JSON Schemas + contract tests) | 5 | Sprint 4 | Karen Jimenez | To Do |
 | [EN-08](#en-08) | Story | Docker Compose stack v1 (broker, database, API) | 5 | Sprint 4 | Maria de los Angeles Agudelo | To Do |
-| [EN-09](#en-09) | Task | CI pipeline (lint, tests, contracts) | 3 | Sprint 4 | Maria de los Angeles Agudelo | To Do |
+| [EN-09](#en-09) | Task | CI pipeline (lint, tests, contracts) | 3 | Sprint 4 | Maria de los Angeles Agudelo | In Progress |
 
 ### EN-07
 
@@ -823,19 +877,24 @@ Design: [docs/05-backend/08-deployment-and-operations.md](../../docs/05-backend/
 
 ### EN-09
 
-**CI pipeline (lint, tests, contracts)** (Task, High, 3 pts, SH Sprint 4, Maria de los Angeles Agudelo, To Do)
+**CI pipeline (lint, tests, contracts)** (Task, High, 3 pts, SH Sprint 4, Maria de los Angeles Agudelo, In Progress)
 
 > As developers, we need CI on every pull request so that main always works.
 
 Acceptance criteria:
 
 1. Given a pull request, when CI runs, then ruff, pytest (simulation tests included) and contract validation must pass
+2. Given backlog.yaml, when it changes, then CI fails unless the generated Jira files were rebuilt
 
 Design: [docs/05-backend/08-deployment-and-operations.md](../../docs/05-backend/08-deployment-and-operations.md)
 
+Evidence: [.github/workflows/tests.yml](../../.github/workflows/tests.yml)
+
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| EN-09.1 GitHub Actions workflow with Python cache | Maria de los Angeles Agudelo | 3 | To Do |
+| EN-09.1 GitHub Actions workflow: simulation tests, pipeline self-check, Jira build check (green) | Maria de los Angeles Agudelo | 3 | Done |
+| EN-09.2 Add ruff lint and format check | Maria de los Angeles Agudelo | 1 | To Do |
+| EN-09.3 Add contract validation once infra/contracts exists (EN-07) | Karen Jimenez | 1 | To Do |
 
 ## E7 Project foundations
 
