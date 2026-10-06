@@ -46,3 +46,6 @@ mlruns/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Model weights downloaded by tools (YOLOE text encoder, SAM, ...)
+mobileclip*.ts

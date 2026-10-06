@@ -371,7 +371,7 @@ stories:
     story: "As a beekeeper, I want the system to automatically identify Varroa mites on returning bees so that I can start treatment before the infestation spreads."
     priority: Highest
     points: 13
-    sprint: SH Sprint 6
+    sprint: SH Sprint 7
     assignee: adrien
     components: [vision, edge]
     labels: [varroa, model]
@@ -417,7 +417,7 @@ stories:
     priority: High
     points: 8
     sprint: SH Sprint 6
-    assignee: adrien
+    assignee: ricardo
     components: [vision, edge]
     labels: [edge-ai, ncnn]
     status: In Progress
@@ -817,3 +817,104 @@ stories:
       - "Given the end of a flow and stores above the reserve, when the rule runs, then a harvest recommendation appears, checked against simulated harvest events"
     subtasks:
       - {summary: "Rule and evaluation on simulated harvest events", assignee: diego, hours: 3, status: To Do}
+
+  # ---------------------------------------------------------------- added at Sprint 3 review
+  - id: EN-10
+    epic: E5
+    type: Story
+    summary: Hybrid sprite library with real-photo cutouts (vision iteration v0.2)
+    story: "As the vision team, we need real insect appearance in the training scenes so that the detector recognizes real bees and hornets, not only drawn ones."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [simulation, vision]
+    labels: [synthetic-data, sim-to-real]
+    status: Done
+    ac:
+      - "Given an iNaturalist asset pool disjoint from the tier P split (checked: zero overlap), when cutouts are extracted, then each has a mask from SAM 2.1 tiny, a YOLOE text-prompted box and its license and source"
+      - "Given real bee cutouts, when used in scenes, then 45 % carry procedural mites so stage 2 cannot learn 'real-looking bee means clean'"
+      - "Given generator v0.2 and model v0.2, when evaluated on the tier P calibration split, then accuracy is compared with v0.1 in the results document"
+    docs: [docs/03-vision/07-results.md, docs/03-vision/03-synthetic-image-pipeline.md]
+    evidence: [simulation/images/cutouts.py, simulation/images/compose.py]
+    subtasks:
+      - {summary: "Disjoint asset pool download (600 per class)", assignee: adrien, hours: 1, status: Done}
+      - {summary: "YOLOE + SAM 2.1 cutout extraction with shape filters", assignee: adrien, hours: 4, status: Done}
+      - {summary: "Compositor: hybrid library, mites on real bees, random-texture backgrounds", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Retrain and compare on tier P calibration split", assignee: adrien, hours: 3, status: Done}
+  - id: HW-02
+    epic: E1
+    type: Task
+    summary: Power feed for the demo and measured power budget
+    story: "As the team, we need the node powered for days and its real consumption measured so that the autonomy requirement can be set with numbers."
+    priority: High
+    points: 5
+    sprint: SH Sprint 5
+    assignee: ricardo
+    components: [hardware]
+    labels: [power]
+    status: To Do
+    ac:
+      - "Given an INA219 or USB meter, when the full software runs for 24 h, then idle, motion, detector and night-mode consumption replace the estimates in the power budget"
+      - "Given a passive PoE feed over the existing Ethernet cable, when the battery is the backup, then the node runs for 48 h without intervention"
+    docs: [docs/02-hardware/power-budget.md]
+    subtasks:
+      - {summary: "Wire INA219 on I2C and log consumption", assignee: ricardo, hours: 4, status: To Do}
+      - {summary: "Passive PoE injector/splitter into the buck input", assignee: ricardo, hours: 3, status: To Do}
+      - {summary: "Update power budget with measured numbers", assignee: ricardo, hours: 2, status: To Do}
+  - id: HW-03
+    epic: E1
+    type: Task
+    summary: Weatherproof enclosure and sensor cabling
+    story: "As the team, we need an enclosure that keeps the node dry, cool enough and away from propolis so that it survives outdoors (NFR-03, NFR-04, NFR-07)."
+    priority: Medium
+    points: 5
+    sprint: SH Sprint 8
+    assignee: ricardo
+    components: [hardware]
+    labels: [enclosure]
+    status: To Do
+    ac:
+      - "Given 30 min of detector duty in the sun, when SoC temperature is logged, then it stays below the 80 C throttling point"
+      - "Given the DHT11 on a cable in the brood nest, when installed, then it is away from the Pi's heat and protected from propolis"
+    docs: [docs/02-hardware/hardware-review-notes.md]
+    subtasks:
+      - {summary: "Enclosure with ventilation and shade hood", assignee: ricardo, hours: 5, status: To Do}
+      - {summary: "Thermal test in the sun", assignee: ricardo, hours: 2, status: To Do}
+  - id: HW-04
+    epic: E1
+    type: Task
+    summary: Field installation and 48 h soak test
+    story: "As the team, we need the complete node running on a real (or simulated) hive for two days so that the demo is not its first run (REQ-15)."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 10
+    assignee: ricardo
+    components: [hardware, edge]
+    labels: [demo]
+    status: To Do
+    ac:
+      - "Given the installed node, when 48 h pass, then telemetry, events and images reach the server with no unexplained gaps"
+    subtasks:
+      - {summary: "Install and run 48 h", assignee: ricardo, hours: 6, status: To Do}
+      - {summary: "Collect tier F frames for the final evaluation", assignee: adrien, hours: 3, status: To Do}
+  - id: PM-05
+    epic: E7
+    type: Task
+    summary: Final demo and evaluation report per data tier
+    story: "As the team, we need a demo script and a report that states what works on synthetic, public and field data so that the evaluation is honest."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 10
+    assignee: adrien
+    components: [docs]
+    labels: [demo, report]
+    status: To Do
+    ac:
+      - "Given the report, when read, then every metric names its tier (S, P, C, F) and the domain gap is stated"
+      - "Given the demo, when run, then node (or simulator) to server to dashboard to alert works live"
+    docs: [docs/03-vision/07-results.md]
+    subtasks:
+      - {summary: "Demo script and demo_day scenario rehearsal", assignee: maria, hours: 4, status: To Do}
+      - {summary: "Evaluation report (vision, telemetry models)", assignee: adrien, hours: 6, status: To Do}
+      - {summary: "Time-series results section", assignee: diego, hours: 3, status: To Do}

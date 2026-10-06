@@ -47,9 +47,9 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,Adrien Cubilla,docs,,documentation,,,5,SH Sprint 3,,Project foundations,43200,,,
-46,8,Sub-task,"[PM-01.1] Translate and migrate design document, epics, elicitation matrix","Sub-task of PM-01: Repository structure, contribution rules and documentation set.",High,Done,Adrien Cubilla,docs,,documentation,,,,SH Sprint 3,,,21600,,,
-47,8,Sub-task,"[PM-01.2] README, CONTRIBUTING, issue and PR templates","Sub-task of PM-01: Repository structure, contribution rules and documentation set.",High,Done,Maria de los Angeles Agudelo,docs,,documentation,,,,SH Sprint 3,,,10800,,,
-48,8,Sub-task,"[PM-01.3] Docs index, glossary, risk register, way of working","Sub-task of PM-01: Repository structure, contribution rules and documentation set.",High,Done,Diego Alejandro Vasquez,docs,,documentation,,,,SH Sprint 3,,,10800,,,
+51,8,Sub-task,"[PM-01.1] Translate and migrate design document, epics, elicitation matrix","Sub-task of PM-01: Repository structure, contribution rules and documentation set.",High,Done,Adrien Cubilla,docs,,documentation,,,,SH Sprint 3,,,21600,,,
+52,8,Sub-task,"[PM-01.2] README, CONTRIBUTING, issue and PR templates","Sub-task of PM-01: Repository structure, contribution rules and documentation set.",High,Done,Maria de los Angeles Agudelo,docs,,documentation,,,,SH Sprint 3,,,10800,,,
+53,8,Sub-task,"[PM-01.3] Docs index, glossary, risk register, way of working","Sub-task of PM-01: Repository structure, contribution rules and documentation set.",High,Done,Diego Alejandro Vasquez,docs,,documentation,,,,SH Sprint 3,,,10800,,,
 9,7,Task,[PM-02] Architecture decision records 0001 to 0008,"h3. User story
 As a team, we need our expensive-to-reverse decisions written down with alternatives so that nobody reopens them by accident.
 
@@ -64,8 +64,8 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,James Tack,docs,,architecture,,,3,SH Sprint 3,,Project foundations,21600,,,
-49,9,Sub-task,[PM-02.1] Write ADR-0001 to ADR-0007,Sub-task of PM-02: Architecture decision records 0001 to 0008.,High,Done,James Tack,docs,,architecture,,,,SH Sprint 3,,,14400,,,
-50,9,Sub-task,[PM-02.2] Decide ADR-0008 (detector framework and repository license) with benchmark numbers,Sub-task of PM-02: Architecture decision records 0001 to 0008.,High,Done,Adrien Cubilla,docs,,architecture,,,,SH Sprint 3,,,7200,,,
+54,9,Sub-task,[PM-02.1] Write ADR-0001 to ADR-0007,Sub-task of PM-02: Architecture decision records 0001 to 0008.,High,Done,James Tack,docs,,architecture,,,,SH Sprint 3,,,14400,,,
+55,9,Sub-task,[PM-02.2] Decide ADR-0008 (detector framework and repository license) with benchmark numbers,Sub-task of PM-02: Architecture decision records 0001 to 0008.,High,Done,Adrien Cubilla,docs,,architecture,,,,SH Sprint 3,,,7200,,,
 10,7,Task,[PM-03] Client interview with the 30 elicitation questions,"h3. User story
 As the product owner, I need the client's answers to the elicitation matrix so that working assumptions become requirements.
 
@@ -78,9 +78,9 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Adrien Cubilla,docs,,requirements,client,,3,SH Sprint 4,,Project foundations,25200,,,
-51,10,Sub-task,[PM-03.1] Schedule the meeting and send the question list in advance,Sub-task of PM-03: Client interview with the 30 elicitation questions.,Highest,To Do,Adrien Cubilla,docs,,requirements,,,,SH Sprint 4,,,3600,,,
-52,10,Sub-task,[PM-03.2] Run the interview and fill the interview log,Sub-task of PM-03: Client interview with the 30 elicitation questions.,Highest,To Do,Adrien Cubilla,docs,,requirements,,,,SH Sprint 4,,,10800,,,
-53,10,Sub-task,"[PM-03.3] Propagate answers to docs (thresholds, retention, channels, demo scope)",Sub-task of PM-03: Client interview with the 30 elicitation questions.,Highest,To Do,Diego Alejandro Vasquez,docs,,requirements,,,,SH Sprint 4,,,10800,,,
+56,10,Sub-task,[PM-03.1] Schedule the meeting and send the question list in advance,Sub-task of PM-03: Client interview with the 30 elicitation questions.,Highest,To Do,Adrien Cubilla,docs,,requirements,,,,SH Sprint 4,,,3600,,,
+57,10,Sub-task,[PM-03.2] Run the interview and fill the interview log,Sub-task of PM-03: Client interview with the 30 elicitation questions.,Highest,To Do,Adrien Cubilla,docs,,requirements,,,,SH Sprint 4,,,10800,,,
+58,10,Sub-task,"[PM-03.3] Propagate answers to docs (thresholds, retention, channels, demo scope)",Sub-task of PM-03: Client interview with the 30 elicitation questions.,Highest,To Do,Diego Alejandro Vasquez,docs,,requirements,,,,SH Sprint 4,,,10800,,,
 11,7,Task,[PM-04] Align presentation and spreadsheet backlog with the Pi 3B design,"h3. User story
 As a team, we need the presentation and backlog to describe the same node as the electrical design so that reviewers are not confused.
 
@@ -93,8 +93,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Ricardo Villarreal,docs,hardware,consistency,,,1,SH Sprint 4,,Project foundations,7200,,,
-54,11,Sub-task,"[PM-04.1] Update slides 8 and 9 (system design, technologies)",Sub-task of PM-04: Align presentation and spreadsheet backlog with the Pi 3B design.,Medium,To Do,Ricardo Villarreal,docs,,consistency,,,,SH Sprint 4,,,3600,,,
-55,11,Sub-task,[PM-04.2] Renumber spreadsheet stories to US01-US22 and add EN items,Sub-task of PM-04: Align presentation and spreadsheet backlog with the Pi 3B design.,Medium,To Do,Diego Alejandro Vasquez,docs,,consistency,,,,SH Sprint 4,,,3600,,,
+59,11,Sub-task,"[PM-04.1] Update slides 8 and 9 (system design, technologies)",Sub-task of PM-04: Align presentation and spreadsheet backlog with the Pi 3B design.,Medium,To Do,Ricardo Villarreal,docs,,consistency,,,,SH Sprint 4,,,3600,,,
+60,11,Sub-task,[PM-04.2] Renumber spreadsheet stories to US01-US22 and add EN items,Sub-task of PM-04: Align presentation and spreadsheet backlog with the Pi 3B design.,Medium,To Do,Diego Alejandro Vasquez,docs,,consistency,,,,SH Sprint 4,,,3600,,,
 12,5,Story,[EN-01] Hive telemetry simulator v1 with stylized-fact tests,"h3. User story
 As the ML and backend teams, we need realistic simulated hive telemetry with labeled events so that we can build and test models and the dashboard without client data.
 
@@ -115,12 +115,12 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,telemetry,,8,SH Sprint 3,,Synthetic data platform,86400,,,
-56,12,Sub-task,"[EN-01.1] Weather, bloom and flight model",Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
-57,12,Sub-task,"[EN-01.2] Colony, foraging, weight, temperature and humidity models",Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,28800,,,
-58,12,Sub-task,[EN-01.3] Colony and management events with labels,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
-59,12,Sub-task,[EN-01.4] DHT11/HX711 and node outage/clock model,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Ricardo Villarreal,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
-60,12,Sub-task,[EN-01.5] Stylized-fact tests and seed sweep,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
-61,12,Sub-task,[EN-01.6] Scenario files and docs figure,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,7200,,,
+61,12,Sub-task,"[EN-01.1] Weather, bloom and flight model",Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
+62,12,Sub-task,"[EN-01.2] Colony, foraging, weight, temperature and humidity models",Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,28800,,,
+63,12,Sub-task,[EN-01.3] Colony and management events with labels,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
+64,12,Sub-task,[EN-01.4] DHT11/HX711 and node outage/clock model,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Ricardo Villarreal,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
+65,12,Sub-task,[EN-01.5] Stylized-fact tests and seed sweep,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
+66,12,Sub-task,[EN-01.6] Scenario files and docs figure,Sub-task of EN-01: Hive telemetry simulator v1 with stylized-fact tests.,Highest,Done,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 3,,,7200,,,
 13,5,Story,[EN-01b] Calibrate the telemetry simulator against real hive series,"h3. User story
 As the ML team, we need the simulator's parameter ranges checked against real measurements so that models trained on it transfer to a real hive.
 
@@ -133,9 +133,9 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Diego Alejandro Vasquez,simulation,ml,synthetic-data,calibration,,5,SH Sprint 8,,Synthetic data platform,36000,,,
-62,13,Sub-task,[EN-01b.1] Download MSPB on a machine with Zenodo access; compute summary statistics,Sub-task of EN-01b: Calibrate the telemetry simulator against real hive series.,Medium,To Do,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 8,,,14400,,,
-63,13,Sub-task,[EN-01b.2] Optional Open-Meteo history provider with Parquet cache,Sub-task of EN-01b: Calibrate the telemetry simulator against real hive series.,Medium,To Do,James Tack,simulation,,synthetic-data,,,,SH Sprint 8,,,10800,,,
-64,13,Sub-task,[EN-01b.3] Tighten parameter ranges and record before/after in the doc,Sub-task of EN-01b: Calibrate the telemetry simulator against real hive series.,Medium,To Do,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 8,,,10800,,,
+67,13,Sub-task,[EN-01b.1] Download MSPB on a machine with Zenodo access; compute summary statistics,Sub-task of EN-01b: Calibrate the telemetry simulator against real hive series.,Medium,To Do,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 8,,,14400,,,
+68,13,Sub-task,[EN-01b.2] Optional Open-Meteo history provider with Parquet cache,Sub-task of EN-01b: Calibrate the telemetry simulator against real hive series.,Medium,To Do,James Tack,simulation,,synthetic-data,,,,SH Sprint 8,,,10800,,,
+69,13,Sub-task,[EN-01b.3] Tighten parameter ranges and record before/after in the doc,Sub-task of EN-01b: Calibrate the telemetry simulator against real hive series.,Medium,To Do,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 8,,,10800,,,
 14,5,Story,[EN-02] MQTT replay of simulated hives (fake nodes),"h3. User story
 As the backend and frontend developers, we want simulated hives to publish over the real MQTT contract so that we can build and demo the system before the hardware is ready.
 
@@ -153,10 +153,10 @@ EN-07
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,James Tack,simulation,backend,synthetic-data,integration,,5,SH Sprint 5,,Synthetic data platform,46800,35,,
-65,14,Sub-task,[EN-02.1] Replay CLI publishing from Parquet with paho-mqtt,Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,James Tack,simulation,,synthetic-data,,,,SH Sprint 5,,,18000,,,
-66,14,Sub-task,"[EN-02.2] Transport model: duplicates, late batches, reordering",Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,Karen Jimenez,simulation,,synthetic-data,,,,SH Sprint 5,,,10800,,,
-67,14,Sub-task,[EN-02.3] demo_day scenario with scripted events,Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 5,,,10800,,,
-68,14,Sub-task,[EN-02.4] Contract test: replay output validates against JSON Schemas,Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,Karen Jimenez,simulation,,synthetic-data,,,,SH Sprint 5,,,7200,,,
+70,14,Sub-task,[EN-02.1] Replay CLI publishing from Parquet with paho-mqtt,Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,James Tack,simulation,,synthetic-data,,,,SH Sprint 5,,,18000,,,
+71,14,Sub-task,"[EN-02.2] Transport model: duplicates, late batches, reordering",Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,Karen Jimenez,simulation,,synthetic-data,,,,SH Sprint 5,,,10800,,,
+72,14,Sub-task,[EN-02.3] demo_day scenario with scripted events,Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,Diego Alejandro Vasquez,simulation,,synthetic-data,,,,SH Sprint 5,,,10800,,,
+73,14,Sub-task,[EN-02.4] Contract test: replay output validates against JSON Schemas,Sub-task of EN-02: MQTT replay of simulated hives (fake nodes).,High,To Do,Karen Jimenez,simulation,,synthetic-data,,,,SH Sprint 5,,,7200,,,
 15,5,Story,[EN-03] Procedural insect renderer (license-free sprites),"h3. User story
 As the vision team, we need labeled images of bees, Varroa, hornets, beetles and distractors without any licensed photo so that training data is unlimited and free to publish.
 
@@ -174,9 +174,9 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,simulation,vision,synthetic-data,vision,,8,SH Sprint 3,,Synthetic data platform,54000,,,
-69,15,Sub-task,"[EN-03.1] Generic segmented-insect renderer (shading, bands, hair, wings, legs, antennae)",Sub-task of EN-03: Procedural insect renderer (license-free sprites).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,28800,,,
-70,15,Sub-task,"[EN-03.2] Species samplers: bee (incl. Africanized), hornet (velutina, crabro), SHB, fly, ant, wasp, bumblebee",Sub-task of EN-03: Procedural insect renderer (license-free sprites).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
-71,15,Sub-task,[EN-03.3] Varroa sprite and anatomical placement; pollen loads as look-alikes,Sub-task of EN-03: Procedural insect renderer (license-free sprites).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
+74,15,Sub-task,"[EN-03.1] Generic segmented-insect renderer (shading, bands, hair, wings, legs, antennae)",Sub-task of EN-03: Procedural insect renderer (license-free sprites).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,28800,,,
+75,15,Sub-task,"[EN-03.2] Species samplers: bee (incl. Africanized), hornet (velutina, crabro), SHB, fly, ant, wasp, bumblebee",Sub-task of EN-03: Procedural insect renderer (license-free sprites).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
+76,15,Sub-task,[EN-03.3] Varroa sprite and anatomical placement; pollen loads as look-alikes,Sub-task of EN-03: Procedural insect renderer (license-free sprites).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
 16,5,Story,[EN-04] Entrance scene compositor with exact labels,"h3. User story
 As the vision team, we need full entrance scenes with occlusion-aware boxes and bee crops so that both model stages can be trained.
 
@@ -195,10 +195,10 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,simulation,vision,synthetic-data,vision,,8,SH Sprint 3,,Synthetic data platform,57600,,,
-72,16,Sub-task,"[EN-04.1] Procedural boards: wood, paint, chips, stains, debris, entrance slot",Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
-73,16,Sub-task,"[EN-04.2] Behavioral placement, shadows, lighting, camera model",Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,18000,,,
-74,16,Sub-task,"[EN-04.3] Occlusion-aware labels, stage 1 YOLO export, stage 2 crops, dataset card",Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
-75,16,Sub-task,[EN-04.4] Tier C: replace procedural boards with real board photos from the chosen camera,Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,To Do,Ricardo Villarreal,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
+77,16,Sub-task,"[EN-04.1] Procedural boards: wood, paint, chips, stains, debris, entrance slot",Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
+78,16,Sub-task,"[EN-04.2] Behavioral placement, shadows, lighting, camera model",Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,18000,,,
+79,16,Sub-task,"[EN-04.3] Occlusion-aware labels, stage 1 YOLO export, stage 2 crops, dataset card",Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
+80,16,Sub-task,[EN-04.4] Tier C: replace procedural boards with real board photos from the chosen camera,Sub-task of EN-04: Entrance scene compositor with exact labels.,Highest,To Do,Ricardo Villarreal,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
 17,5,Story,[EN-05] Real-image check set (tier P) from the iNaturalist Open Dataset,"h3. User story
 As the vision team, we need a frozen set of real, openly licensed insect photos so that we can measure how well synthetic training transfers to real images.
 
@@ -216,10 +216,10 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,Adrien Cubilla,vision,,real-data,evaluation,,5,SH Sprint 3,,Synthetic data platform,28800,,,
-76,17,Sub-task,[EN-05.1] Streaming filter over the 4.8 GB metadata archive,Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,Done,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,10800,,,
-77,17,Sub-task,[EN-05.2] Download capped photos per class with manifest,Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,Done,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,3600,,,
-78,17,Sub-task,[EN-05.3] Freeze calib/test split with checksums,Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,Done,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,3600,,,
-79,17,Sub-task,"[EN-05.4] Add the public Varroa datasets (Zenodo, Bilik et al.) from a machine with access",Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,To Do,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,10800,,,
+81,17,Sub-task,[EN-05.1] Streaming filter over the 4.8 GB metadata archive,Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,Done,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,10800,,,
+82,17,Sub-task,[EN-05.2] Download capped photos per class with manifest,Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,Done,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,3600,,,
+83,17,Sub-task,[EN-05.3] Freeze calib/test split with checksums,Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,Done,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,3600,,,
+84,17,Sub-task,"[EN-05.4] Add the public Varroa datasets (Zenodo, Bilik et al.) from a machine with access",Sub-task of EN-05: Real-image check set (tier P) from the iNaturalist Open Dataset.,High,To Do,Adrien Cubilla,vision,,real-data,,,,SH Sprint 3,,,10800,,,
 18,5,Task,[EN-06] Dataset versioning with DVC and dataset cards,"h3. User story
 As a team, we need datasets and weights versioned outside git so that any reported number can be reproduced.
 
@@ -232,8 +232,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Maria de los Angeles Agudelo,infra,simulation,mlops,,,3,SH Sprint 4,,Synthetic data platform,14400,,,
-80,18,Sub-task,"[EN-06.1] dvc init, SSH or folder remote on the gateway PC",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,To Do,Maria de los Angeles Agudelo,infra,,mlops,,,,SH Sprint 4,,,7200,,,
-81,18,Sub-task,"[EN-06.2] Track simulation outputs, tier P split files and released weights",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,To Do,Adrien Cubilla,infra,,mlops,,,,SH Sprint 4,,,7200,,,
+85,18,Sub-task,"[EN-06.1] dvc init, SSH or folder remote on the gateway PC",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,To Do,Maria de los Angeles Agudelo,infra,,mlops,,,,SH Sprint 4,,,7200,,,
+86,18,Sub-task,"[EN-06.2] Track simulation outputs, tier P split files and released weights",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,To Do,Adrien Cubilla,infra,,mlops,,,,SH Sprint 4,,,7200,,,
 19,2,Story,[US07] Periodic hive entrance image capture,"h3. User story
 As a beekeeper, I want the system to capture periodic images of the hive entrance so that bee traffic and potential intruders can be analyzed automatically.
 
@@ -251,9 +251,9 @@ HW-01
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Ricardo Villarreal,edge,hardware,camera,,,5,SH Sprint 6,,Pest & threat detection,32400,,,
-82,19,Sub-task,[US07.1] picamera2 dual stream (or V4L2) capture service,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Ricardo Villarreal,edge,,camera,,,,SH Sprint 6,,,18000,,,
-83,19,Sub-task,[US07.2] Motion gate (vision/pipeline.py MotionGate) wired to capture,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Adrien Cubilla,edge,,camera,,,,SH Sprint 6,,,7200,,,
-84,19,Sub-task,[US07.3] Night mode and periodic sample,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Ricardo Villarreal,edge,,camera,,,,SH Sprint 6,,,7200,,,
+87,19,Sub-task,[US07.1] picamera2 dual stream (or V4L2) capture service,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Ricardo Villarreal,edge,,camera,,,,SH Sprint 6,,,18000,,,
+88,19,Sub-task,[US07.2] Motion gate (vision/pipeline.py MotionGate) wired to capture,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Adrien Cubilla,edge,,camera,,,,SH Sprint 6,,,7200,,,
+89,19,Sub-task,[US07.3] Night mode and periodic sample,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Ricardo Villarreal,edge,,camera,,,,SH Sprint 6,,,7200,,,
 20,2,Story,[US08] Storage optimization based on relevance,"h3. User story
 As a beekeeper, I want the system to store only images where something relevant is detected so that storage is used efficiently.
 
@@ -269,8 +269,8 @@ US11
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Adrien Cubilla,edge,,storage,,,3,SH Sprint 6,,Pest & threat detection,18000,,,
-85,20,Sub-task,[US08.1] Keep/discard rule and tmpfs frame handling,Sub-task of US08: Storage optimization based on relevance.,Medium,To Do,Adrien Cubilla,edge,,storage,,,,SH Sprint 6,,,10800,,,
-86,20,Sub-task,[US08.2] Image table in the outbox with upload state,Sub-task of US08: Storage optimization based on relevance.,Medium,To Do,Karen Jimenez,edge,,storage,,,,SH Sprint 6,,,7200,,,
+90,20,Sub-task,[US08.1] Keep/discard rule and tmpfs frame handling,Sub-task of US08: Storage optimization based on relevance.,Medium,To Do,Adrien Cubilla,edge,,storage,,,,SH Sprint 6,,,10800,,,
+91,20,Sub-task,[US08.2] Image table in the outbox with upload state,Sub-task of US08: Storage optimization based on relevance.,Medium,To Do,Karen Jimenez,edge,,storage,,,,SH Sprint 6,,,7200,,,
 21,2,Story,[US09] Automated Varroa mite detection,"h3. User story
 As a beekeeper, I want the system to automatically identify Varroa mites on returning bees so that I can start treatment before the infestation spreads.
 
@@ -289,11 +289,11 @@ h3. Evidence (done)
 * [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
 
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,In Progress,Adrien Cubilla,vision,edge,varroa,model,,13,SH Sprint 6,,Pest & threat detection,57600,,,
-87,21,Sub-task,[US09.1] Train stage 2 classifier on synthetic crops (v0.1),Sub-task of US09: Automated Varroa mite detection.,Highest,Done,Adrien Cubilla,vision,,varroa,,,,SH Sprint 6,,,10800,,,
-88,21,Sub-task,[US09.2] Varroa index with Wilson interval in the aggregator,Sub-task of US09: Automated Varroa mite detection.,Highest,Done,Adrien Cubilla,vision,,varroa,,,,SH Sprint 6,,,7200,,,
-89,21,Sub-task,[US09.3] Evaluate on public Varroa crops (VarroaDataset) when downloaded,Sub-task of US09: Automated Varroa mite detection.,Highest,To Do,Adrien Cubilla,vision,,varroa,,,,SH Sprint 6,,,10800,,,
-90,21,Sub-task,[US09.4] Bee tracking across frames to count individuals (v2),Sub-task of US09: Automated Varroa mite detection.,Highest,To Do,Adrien Cubilla,vision,,varroa,,,,SH Sprint 6,,,28800,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,In Progress,Adrien Cubilla,vision,edge,varroa,model,,13,SH Sprint 7,,Pest & threat detection,57600,,,
+92,21,Sub-task,[US09.1] Train stage 2 classifier on synthetic crops (v0.1),Sub-task of US09: Automated Varroa mite detection.,Highest,Done,Adrien Cubilla,vision,,varroa,,,,SH Sprint 7,,,10800,,,
+93,21,Sub-task,[US09.2] Varroa index with Wilson interval in the aggregator,Sub-task of US09: Automated Varroa mite detection.,Highest,Done,Adrien Cubilla,vision,,varroa,,,,SH Sprint 7,,,7200,,,
+94,21,Sub-task,[US09.3] Evaluate on public Varroa crops (VarroaDataset) when downloaded,Sub-task of US09: Automated Varroa mite detection.,Highest,To Do,Adrien Cubilla,vision,,varroa,,,,SH Sprint 7,,,10800,,,
+95,21,Sub-task,[US09.4] Bee tracking across frames to count individuals (v2),Sub-task of US09: Automated Varroa mite detection.,Highest,To Do,Adrien Cubilla,vision,,varroa,,,,SH Sprint 7,,,28800,,,
 22,2,Story,[US10] Small hive beetle and Asian hornet detection,"h3. User story
 As a beekeeper, I want the system to detect small hive beetles and Asian hornets at the entrance so that I can intervene before they damage the colony.
 
@@ -313,10 +313,10 @@ h3. Evidence (done)
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,In Progress,Adrien Cubilla,vision,,hornet,shb,model,8,SH Sprint 6,,Pest & threat detection,54000,,,
-91,22,Sub-task,[US10.1] Train stage 1 detector on synthetic scenes (iterations v0.1+),Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,Done,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,21600,,,
-92,22,Sub-task,[US10.2] Tier P evaluation script and report,Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,Done,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,10800,,,
-93,22,Sub-task,[US10.3] k-of-n aggregator with self-check,Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,Done,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,7200,,,
-94,22,Sub-task,"[US10.4] Raise SHB tier P coverage (more photos, field captures)",Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,To Do,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,14400,,,
+96,22,Sub-task,[US10.1] Train stage 1 detector on synthetic scenes (iterations v0.1+),Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,Done,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,21600,,,
+97,22,Sub-task,[US10.2] Tier P evaluation script and report,Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,Done,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,10800,,,
+98,22,Sub-task,[US10.3] k-of-n aggregator with self-check,Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,Done,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,7200,,,
+99,22,Sub-task,"[US10.4] Raise SHB tier P coverage (more photos, field captures)",Sub-task of US10: Small hive beetle and Asian hornet detection.,Highest,To Do,Adrien Cubilla,vision,,hornet,,,,SH Sprint 6,,,14400,,,
 23,2,Story,[US11] Edge AI detection model execution,"h3. User story
 As a beekeeper, I want the pest detection model to run directly on the sensor node so that detections happen even with limited connectivity.
 
@@ -337,11 +337,11 @@ h3. Blocked by
 HW-01
 
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,In Progress,Adrien Cubilla,vision,edge,edge-ai,ncnn,,8,SH Sprint 6,,Pest & threat detection,36000,20,,
-95,23,Sub-task,[US11.1] Export to ncnn and torch-free two-stage pipeline,Sub-task of US11: Edge AI detection model execution.,High,Done,Adrien Cubilla,vision,,edge-ai,,,,SH Sprint 6,,,14400,,,
-96,23,Sub-task,[US11.2] Pi latency estimate anchored to ncnn's published Pi 3B+ benchmarks,Sub-task of US11: Edge AI detection model execution.,High,Done,Adrien Cubilla,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
-97,23,Sub-task,[US11.3] Run vision/bench.py on the real Pi 3B and replace the estimate,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
-98,23,Sub-task,[US11.4] visiond systemd unit with MemoryMax,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,In Progress,Ricardo Villarreal,vision,edge,edge-ai,ncnn,,8,SH Sprint 6,,Pest & threat detection,36000,20,,
+100,23,Sub-task,[US11.1] Export to ncnn and torch-free two-stage pipeline,Sub-task of US11: Edge AI detection model execution.,High,Done,Adrien Cubilla,vision,,edge-ai,,,,SH Sprint 6,,,14400,,,
+101,23,Sub-task,[US11.2] Pi latency estimate anchored to ncnn's published Pi 3B+ benchmarks,Sub-task of US11: Edge AI detection model execution.,High,Done,Adrien Cubilla,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
+102,23,Sub-task,[US11.3] Run vision/bench.py on the real Pi 3B and replace the estimate,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
+103,23,Sub-task,[US11.4] visiond systemd unit with MemoryMax,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
 24,2,Story,[US12] Multi-channel threat & pest notifications,"h3. User story
 As a beekeeper, I want to receive an in-app and email alert when a pest or intruder is detected so that I can act quickly without constantly checking the dashboard.
 
@@ -358,9 +358,9 @@ EN-07, EN-08
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,James Tack,backend,frontend,alerts,,,8,SH Sprint 7,,Pest & threat detection,50400,36,,
-99,24,Sub-task,[US12.1] Event rules and alert lifecycle in the worker,Sub-task of US12: Multi-channel threat & pest notifications.,Highest,To Do,James Tack,backend,,alerts,,,,SH Sprint 7,,,21600,,,
-100,24,Sub-task,[US12.2] SMTP and in-app channels with retries; Mailpit in dev,Sub-task of US12: Multi-channel threat & pest notifications.,Highest,To Do,James Tack,backend,,alerts,,,,SH Sprint 7,,,14400,,,
-101,24,Sub-task,[US12.3] Notification inbox in the dashboard,Sub-task of US12: Multi-channel threat & pest notifications.,Highest,To Do,Maria de los Angeles Agudelo,backend,,alerts,,,,SH Sprint 7,,,14400,,,
+104,24,Sub-task,[US12.1] Event rules and alert lifecycle in the worker,Sub-task of US12: Multi-channel threat & pest notifications.,Highest,To Do,James Tack,backend,,alerts,,,,SH Sprint 7,,,21600,,,
+105,24,Sub-task,[US12.2] SMTP and in-app channels with retries; Mailpit in dev,Sub-task of US12: Multi-channel threat & pest notifications.,Highest,To Do,James Tack,backend,,alerts,,,,SH Sprint 7,,,14400,,,
+106,24,Sub-task,[US12.3] Notification inbox in the dashboard,Sub-task of US12: Multi-channel threat & pest notifications.,Highest,To Do,Maria de los Angeles Agudelo,backend,,alerts,,,,SH Sprint 7,,,14400,,,
 25,1,Task,"[HW-01] Choose, mount and characterize the entrance camera","h3. User story
 As the team, we need a camera that gives >= 8 px/mm on the landing board so that Varroa is visible to the model.
 
@@ -374,9 +374,9 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Ricardo Villarreal,hardware,,camera,,,5,SH Sprint 4,,Sensor node & IoT connectivity,32400,19,23,
-102,25,Sub-task,[HW-01.1] Select camera (CSI preferred) and lens focus for 10-25 cm,"Sub-task of HW-01: Choose, mount and characterize the entrance camera.",Highest,To Do,Ricardo Villarreal,hardware,,camera,,,,SH Sprint 4,,,10800,,,
-103,25,Sub-task,[HW-01.2] Mount with shade hood; ruler frame; px/mm,"Sub-task of HW-01: Choose, mount and characterize the entrance camera.",Highest,To Do,Ricardo Villarreal,hardware,,camera,,,,SH Sprint 4,,,10800,,,
-104,25,Sub-task,"[HW-01.3] Tier C capture session (backgrounds, gray card)","Sub-task of HW-01: Choose, mount and characterize the entrance camera.",Highest,To Do,Adrien Cubilla,hardware,,camera,,,,SH Sprint 4,,,10800,,,
+107,25,Sub-task,[HW-01.1] Select camera (CSI preferred) and lens focus for 10-25 cm,"Sub-task of HW-01: Choose, mount and characterize the entrance camera.",Highest,To Do,Ricardo Villarreal,hardware,,camera,,,,SH Sprint 4,,,10800,,,
+108,25,Sub-task,[HW-01.2] Mount with shade hood; ruler frame; px/mm,"Sub-task of HW-01: Choose, mount and characterize the entrance camera.",Highest,To Do,Ricardo Villarreal,hardware,,camera,,,,SH Sprint 4,,,10800,,,
+109,25,Sub-task,"[HW-01.3] Tier C capture session (backgrounds, gray card)","Sub-task of HW-01: Choose, mount and characterize the entrance camera.",Highest,To Do,Adrien Cubilla,hardware,,camera,,,,SH Sprint 4,,,10800,,,
 26,1,Story,[US01] Continuous internal temperature and humidity measurement,"h3. User story
 As a beekeeper, I want the hive to continuously measure internal temperature and humidity so that I can monitor environmental conditions remotely.
 
@@ -391,8 +391,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Ricardo Villarreal,edge,hardware,sensors,,,5,SH Sprint 5,,Sensor node & IoT connectivity,21600,,,
-105,26,Sub-task,[US01.1] Kernel IIO driver setup and sensord service,Sub-task of US01: Continuous internal temperature and humidity measurement.,Highest,To Do,Ricardo Villarreal,edge,,sensors,,,,SH Sprint 5,,,14400,,,
-106,26,Sub-task,[US01.2] Fake sensor reading simulator output for tests,Sub-task of US01: Continuous internal temperature and humidity measurement.,Highest,To Do,Diego Alejandro Vasquez,edge,,sensors,,,,SH Sprint 5,,,7200,,,
+110,26,Sub-task,[US01.1] Kernel IIO driver setup and sensord service,Sub-task of US01: Continuous internal temperature and humidity measurement.,Highest,To Do,Ricardo Villarreal,edge,,sensors,,,,SH Sprint 5,,,14400,,,
+111,26,Sub-task,[US01.2] Fake sensor reading simulator output for tests,Sub-task of US01: Continuous internal temperature and humidity measurement.,Highest,To Do,Diego Alejandro Vasquez,edge,,sensors,,,,SH Sprint 5,,,7200,,,
 27,1,Story,[US02] Continuous hive weight measurement,"h3. User story
 As a beekeeper, I want the hive to continuously measure its weight so that I can track nectar accumulation without a physical visit.
 
@@ -405,8 +405,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Ricardo Villarreal,hardware,edge,sensors,weight,,8,SH Sprint 8,,Sensor node & IoT connectivity,28800,,,
-107,27,Sub-task,[US02.1] Wire HX711 and load cell; add to schematic,Sub-task of US02: Continuous hive weight measurement.,High,To Do,Ricardo Villarreal,hardware,,sensors,,,,SH Sprint 8,,,18000,,,
-108,27,Sub-task,[US02.2] Calibration procedure and temperature coefficient measurement,Sub-task of US02: Continuous hive weight measurement.,High,To Do,Ricardo Villarreal,hardware,,sensors,,,,SH Sprint 8,,,10800,,,
+112,27,Sub-task,[US02.1] Wire HX711 and load cell; add to schematic,Sub-task of US02: Continuous hive weight measurement.,High,To Do,Ricardo Villarreal,hardware,,sensors,,,,SH Sprint 8,,,18000,,,
+113,27,Sub-task,[US02.2] Calibration procedure and temperature coefficient measurement,Sub-task of US02: Continuous hive weight measurement.,High,To Do,Ricardo Villarreal,hardware,,sensors,,,,SH Sprint 8,,,10800,,,
 28,1,Story,[US03] Local data storage and offline synchronization,"h3. User story
 As a beekeeper, I want the collected data to be saved locally if the Internet connection is lost, and synchronized once the connection is restored.
 
@@ -420,8 +420,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Karen Jimenez,edge,,store-and-forward,,,5,SH Sprint 5,,Sensor node & IoT connectivity,28800,,,
-109,28,Sub-task,[US03.1] Outbox schema and batching writer,Sub-task of US03: Local data storage and offline synchronization.,High,To Do,Karen Jimenez,edge,,store-and-forward,,,,SH Sprint 5,,,10800,,,
-110,28,Sub-task,[US03.2] uplinkd publish loop with backoff and PUBACK marking,Sub-task of US03: Local data storage and offline synchronization.,High,To Do,Karen Jimenez,edge,,store-and-forward,,,,SH Sprint 5,,,18000,,,
+114,28,Sub-task,[US03.1] Outbox schema and batching writer,Sub-task of US03: Local data storage and offline synchronization.,High,To Do,Karen Jimenez,edge,,store-and-forward,,,,SH Sprint 5,,,10800,,,
+115,28,Sub-task,[US03.2] uplinkd publish loop with backoff and PUBACK marking,Sub-task of US03: Local data storage and offline synchronization.,High,To Do,Karen Jimenez,edge,,store-and-forward,,,,SH Sprint 5,,,18000,,,
 29,1,Story,[US04] Data encryption and in-transit protection,"h3. User story
 As a system administrator, I want hive information to be protected while it travels to the system, so that no one else can see or tamper with it.
 
@@ -435,8 +435,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Karen Jimenez,infra,,security,mqtt,,5,SH Sprint 4,,Sensor node & IoT connectivity,21600,,,
-111,29,Sub-task,[US04.1] Local CA and certificate scripts,Sub-task of US04: Data encryption and in-transit protection.,High,To Do,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
-112,29,Sub-task,"[US04.2] Mosquitto TLS, password file and pattern ACLs",Sub-task of US04: Data encryption and in-transit protection.,High,To Do,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
+116,29,Sub-task,[US04.1] Local CA and certificate scripts,Sub-task of US04: Data encryption and in-transit protection.,High,To Do,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
+117,29,Sub-task,"[US04.2] Mosquitto TLS, password file and pattern ACLs",Sub-task of US04: Data encryption and in-transit protection.,High,To Do,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
 30,1,Story,[US05] Centralized data synchronization,"h3. User story
 As a system administrator, I want all hive information to arrive at one central place, so that every part of the system uses the same, consistent data.
 
@@ -452,8 +452,8 @@ EN-07, EN-08
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,James Tack,backend,,ingestion,,,5,SH Sprint 5,,Sensor node & IoT connectivity,32400,,,
-113,30,Sub-task,[US05.1] Ingestor with schema validation and idempotent inserts,Sub-task of US05: Centralized data synchronization.,High,To Do,James Tack,backend,,ingestion,,,,SH Sprint 5,,,21600,,,
-114,30,Sub-task,[US05.2] Integration test with Testcontainers,Sub-task of US05: Centralized data synchronization.,High,To Do,James Tack,backend,,ingestion,,,,SH Sprint 5,,,10800,,,
+118,30,Sub-task,[US05.1] Ingestor with schema validation and idempotent inserts,Sub-task of US05: Centralized data synchronization.,High,To Do,James Tack,backend,,ingestion,,,,SH Sprint 5,,,21600,,,
+119,30,Sub-task,[US05.2] Integration test with Testcontainers,Sub-task of US05: Centralized data synchronization.,High,To Do,James Tack,backend,,ingestion,,,,SH Sprint 5,,,10800,,,
 31,1,Story,[US06] Device connection loss and power alert,"h3. User story
 As a beekeeper, I want to be warned when a hive stops sending information, so that I can check whether the device has run out of power or lost its connection.
 
@@ -467,8 +467,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Karen Jimenez,backend,hardware,alerts,power,,5,SH Sprint 7,,Sensor node & IoT connectivity,25200,,,
-115,31,Sub-task,[US06.1] Last will + heartbeat timeout rule,Sub-task of US06: Device connection loss and power alert.,Medium,To Do,James Tack,backend,,alerts,,,,SH Sprint 7,,,10800,,,
-116,31,Sub-task,[US06.2] INA219 battery monitor and health field,Sub-task of US06: Device connection loss and power alert.,Medium,To Do,Ricardo Villarreal,backend,,alerts,,,,SH Sprint 7,,,14400,,,
+120,31,Sub-task,[US06.1] Last will + heartbeat timeout rule,Sub-task of US06: Device connection loss and power alert.,Medium,To Do,James Tack,backend,,alerts,,,,SH Sprint 7,,,10800,,,
+121,31,Sub-task,[US06.2] INA219 battery monitor and health field,Sub-task of US06: Device connection loss and power alert.,Medium,To Do,Ricardo Villarreal,backend,,alerts,,,,SH Sprint 7,,,14400,,,
 32,6,Story,[EN-07] Freeze messaging contract v1 (JSON Schemas + contract tests),"h3. User story
 As every team, we need the MQTT payloads frozen as JSON Schemas so that node, simulator and backend can be built in parallel.
 
@@ -481,8 +481,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Karen Jimenez,infra,,contract,mqtt,,5,SH Sprint 4,,Backend platform & DevOps,28800,14,24,30
-117,32,Sub-task,"[EN-07.1] Schemas: telemetry, event, summary, health, status, config, cmd",Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,To Do,Karen Jimenez,infra,,contract,,,,SH Sprint 4,,,18000,,,
-118,32,Sub-task,[EN-07.2] Generated Pydantic models and CI validation job,Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,To Do,James Tack,infra,,contract,,,,SH Sprint 4,,,10800,,,
+122,32,Sub-task,"[EN-07.1] Schemas: telemetry, event, summary, health, status, config, cmd",Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,To Do,Karen Jimenez,infra,,contract,,,,SH Sprint 4,,,18000,,,
+123,32,Sub-task,[EN-07.2] Generated Pydantic models and CI validation job,Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,To Do,James Tack,infra,,contract,,,,SH Sprint 4,,,10800,,,
 33,6,Story,"[EN-08] Docker Compose stack v1 (broker, database, API)","h3. User story
 As developers, we need one command that starts the server side so that everyone runs the same stack.
 
@@ -494,8 +494,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Maria de los Angeles Agudelo,infra,,devops,,,5,SH Sprint 4,,Backend platform & DevOps,28800,24,30,
-119,33,Sub-task,[EN-08.1] Compose file with profiles and health checks,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,To Do,Maria de los Angeles Agudelo,infra,,devops,,,,SH Sprint 4,,,14400,,,
-120,33,Sub-task,[EN-08.2] Alembic baseline migration from the data model,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,To Do,James Tack,infra,,devops,,,,SH Sprint 4,,,14400,,,
+124,33,Sub-task,[EN-08.1] Compose file with profiles and health checks,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,To Do,Maria de los Angeles Agudelo,infra,,devops,,,,SH Sprint 4,,,14400,,,
+125,33,Sub-task,[EN-08.2] Alembic baseline migration from the data model,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,To Do,James Tack,infra,,devops,,,,SH Sprint 4,,,14400,,,
 34,6,Task,"[EN-09] CI pipeline (lint, tests, contracts)","h3. User story
 As developers, we need CI on every pull request so that main always works.
 
@@ -507,7 +507,7 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Maria de los Angeles Agudelo,infra,,ci,,,3,SH Sprint 4,,Backend platform & DevOps,10800,,,
-121,34,Sub-task,[EN-09.1] GitHub Actions workflow with Python cache,"Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,To Do,Maria de los Angeles Agudelo,infra,,ci,,,,SH Sprint 4,,,10800,,,
+126,34,Sub-task,[EN-09.1] GitHub Actions workflow with Python cache,"Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,To Do,Maria de los Angeles Agudelo,infra,,ci,,,,SH Sprint 4,,,10800,,,
 35,3,Story,[US13] Historical environmental data & trend view,"h3. User story
 As a beekeeper, I want to see how my hive's conditions have changed over time, so that I can understand how the colony is doing and spot problems early.
 
@@ -523,8 +523,8 @@ EN-02
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Maria de los Angeles Agudelo,frontend,backend,charts,,,8,SH Sprint 5,,Colony dashboard,36000,,,
-122,35,Sub-task,[US13.1] Readings endpoint with time_bucket,Sub-task of US13: Historical environmental data & trend view.,High,To Do,James Tack,frontend,,charts,,,,SH Sprint 5,,,14400,,,
-123,35,Sub-task,[US13.2] Chart view and range picker,Sub-task of US13: Historical environmental data & trend view.,High,To Do,Maria de los Angeles Agudelo,frontend,,charts,,,,SH Sprint 5,,,21600,,,
+127,35,Sub-task,[US13.1] Readings endpoint with time_bucket,Sub-task of US13: Historical environmental data & trend view.,High,To Do,James Tack,frontend,,charts,,,,SH Sprint 5,,,14400,,,
+128,35,Sub-task,[US13.2] Chart view and range picker,Sub-task of US13: Historical environmental data & trend view.,High,To Do,Maria de los Angeles Agudelo,frontend,,charts,,,,SH Sprint 5,,,21600,,,
 36,3,Story,[US14] Alert history and response log,"h3. User story
 As a beekeeper, I want to see the alert history for a colony so that I can review past events and my responses to them.
 
@@ -539,8 +539,8 @@ US12
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Maria de los Angeles Agudelo,frontend,backend,alerts,,,5,SH Sprint 7,,Colony dashboard,25200,,,
-124,36,Sub-task,[US14.1] Alert endpoints and event log,Sub-task of US14: Alert history and response log.,Medium,To Do,James Tack,frontend,,alerts,,,,SH Sprint 7,,,10800,,,
-125,36,Sub-task,[US14.2] Alert history UI,Sub-task of US14: Alert history and response log.,Medium,To Do,Maria de los Angeles Agudelo,frontend,,alerts,,,,SH Sprint 7,,,14400,,,
+129,36,Sub-task,[US14.1] Alert endpoints and event log,Sub-task of US14: Alert history and response log.,Medium,To Do,James Tack,frontend,,alerts,,,,SH Sprint 7,,,10800,,,
+130,36,Sub-task,[US14.2] Alert history UI,Sub-task of US14: Alert history and response log.,Medium,To Do,Maria de los Angeles Agudelo,frontend,,alerts,,,,SH Sprint 7,,,14400,,,
 37,3,Story,[US15] Latest hive entrance camera image view,"h3. User story
 As a beekeeper, I want to see the latest entrance camera image for a colony so that I can visually confirm what the system detected.
 
@@ -553,8 +553,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Maria de los Angeles Agudelo,frontend,backend,images,,,3,SH Sprint 6,,Colony dashboard,25200,,,
-126,37,Sub-task,[US15.1] Image upload endpoint and storage,Sub-task of US15: Latest hive entrance camera image view.,Medium,To Do,James Tack,frontend,,images,,,,SH Sprint 6,,,14400,,,
-127,37,Sub-task,[US15.2] Latest image component with boxes,Sub-task of US15: Latest hive entrance camera image view.,Medium,To Do,Maria de los Angeles Agudelo,frontend,,images,,,,SH Sprint 6,,,10800,,,
+131,37,Sub-task,[US15.1] Image upload endpoint and storage,Sub-task of US15: Latest hive entrance camera image view.,Medium,To Do,James Tack,frontend,,images,,,,SH Sprint 6,,,14400,,,
+132,37,Sub-task,[US15.2] Latest image component with boxes,Sub-task of US15: Latest hive entrance camera image view.,Medium,To Do,Maria de los Angeles Agudelo,frontend,,images,,,,SH Sprint 6,,,10800,,,
 38,3,Story,[US16] Flagging unusual hive behavior patterns,"h3. User story
 As a beekeeper, I want the system to flag unusual hive behavior that does not match any known pattern so that I can investigate even when the cause is not yet identified.
 
@@ -567,9 +567,9 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,8,SH Sprint 8,,Colony dashboard,50400,39,,
-128,38,Sub-task,[US16.1] Daily feature extraction from telemetry,Sub-task of US16: Flagging unusual hive behavior patterns.,Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,,SH Sprint 8,,,14400,,,
-129,38,Sub-task,"[US16.2] Baselines: robust z-scores, seasonal residuals, Isolation Forest",Sub-task of US16: Flagging unusual hive behavior patterns.,Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,,SH Sprint 8,,,21600,,,
-130,38,Sub-task,[US16.3] Event-level evaluation on known vs novel events,Sub-task of US16: Flagging unusual hive behavior patterns.,Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,,SH Sprint 8,,,14400,,,
+133,38,Sub-task,[US16.1] Daily feature extraction from telemetry,Sub-task of US16: Flagging unusual hive behavior patterns.,Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,,SH Sprint 8,,,14400,,,
+134,38,Sub-task,"[US16.2] Baselines: robust z-scores, seasonal residuals, Isolation Forest",Sub-task of US16: Flagging unusual hive behavior patterns.,Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,,SH Sprint 8,,,21600,,,
+135,38,Sub-task,[US16.3] Event-level evaluation on known vs novel events,Sub-task of US16: Flagging unusual hive behavior patterns.,Medium,To Do,Diego Alejandro Vasquez,ml,,anomaly,,,,SH Sprint 8,,,14400,,,
 39,3,Story,[US17] Preventive anomaly dashboard warnings,"h3. User story
 As a beekeeper, I want anomalies to appear in the dashboard as a warning rather than a critical alert so that I can review them without feeling pressured to act immediately.
 
@@ -584,7 +584,7 @@ US16
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Maria de los Angeles Agudelo,frontend,,anomaly,,,2,SH Sprint 8,,Colony dashboard,10800,,,
-131,39,Sub-task,[US17.1] Warning band on charts,Sub-task of US17: Preventive anomaly dashboard warnings.,Medium,To Do,Maria de los Angeles Agudelo,frontend,,anomaly,,,,SH Sprint 8,,,10800,,,
+136,39,Sub-task,[US17.1] Warning band on charts,Sub-task of US17: Preventive anomaly dashboard warnings.,Medium,To Do,Maria de los Angeles Agudelo,frontend,,anomaly,,,,SH Sprint 8,,,10800,,,
 40,4,Story,[US18] 7-day honey production yield estimation,"h3. User story
 As a beekeeper, I want the system to estimate how much honey my hive will produce in the next 7 days so that I can plan my harvest in advance.
 
@@ -596,8 +596,8 @@ h3. Design documents
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Low,To Do,Diego Alejandro Vasquez,ml,,yield,optional,,8,SH Sprint 9,,Honey flow & yield optimization (optional),28800,41,,
-132,40,Sub-task,[US18.1] Label function (net gain excluding management),Sub-task of US18: 7-day honey production yield estimation.,Low,To Do,Diego Alejandro Vasquez,ml,,yield,,,,SH Sprint 9,,,7200,,,
-133,40,Sub-task,[US18.2] Quantile model and baselines,Sub-task of US18: 7-day honey production yield estimation.,Low,To Do,Diego Alejandro Vasquez,ml,,yield,,,,SH Sprint 9,,,21600,,,
+137,40,Sub-task,[US18.1] Label function (net gain excluding management),Sub-task of US18: 7-day honey production yield estimation.,Low,To Do,Diego Alejandro Vasquez,ml,,yield,,,,SH Sprint 9,,,7200,,,
+138,40,Sub-task,[US18.2] Quantile model and baselines,Sub-task of US18: 7-day honey production yield estimation.,Low,To Do,Diego Alejandro Vasquez,ml,,yield,,,,SH Sprint 9,,,21600,,,
 41,4,Story,[US19] Prediction range visualization,"h3. User story
 As a beekeeper, I want the prediction to be shown as a range rather than an exact number so that I understand there is inherent uncertainty in the estimate.
 
@@ -609,7 +609,7 @@ US18
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Low,To Do,Maria de los Angeles Agudelo,frontend,,yield,optional,,2,SH Sprint 9,,Honey flow & yield optimization (optional),10800,,,
-134,41,Sub-task,[US19.1] Range chart component,Sub-task of US19: Prediction range visualization.,Low,To Do,Maria de los Angeles Agudelo,frontend,,yield,,,,SH Sprint 9,,,10800,,,
+139,41,Sub-task,[US19.1] Range chart component,Sub-task of US19: Prediction range visualization.,Low,To Do,Maria de los Angeles Agudelo,frontend,,yield,,,,SH Sprint 9,,,10800,,,
 42,4,Story,[US20] Weather data integration for yield accuracy,"h3. User story
 As a beekeeper, I want the system to combine hive weight data with local weather information to improve the accuracy of the yield prediction.
 
@@ -618,7 +618,7 @@ h3. Acceptance criteria
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Low,To Do,James Tack,backend,ml,weather,optional,,3,SH Sprint 9,,Honey flow & yield optimization (optional),10800,,,
-135,42,Sub-task,[US20.1] Open-Meteo client and weather table,Sub-task of US20: Weather data integration for yield accuracy.,Low,To Do,James Tack,backend,,weather,,,,SH Sprint 9,,,10800,,,
+140,42,Sub-task,[US20.1] Open-Meteo client and weather table,Sub-task of US20: Weather data integration for yield accuracy.,Low,To Do,James Tack,backend,,weather,,,,SH Sprint 9,,,10800,,,
 43,4,Story,[US21] Optimal honey super addition recommendation,"h3. User story
 As a beekeeper, I want to receive a recommendation when conditions are optimal to add a honey super so that I can maximize production without intervening too early.
 
@@ -627,7 +627,7 @@ h3. Acceptance criteria
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Low,To Do,Diego Alejandro Vasquez,ml,backend,recommendation,optional,,3,SH Sprint 9,,Honey flow & yield optimization (optional),10800,,,
-136,43,Sub-task,[US21.1] Rule and evaluation on simulated super_added events,Sub-task of US21: Optimal honey super addition recommendation.,Low,To Do,Diego Alejandro Vasquez,ml,,recommendation,,,,SH Sprint 9,,,10800,,,
+141,43,Sub-task,[US21.1] Rule and evaluation on simulated super_added events,Sub-task of US21: Optimal honey super addition recommendation.,Low,To Do,Diego Alejandro Vasquez,ml,,recommendation,,,,SH Sprint 9,,,10800,,,
 44,4,Story,[US22] Optimal honey harvest timing recommendation,"h3. User story
 As a beekeeper, I want to receive a recommendation when the honey is ready to harvest so that I do not extract too early or miss the right window.
 
@@ -636,4 +636,80 @@ h3. Acceptance criteria
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Low,To Do,Diego Alejandro Vasquez,ml,backend,recommendation,optional,,3,SH Sprint 9,,Honey flow & yield optimization (optional),10800,,,
-137,44,Sub-task,[US22.1] Rule and evaluation on simulated harvest events,Sub-task of US22: Optimal honey harvest timing recommendation.,Low,To Do,Diego Alejandro Vasquez,ml,,recommendation,,,,SH Sprint 9,,,10800,,,
+142,44,Sub-task,[US22.1] Rule and evaluation on simulated harvest events,Sub-task of US22: Optimal honey harvest timing recommendation.,Low,To Do,Diego Alejandro Vasquez,ml,,recommendation,,,,SH Sprint 9,,,10800,,,
+45,5,Story,[EN-10] Hybrid sprite library with real-photo cutouts (vision iteration v0.2),"h3. User story
+As the vision team, we need real insect appearance in the training scenes so that the detector recognizes real bees and hornets, not only drawn ones.
+
+h3. Acceptance criteria
+# Given an iNaturalist asset pool disjoint from the tier P split (checked: zero overlap), when cutouts are extracted, then each has a mask from SAM 2.1 tiny, a YOLOE text-prompted box and its license and source
+# Given real bee cutouts, when used in scenes, then 45 % carry procedural mites so stage 2 cannot learn 'real-looking bee means clean'
+# Given generator v0.2 and model v0.2, when evaluated on the tier P calibration split, then accuracy is compared with v0.1 in the results document
+
+h3. Design documents
+* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
+* [docs/03-vision/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/03-synthetic-image-pipeline.md]
+
+h3. Evidence (done)
+* [simulation/images/cutouts.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/cutouts.py]
+* [simulation/images/compose.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/compose.py]
+
+h3. Definition of done
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,simulation,vision,synthetic-data,sim-to-real,,5,SH Sprint 3,,Synthetic data platform,39600,,,
+143,45,Sub-task,[EN-10.1] Disjoint asset pool download (600 per class),Sub-task of EN-10: Hybrid sprite library with real-photo cutouts (vision iteration v0.2).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,3600,,,
+144,45,Sub-task,[EN-10.2] YOLOE + SAM 2.1 cutout extraction with shape filters,Sub-task of EN-10: Hybrid sprite library with real-photo cutouts (vision iteration v0.2).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,14400,,,
+145,45,Sub-task,"[EN-10.3] Compositor: hybrid library, mites on real bees, random-texture backgrounds",Sub-task of EN-10: Hybrid sprite library with real-photo cutouts (vision iteration v0.2).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
+146,45,Sub-task,[EN-10.4] Retrain and compare on tier P calibration split,Sub-task of EN-10: Hybrid sprite library with real-photo cutouts (vision iteration v0.2).,Highest,Done,Adrien Cubilla,simulation,,synthetic-data,,,,SH Sprint 3,,,10800,,,
+46,1,Task,[HW-02] Power feed for the demo and measured power budget,"h3. User story
+As the team, we need the node powered for days and its real consumption measured so that the autonomy requirement can be set with numbers.
+
+h3. Acceptance criteria
+# Given an INA219 or USB meter, when the full software runs for 24 h, then idle, motion, detector and night-mode consumption replace the estimates in the power budget
+# Given a passive PoE feed over the existing Ethernet cable, when the battery is the backup, then the node runs for 48 h without intervention
+
+h3. Design documents
+* [docs/02-hardware/power-budget.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/02-hardware/power-budget.md]
+
+h3. Definition of done
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Ricardo Villarreal,hardware,,power,,,5,SH Sprint 5,,Sensor node & IoT connectivity,32400,,,
+147,46,Sub-task,[HW-02.1] Wire INA219 on I2C and log consumption,Sub-task of HW-02: Power feed for the demo and measured power budget.,High,To Do,Ricardo Villarreal,hardware,,power,,,,SH Sprint 5,,,14400,,,
+148,46,Sub-task,[HW-02.2] Passive PoE injector/splitter into the buck input,Sub-task of HW-02: Power feed for the demo and measured power budget.,High,To Do,Ricardo Villarreal,hardware,,power,,,,SH Sprint 5,,,10800,,,
+149,46,Sub-task,[HW-02.3] Update power budget with measured numbers,Sub-task of HW-02: Power feed for the demo and measured power budget.,High,To Do,Ricardo Villarreal,hardware,,power,,,,SH Sprint 5,,,7200,,,
+47,1,Task,[HW-03] Weatherproof enclosure and sensor cabling,"h3. User story
+As the team, we need an enclosure that keeps the node dry, cool enough and away from propolis so that it survives outdoors (NFR-03, NFR-04, NFR-07).
+
+h3. Acceptance criteria
+# Given 30 min of detector duty in the sun, when SoC temperature is logged, then it stays below the 80 C throttling point
+# Given the DHT11 on a cable in the brood nest, when installed, then it is away from the Pi's heat and protected from propolis
+
+h3. Design documents
+* [docs/02-hardware/hardware-review-notes.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/02-hardware/hardware-review-notes.md]
+
+h3. Definition of done
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Ricardo Villarreal,hardware,,enclosure,,,5,SH Sprint 8,,Sensor node & IoT connectivity,25200,,,
+150,47,Sub-task,[HW-03.1] Enclosure with ventilation and shade hood,Sub-task of HW-03: Weatherproof enclosure and sensor cabling.,Medium,To Do,Ricardo Villarreal,hardware,,enclosure,,,,SH Sprint 8,,,18000,,,
+151,47,Sub-task,[HW-03.2] Thermal test in the sun,Sub-task of HW-03: Weatherproof enclosure and sensor cabling.,Medium,To Do,Ricardo Villarreal,hardware,,enclosure,,,,SH Sprint 8,,,7200,,,
+48,1,Task,[HW-04] Field installation and 48 h soak test,"h3. User story
+As the team, we need the complete node running on a real (or simulated) hive for two days so that the demo is not its first run (REQ-15).
+
+h3. Acceptance criteria
+# Given the installed node, when 48 h pass, then telemetry, events and images reach the server with no unexplained gaps
+
+h3. Definition of done
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Ricardo Villarreal,hardware,edge,demo,,,5,SH Sprint 10,,Sensor node & IoT connectivity,32400,,,
+152,48,Sub-task,[HW-04.1] Install and run 48 h,Sub-task of HW-04: Field installation and 48 h soak test.,Highest,To Do,Ricardo Villarreal,hardware,,demo,,,,SH Sprint 10,,,21600,,,
+153,48,Sub-task,[HW-04.2] Collect tier F frames for the final evaluation,Sub-task of HW-04: Field installation and 48 h soak test.,Highest,To Do,Adrien Cubilla,hardware,,demo,,,,SH Sprint 10,,,10800,,,
+49,7,Task,[PM-05] Final demo and evaluation report per data tier,"h3. User story
+As the team, we need a demo script and a report that states what works on synthetic, public and field data so that the evaluation is honest.
+
+h3. Acceptance criteria
+# Given the report, when read, then every metric names its tier (S, P, C, F) and the domain gap is stated
+# Given the demo, when run, then node (or simulator) to server to dashboard to alert works live
+
+h3. Design documents
+* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
+
+h3. Definition of done
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Adrien Cubilla,docs,,demo,report,,8,SH Sprint 10,,Project foundations,46800,,,
+154,49,Sub-task,[PM-05.1] Demo script and demo_day scenario rehearsal,Sub-task of PM-05: Final demo and evaluation report per data tier.,Highest,To Do,Maria de los Angeles Agudelo,docs,,demo,,,,SH Sprint 10,,,14400,,,
+155,49,Sub-task,"[PM-05.2] Evaluation report (vision, telemetry models)",Sub-task of PM-05: Final demo and evaluation report per data tier.,Highest,To Do,Adrien Cubilla,docs,,demo,,,,SH Sprint 10,,,21600,,,
+156,49,Sub-task,[PM-05.3] Time-series results section,Sub-task of PM-05: Final demo and evaluation report per data tier.,Highest,To Do,Diego Alejandro Vasquez,docs,,demo,,,,SH Sprint 10,,,10800,,,

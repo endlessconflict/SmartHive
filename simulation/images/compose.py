@@ -14,6 +14,8 @@ Outputs (Ultralytics layouts):
   objects.parquet, DATASET_CARD.md
 """
 import argparse
+import csv
+import hashlib
 import json
 import subprocess
 from multiprocessing import Pool
@@ -25,7 +27,7 @@ import pandas as pd
 
 from simulation.images import render
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 CLASSES = ["bee", "hornet", "shb", "other_insect"]
 FULL = (1640, 1232)  # Raspberry Pi Camera v2 2x2-binned mode; the node analyzes frames this size
 STAGE1 = (640, 480)
@@ -56,12 +58,57 @@ def build_library(split, seed, workers):
         return p.map(_sprite, jobs, chunksize=16)
 
 
+BODY_MM = {"bee": (12, 15), "hornet": (20, 30), "other_insect": (6, 16)}
+
+
+def load_cutouts(folder: Path, split: str):
+    """Real-photo cutouts (simulation/images/cutouts.py). One file in five goes to val, by name hash,
+    so train and val never share a real insect. Bees get procedural mites painted on 45 % of the time,
+    otherwise stage 2 could learn 'real-looking bee = clean'."""
+    out = []
+    for r in csv.DictReader(open(folder / "manifest.tsv"), delimiter="\t"):
+        h = int(hashlib.md5(r["file"].encode()).hexdigest(), 16)
+        if (h % 5 == 0) != (split == "val"):
+            continue
+        rng = np.random.default_rng(h % 2**32)
+        rgba = cv2.cvtColor(cv2.imread(str(folder / r["file"]), cv2.IMREAD_UNCHANGED), cv2.COLOR_BGRA2RGBA)
+        length = rng.uniform(*BODY_MM[r["cls"]])
+        k = length * REF_PX_MM * 1.2 / max(rgba.shape[:2])  # long side covers body plus legs/wings
+        rgba = cv2.resize(rgba, (max(3, int(rgba.shape[1] * k)), max(3, int(rgba.shape[0] * k))), interpolation=cv2.INTER_AREA)
+        n = int(np.hypot(*rgba.shape[:2])) + 2  # square canvas so scene() can rotate it like a sprite
+        sq = np.zeros((n, n, 4), np.uint8)
+        y0, x0 = (n - rgba.shape[0]) // 2, (n - rgba.shape[1]) // 2
+        sq[y0:y0 + rgba.shape[0], x0:x0 + rgba.shape[1]] = rgba
+        mites = []
+        if r["cls"] == "bee" and rng.random() < 0.45:
+            inner = cv2.erode((sq[..., 3] > 230).astype(np.uint8), np.ones((9, 9), np.uint8))
+            ys, xs = np.nonzero(inner)
+            for _ in range(int(rng.choice([1, 2], p=[0.75, 0.25])) if len(xs) else 0):
+                j = rng.integers(len(xs))
+                cv = render.Canvas(int(2.2 * REF_PX_MM) | 1)
+                render.varroa(cv, rng, 0, 0, REF_PX_MM, rng.uniform(0, 2 * np.pi))
+                m = cv.n // 2
+                ya, xa = ys[j] - m, xs[j] - m
+                if ya < 0 or xa < 0 or ya + cv.n > n or xa + cv.n > n:
+                    continue
+                a = cv.a[..., None]
+                patch = sq[ya:ya + cv.n, xa:xa + cv.n, :3].astype(np.float32) / 255
+                sq[ya:ya + cv.n, xa:xa + cv.n, :3] = ((cv.rgb * a + patch * (1 - a)) * 255).astype(np.uint8)
+                mites.append((float(xs[j]), float(ys[j])))
+        out.append(dict(cls=r["cls"], kind="real", flying=False, mites=mites, pollen=False, length_mm=length, rgba=sq))
+    return out
+
+
 # ---- background -----------------------------------------------------------------------------
 
 def board(rng, W, H):
     """Landing board: wood or paint, dirt, propolis, debris, entrance slot. Returns rgb and entrance info."""
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
-    if rng.random() < 0.55:  # wood grain along a random plank direction
+    r0 = rng.random()
+    if r0 < DR_FRAC:  # domain randomization: an arbitrary multi-scale texture instead of a board
+        img = sum(render._noise(rng, H, W, sc)[..., None] * rng.uniform(-0.5, 0.5, 3) for sc in (300, 60, 12))
+        img = np.clip(img + rng.uniform(0.2, 0.7, 3), 0, 1).astype(np.float32)
+    elif r0 < DR_FRAC + (1 - DR_FRAC) * 0.55:  # wood grain along a random plank direction
         base = render._hsv(rng.uniform(20, 38), rng.uniform(0.25, 0.6), rng.uniform(0.35, 0.75))
         ang = rng.uniform(-0.2, 0.2) + (np.pi / 2 if rng.random() < 0.3 else 0)
         u = xx * np.cos(ang) + yy * np.sin(ang)
@@ -133,7 +180,8 @@ def scene(i, seed, lib):
     px_mm = float(np.clip(rng.normal(8.5, 0.9), 6.5, 11))
     sunny = rng.random() < 0.55
     sun_ang, sun_len = rng.uniform(0, 2 * np.pi), (rng.uniform(1, 6) if sunny else rng.uniform(0, 1.5)) * px_mm
-    by_cls = {c: [k for k, s in enumerate(lib) if s["cls"] == c] for c in CLASSES}
+    by_cls = {c: [k for k, s in enumerate(lib) if s["cls"] == c and s["kind"] != "real"] for c in CLASSES}
+    real = {c: [k for k, s in enumerate(lib) if s["cls"] == c and s["kind"] == "real"] for c in CLASSES}
     want = [("bee", int(rng.poisson(rng.uniform(1, 22))))]
     for c, p, hi in (("hornet", 0.3, 2), ("shb", 0.25, 3), ("other_insect", 0.4, 4)):
         if rng.random() < p:
@@ -141,7 +189,8 @@ def scene(i, seed, lib):
     objs = []
     for c, n in want:
         for _ in range(n):
-            s = lib[by_cls[c][rng.integers(len(by_cls[c]))]]
+            pool = real[c] if real[c] and rng.random() < REAL_FRAC else by_cls[c]
+            s = lib[pool[rng.integers(len(pool))]]
             x, y, head = place(rng, ent, W, H, s["flying"])
             scale = px_mm / REF_PX_MM * (rng.uniform(1.1, 1.6) if s["flying"] else rng.uniform(0.92, 1.08))
             objs.append(dict(s=s, x=x, y=y, ang=head, scale=scale))
@@ -260,21 +309,32 @@ def _write(args):
 
 
 LIB = {}
+REAL_FRAC = 0.0  # share of insects drawn from real-photo cutouts when a class has any
+DR_FRAC = 0.0  # share of scenes on a random texture instead of a board
 
 
-def _init(lib):
+def _init(lib, real_frac=0.0, dr_frac=0.0):
+    global REAL_FRAC, DR_FRAC
+    REAL_FRAC, DR_FRAC = real_frac, dr_frac
     cv2.setNumThreads(1)
     LIB.update(lib)
 
 
-def main(out: Path, n: int, seed: int, val_frac: float, workers: int):
+def main(out: Path, n: int, seed: int, val_frac: float, workers: int, cutouts: Path | None = None,
+         real_frac: float = 0.5, dr_frac: float = 0.15):
+    cv2.setNumThreads(1)  # no OpenCV worker threads in the parent: forking with live threads deadlocks the pool
     for d in ["stage1/images/train", "stage1/images/val", "stage1/labels/train", "stage1/labels/val",
               "stage2/train/varroa", "stage2/train/clean", "stage2/val/varroa", "stage2/val/clean"]:
         (out / d).mkdir(parents=True, exist_ok=True)
     lib = {"train": build_library("train", seed, workers), "val": build_library("val", seed + 10_000, workers)}
+    if cutouts:
+        for split in lib:
+            lib[split] += load_cutouts(cutouts, split)
+    else:
+        real_frac = 0.0
     n_val = int(n * val_frac)
     jobs = [(i, seed, "val" if i < n_val else "train", out) for i in range(n)]
-    with Pool(workers, initializer=_init, initargs=(lib,)) as p:
+    with Pool(workers, initializer=_init, initargs=(lib, real_frac, dr_frac)) as p:
         rows = [r for rs in p.imap_unordered(_write, jobs, chunksize=8) for r in rs]
     df = pd.DataFrame(rows)
     df["box"] = df["box"].map(json.dumps)
@@ -290,7 +350,9 @@ def main(out: Path, n: int, seed: int, val_frac: float, workers: int):
 Tier: S (synthetic). Generator: simulation.images.compose v{VERSION} @ git {commit}, seed {seed}.
 Images: {n} scenes at {FULL[0]}x{FULL[1]} (stage 1 saved at {STAGE1[0]}x{STAGE1[1]}), {n_val} in val.
 Train and val use different procedural sprite libraries (seeds {seed} and {seed + 10_000}).
-Assets: none external. Every insect, board and stain is procedural, so the dataset has no third-party license.
+Real-photo cutouts: {"none" if not cutouts else f"{cutouts} (share of insects {real_frac}; 1 in 5 files reserved for val; licenses in its manifest.tsv)"}.
+Random-texture backgrounds: {dr_frac:.0%} of scenes.
+Assets: {"none external. Every insect, board and stain is procedural, so the dataset has no third-party license." if not cutouts else "procedural, plus CC0/CC-BY iNaturalist cutouts listed with source and license in the cutouts manifest."}
 
 Objects per split and class:
 
@@ -314,5 +376,8 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--val-frac", type=float, default=0.15)
     ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--cutouts", type=Path, help="folder from simulation/images/cutouts.py (real-photo insects)")
+    ap.add_argument("--real-frac", type=float, default=0.5)
+    ap.add_argument("--dr-frac", type=float, default=0.15)
     a = ap.parse_args()
-    main(a.out, a.n, a.seed, a.val_frac, a.workers)
+    main(a.out, a.n, a.seed, a.val_frac, a.workers, a.cutouts, a.real_frac, a.dr_frac)

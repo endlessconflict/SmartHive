@@ -6,6 +6,8 @@ CC0 / CC-BY licenses, then downloads a capped number of photos per class.
 
     python -m vision.inat filter  --out data/raw/inat       # ~30 min, streams ~4.8 GB
     python -m vision.inat download --out data/raw/inat --per-class 300
+    # asset pool for cutouts, disjoint from the frozen tier P split:
+    python -m vision.inat download --src data/raw/inat --out data/raw/inat_pool --per-class 600 --seed 1 --exclude vision/splits/P-inat-v1.tsv
 """
 import argparse
 import csv
@@ -68,10 +70,14 @@ def filter_archive(out: Path, taxa_csv: Path):
                 return
 
 
-def download(out: Path, per_class: int, seed: int = 0):
+def download(out: Path, per_class: int, seed: int = 0, src: Path | None = None, exclude: Path | None = None):
+    """exclude: a split file whose photos must never be downloaded again (keeps an asset pool disjoint from tier P)."""
+    skip = {Path(r["file"]).stem for r in csv.DictReader(open(exclude), delimiter="\t")} if exclude else set()
     by_cls = {}
-    for r in csv.DictReader(open(out / "photos.tsv"), delimiter="\t"):
-        by_cls.setdefault(r["cls"], []).append(r)
+    for r in csv.DictReader(open((src or out) / "photos.tsv"), delimiter="\t"):
+        if r["photo_id"] not in skip:
+            by_cls.setdefault(r["cls"], []).append(r)
+    out.mkdir(parents=True, exist_ok=True)
     manifest = open(out / "manifest.tsv", "w", newline="")
     w = csv.writer(manifest, delimiter="\t", lineterminator="\n")
     w.writerow(["file", "cls", "taxon_id", "license", "source_url", "observer_id"])
@@ -103,5 +109,11 @@ if __name__ == "__main__":
     p.add_argument("--out", type=Path, default=Path("data/raw/inat"))
     p.add_argument("--taxa", type=Path, help="taxa.csv extracted from the same archive")
     p.add_argument("--per-class", type=int, default=300)
+    p.add_argument("--src", type=Path, help="folder with photos.tsv, if not --out")
+    p.add_argument("--exclude", type=Path, help="split file to keep disjoint from, e.g. vision/splits/P-inat-v1.tsv")
+    p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
-    filter_archive(a.out, a.taxa) if a.cmd == "filter" else download(a.out, a.per_class)
+    if a.cmd == "filter":
+        filter_archive(a.out, a.taxa)
+    else:
+        download(a.out, a.per_class, a.seed, a.src, a.exclude)

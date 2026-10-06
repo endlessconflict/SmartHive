@@ -47,6 +47,7 @@ def load(param, bin_=None, threads=4):
     net = ncnn.Net()
     net.opt.num_threads = threads
     net.opt.use_fp16_storage = True
+    net.opt.openmp_blocktime = 0  # same setting as vision/pipeline.py
     net.load_param(str(param))
     if bin_:
         net.load_model(str(bin_))

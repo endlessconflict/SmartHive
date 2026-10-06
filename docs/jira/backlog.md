@@ -2,28 +2,28 @@
 
 Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Edit the YAML, not this file.
 
-37 stories and tasks, 92 sub-tasks, 195 story points (37 done).
+42 stories and tasks, 106 sub-tasks, 223 story points (42 done).
 
 ## Sprints
 
 | Sprint | Dates | Goal | Points | Done |
 |---|---|---|---|---|
-| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 37 | 37 |
+| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 42 | 42 |
 | SH Sprint 4 | 2026-10-12 to 2026-10-25 | Contracts frozen, Compose stack up, camera chosen, client interview done | 30 | 0 |
-| SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 28 | 0 |
-| SH Sprint 6 | 2026-11-09 to 2026-11-22 | Vision on the node: detections become events | 40 | 0 |
-| SH Sprint 7 | 2026-11-23 to 2026-12-06 | Alerts: a hornet in front of the camera becomes an email | 18 | 0 |
-| SH Sprint 8 | 2026-12-07 to 2026-12-20 | Intelligence: anomaly detection on synthetic telemetry, Varroa index in the UI | 23 | 0 |
+| SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 33 | 0 |
+| SH Sprint 6 | 2026-11-09 to 2026-11-22 | Vision on the node: detections become events | 27 | 0 |
+| SH Sprint 7 | 2026-11-23 to 2026-12-06 | Alerts: a hornet in front of the camera becomes an email | 31 | 0 |
+| SH Sprint 8 | 2026-12-07 to 2026-12-20 | Intelligence: anomaly detection on synthetic telemetry, Varroa index in the UI | 28 | 0 |
 | SH Sprint 9 | 2027-01-04 to 2027-01-17 | Evaluation report per data tier; optional yield proof of concept | 19 | 0 |
-| SH Sprint 10 | 2027-01-18 to 2027-01-31 | Field install, soak test, final demo | 0 | 0 |
+| SH Sprint 10 | 2027-01-18 to 2027-01-31 | Field install, soak test, final demo | 13 | 0 |
 
 ## Load per person and sprint (story points)
 
 | Person | Sprint 3 | Sprint 4 | Sprint 5 | Sprint 6 | Sprint 7 | Sprint 8 | Sprint 9 | Sprint 10 |
 |---|---|---|---|---|---|---|---|---|
 | James Tack | 3 |  | 10 |  | 8 |  | 3 |  |
-| Ricardo Villarreal |  | 6 | 5 | 5 |  | 8 |  |  |
-| Adrien Cubilla | 26 | 3 |  | 32 |  |  |  |  |
+| Ricardo Villarreal |  | 6 | 10 | 13 |  | 13 |  | 5 |
+| Adrien Cubilla | 31 | 3 |  | 11 | 13 |  |  | 8 |
 | Diego Alejandro Vasquez | 8 |  |  |  |  | 13 | 14 |  |
 | Karen Jimenez |  | 10 | 5 |  | 5 |  |  |  |
 | Maria de los Angeles Agudelo |  | 11 | 8 | 3 | 5 | 2 | 2 |  |
@@ -43,6 +43,9 @@ Owner: Ricardo Villarreal. Component: `edge`.
 | [US04](#us04) | Story | Data encryption and in-transit protection | 5 | Sprint 4 | Karen Jimenez | To Do |
 | [US05](#us05) | Story | Centralized data synchronization | 5 | Sprint 5 | James Tack | To Do |
 | [US06](#us06) | Story | Device connection loss and power alert | 5 | Sprint 7 | Karen Jimenez | To Do |
+| [HW-02](#hw-02) | Task | Power feed for the demo and measured power budget | 5 | Sprint 5 | Ricardo Villarreal | To Do |
+| [HW-03](#hw-03) | Task | Weatherproof enclosure and sensor cabling | 5 | Sprint 8 | Ricardo Villarreal | To Do |
+| [HW-04](#hw-04) | Task | Field installation and 48 h soak test | 5 | Sprint 10 | Ricardo Villarreal | To Do |
 
 ### HW-01
 
@@ -176,6 +179,58 @@ Design: [docs/02-hardware/power-budget.md](../../docs/02-hardware/power-budget.m
 | US06.1 Last will + heartbeat timeout rule | James Tack | 3 | To Do |
 | US06.2 INA219 battery monitor and health field | Ricardo Villarreal | 4 | To Do |
 
+### HW-02
+
+**Power feed for the demo and measured power budget** (Task, High, 5 pts, SH Sprint 5, Ricardo Villarreal, To Do)
+
+> As the team, we need the node powered for days and its real consumption measured so that the autonomy requirement can be set with numbers.
+
+Acceptance criteria:
+
+1. Given an INA219 or USB meter, when the full software runs for 24 h, then idle, motion, detector and night-mode consumption replace the estimates in the power budget
+2. Given a passive PoE feed over the existing Ethernet cable, when the battery is the backup, then the node runs for 48 h without intervention
+
+Design: [docs/02-hardware/power-budget.md](../../docs/02-hardware/power-budget.md)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| HW-02.1 Wire INA219 on I2C and log consumption | Ricardo Villarreal | 4 | To Do |
+| HW-02.2 Passive PoE injector/splitter into the buck input | Ricardo Villarreal | 3 | To Do |
+| HW-02.3 Update power budget with measured numbers | Ricardo Villarreal | 2 | To Do |
+
+### HW-03
+
+**Weatherproof enclosure and sensor cabling** (Task, Medium, 5 pts, SH Sprint 8, Ricardo Villarreal, To Do)
+
+> As the team, we need an enclosure that keeps the node dry, cool enough and away from propolis so that it survives outdoors (NFR-03, NFR-04, NFR-07).
+
+Acceptance criteria:
+
+1. Given 30 min of detector duty in the sun, when SoC temperature is logged, then it stays below the 80 C throttling point
+2. Given the DHT11 on a cable in the brood nest, when installed, then it is away from the Pi's heat and protected from propolis
+
+Design: [docs/02-hardware/hardware-review-notes.md](../../docs/02-hardware/hardware-review-notes.md)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| HW-03.1 Enclosure with ventilation and shade hood | Ricardo Villarreal | 5 | To Do |
+| HW-03.2 Thermal test in the sun | Ricardo Villarreal | 2 | To Do |
+
+### HW-04
+
+**Field installation and 48 h soak test** (Task, Highest, 5 pts, SH Sprint 10, Ricardo Villarreal, To Do)
+
+> As the team, we need the complete node running on a real (or simulated) hive for two days so that the demo is not its first run (REQ-15).
+
+Acceptance criteria:
+
+1. Given the installed node, when 48 h pass, then telemetry, events and images reach the server with no unexplained gaps
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| HW-04.1 Install and run 48 h | Ricardo Villarreal | 6 | To Do |
+| HW-04.2 Collect tier F frames for the final evaluation | Adrien Cubilla | 3 | To Do |
+
 ## E2 Pest & threat detection
 
 EPIC 2. The entrance camera and a two-stage model on the node detect hornets, small hive beetles and Varroa-carrying bees, and turn them into events and alerts.
@@ -186,9 +241,9 @@ Owner: Adrien Cubilla. Component: `vision`.
 |---|---|---|---|---|---|---|
 | [US07](#us07) | Story | Periodic hive entrance image capture | 5 | Sprint 6 | Ricardo Villarreal | To Do |
 | [US08](#us08) | Story | Storage optimization based on relevance | 3 | Sprint 6 | Adrien Cubilla | To Do |
-| [US09](#us09) | Story | Automated Varroa mite detection | 13 | Sprint 6 | Adrien Cubilla | In Progress |
+| [US09](#us09) | Story | Automated Varroa mite detection | 13 | Sprint 7 | Adrien Cubilla | In Progress |
 | [US10](#us10) | Story | Small hive beetle and Asian hornet detection | 8 | Sprint 6 | Adrien Cubilla | In Progress |
-| [US11](#us11) | Story | Edge AI detection model execution | 8 | Sprint 6 | Adrien Cubilla | In Progress |
+| [US11](#us11) | Story | Edge AI detection model execution | 8 | Sprint 6 | Ricardo Villarreal | In Progress |
 | [US12](#us12) | Story | Multi-channel threat & pest notifications | 8 | Sprint 7 | James Tack | To Do |
 
 ### US07
@@ -235,7 +290,7 @@ Design: [docs/05-backend/03-edge-node-software.md](../../docs/05-backend/03-edge
 
 ### US09
 
-**Automated Varroa mite detection** (Story, Highest, 13 pts, SH Sprint 6, Adrien Cubilla, In Progress)
+**Automated Varroa mite detection** (Story, Highest, 13 pts, SH Sprint 7, Adrien Cubilla, In Progress)
 
 > As a beekeeper, I want the system to automatically identify Varroa mites on returning bees so that I can start treatment before the infestation spreads.
 
@@ -282,7 +337,7 @@ Evidence: [vision/train.py](../../vision/train.py), [vision/eval_real.py](../../
 
 ### US11
 
-**Edge AI detection model execution** (Story, High, 8 pts, SH Sprint 6, Adrien Cubilla, In Progress)
+**Edge AI detection model execution** (Story, High, 8 pts, SH Sprint 6, Ricardo Villarreal, In Progress)
 
 > As a beekeeper, I want the pest detection model to run directly on the sensor node so that detections happen even with limited connectivity.
 
@@ -539,6 +594,7 @@ Owner: Diego Alejandro Vasquez. Component: `simulation`.
 | [EN-04](#en-04) | Story | Entrance scene compositor with exact labels | 8 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-05](#en-05) | Story | Real-image check set (tier P) from the iNaturalist Open Dataset | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-06](#en-06) | Task | Dataset versioning with DVC and dataset cards | 3 | Sprint 4 | Maria de los Angeles Agudelo | To Do |
+| [EN-10](#en-10) | Story | Hybrid sprite library with real-photo cutouts (vision iteration v0.2) | 5 | Sprint 3 | Adrien Cubilla | Done |
 
 ### EN-01
 
@@ -695,6 +751,29 @@ Design: [docs/04-data/05-dataset-versioning-and-governance.md](../../docs/04-dat
 | EN-06.1 dvc init, SSH or folder remote on the gateway PC | Maria de los Angeles Agudelo | 2 | To Do |
 | EN-06.2 Track simulation outputs, tier P split files and released weights | Adrien Cubilla | 2 | To Do |
 
+### EN-10
+
+**Hybrid sprite library with real-photo cutouts (vision iteration v0.2)** (Story, Highest, 5 pts, SH Sprint 3, Adrien Cubilla, Done)
+
+> As the vision team, we need real insect appearance in the training scenes so that the detector recognizes real bees and hornets, not only drawn ones.
+
+Acceptance criteria:
+
+1. Given an iNaturalist asset pool disjoint from the tier P split (checked: zero overlap), when cutouts are extracted, then each has a mask from SAM 2.1 tiny, a YOLOE text-prompted box and its license and source
+2. Given real bee cutouts, when used in scenes, then 45 % carry procedural mites so stage 2 cannot learn 'real-looking bee means clean'
+3. Given generator v0.2 and model v0.2, when evaluated on the tier P calibration split, then accuracy is compared with v0.1 in the results document
+
+Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [docs/03-vision/03-synthetic-image-pipeline.md](../../docs/03-vision/03-synthetic-image-pipeline.md)
+
+Evidence: [simulation/images/cutouts.py](../../simulation/images/cutouts.py), [simulation/images/compose.py](../../simulation/images/compose.py)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-10.1 Disjoint asset pool download (600 per class) | Adrien Cubilla | 1 | Done |
+| EN-10.2 YOLOE + SAM 2.1 cutout extraction with shape filters | Adrien Cubilla | 4 | Done |
+| EN-10.3 Compositor: hybrid library, mites on real bees, random-texture backgrounds | Adrien Cubilla | 3 | Done |
+| EN-10.4 Retrain and compare on tier P calibration split | Adrien Cubilla | 3 | Done |
+
 ## E6 Backend platform & DevOps
 
 Enablers for every user-facing story: message contract, Compose stack, database, CI.
@@ -770,6 +849,7 @@ Owner: Adrien Cubilla. Component: `docs`.
 | [PM-02](#pm-02) | Task | Architecture decision records 0001 to 0008 | 3 | Sprint 3 | James Tack | Done |
 | [PM-03](#pm-03) | Task | Client interview with the 30 elicitation questions | 3 | Sprint 4 | Adrien Cubilla | To Do |
 | [PM-04](#pm-04) | Task | Align presentation and spreadsheet backlog with the Pi 3B design | 1 | Sprint 4 | Ricardo Villarreal | To Do |
+| [PM-05](#pm-05) | Task | Final demo and evaluation report per data tier | 8 | Sprint 10 | Adrien Cubilla | To Do |
 
 ### PM-01
 
@@ -847,3 +927,22 @@ Design: [docs/02-hardware/hardware-review-notes.md](../../docs/02-hardware/hardw
 |---|---|---|---|
 | PM-04.1 Update slides 8 and 9 (system design, technologies) | Ricardo Villarreal | 1 | To Do |
 | PM-04.2 Renumber spreadsheet stories to US01-US22 and add EN items | Diego Alejandro Vasquez | 1 | To Do |
+
+### PM-05
+
+**Final demo and evaluation report per data tier** (Task, Highest, 8 pts, SH Sprint 10, Adrien Cubilla, To Do)
+
+> As the team, we need a demo script and a report that states what works on synthetic, public and field data so that the evaluation is honest.
+
+Acceptance criteria:
+
+1. Given the report, when read, then every metric names its tier (S, P, C, F) and the domain gap is stated
+2. Given the demo, when run, then node (or simulator) to server to dashboard to alert works live
+
+Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| PM-05.1 Demo script and demo_day scenario rehearsal | Maria de los Angeles Agudelo | 4 | To Do |
+| PM-05.2 Evaluation report (vision, telemetry models) | Adrien Cubilla | 6 | To Do |
+| PM-05.3 Time-series results section | Diego Alejandro Vasquez | 3 | To Do |

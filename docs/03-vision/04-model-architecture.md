@@ -1,6 +1,6 @@
 # Model architecture
 
-Status: Proposed. Latency numbers are estimates until the benchmark spike (EN-06) runs on the real Pi.
+Status: Implemented (v0.1/v0.2). Framework chosen in [ADR-0008](../adr/0008-detector-licensing.md): YOLO11n (stage 1) and YOLO11n-cls (stage 2). Runtime: [`vision/pipeline.py`](../../vision/pipeline.py). Latency is an estimate anchored to published Raspberry Pi 3 measurements until the on-device run (Jira US11); see [results](07-results.md).
 
 Owner: Adrien Cubilla
 
@@ -45,13 +45,13 @@ Candidates (all can export to ONNX and then NCNN):
 
 Verify these figures against the current README of each project before relying on them.
 
-Recommended plan: train YOLO11n (or YOLOv8n) first, because the tooling makes the synthetic data loop fastest. Train NanoDet-Plus-m-320 on the same data in parallel as the permissive and probably faster option. Pick after the benchmark, on accuracy per millisecond on the Pi. The licensing consequences of choosing Ultralytics are in ADR-0008.
+Chosen: YOLO11n at 320 px, COCO-pretrained, for one training and export toolchain across both stages (ADR-0008). NanoDet-Plus stays the fallback if the on-device benchmark misses the budget.
 
 Settings:
 
 - Input 320 px to start; try 416 if small objects (beetles, flying bees) are missed.
 - Pretrained on COCO (transfer learning), fine-tuned on synthetic data. The proposal asked to compare against training from scratch; keep that as one experiment, since with unlimited synthetic data the answer is not obvious.
-- Export to ONNX, then NCNN, with INT8 post-training quantization calibrated on a few hundred synthetic and tier C images. Compare INT8 accuracy against FP32 on the validation set before accepting it.
+- Export straight to ncnn (`vision/export.py`, through pnnx). Weights are FP32; the runtime uses fp16 storage, which halves memory traffic on the A53 without changing accuracy in a meaningful way. INT8 needs the C++ `ncnn2table`/`ncnn2int8` tools and a calibration set; it is deferred until the on-device benchmark shows it is needed.
 
 ### Stage 2: Varroa classifier on bee crops
 
@@ -62,6 +62,7 @@ For each bee box from stage 1, crop the corresponding region from the full-resol
 | MobileNetV3-Small, width 0.5 to 1.0, 128 px | A few tens of MFLOPs | ImageNet-pretrained weights available in torchvision (BSD-3) |
 | Custom small CNN (4 to 6 conv blocks) | Less | Trains from scratch on synthetic crops; easiest to quantize |
 | Tiny detector on the crop | More | Gives the mite's position, nice for the UI; only if the classifier's errors show it is needed |
+| **YOLO11n-cls, 128 px (chosen)** | 0.13 GFLOPs, 2.8 M parameters | Same toolchain as stage 1; ImageNet-pretrained; exports to ncnn the same way |
 
 Expected cost: on the order of 10 to 40 ms per crop on the Pi 3B. A frame with 20 bees adds up to under a second. Crops can be capped per frame (for example the 16 sharpest bees) to bound latency.
 

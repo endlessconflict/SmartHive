@@ -20,10 +20,11 @@ DEFAULT_THRESHOLDS = {"bee": 0.35, "hornet": 0.45, "shb": 0.5, "other_insect": 0
 class Net:
     """An ncnn model exported by vision/export.py (model.ncnn.param + model.ncnn.bin)."""
 
-    def __init__(self, folder: Path, threads=4):
+    def __init__(self, folder: Path, threads=3):
         self.net = ncnn.Net()
         self.net.opt.num_threads = threads
         self.net.opt.use_fp16_storage = True  # A53 has no fp16 math; fp16 storage still halves memory traffic
+        self.net.opt.openmp_blocktime = 0  # do not spin; default 3 threads leaves a core to camd/uplinkd (all cores busy = 100x slower barriers)
         self.net.load_param(str(Path(folder) / "model.ncnn.param"))
         self.net.load_model(str(Path(folder) / "model.ncnn.bin"))
 
@@ -53,7 +54,7 @@ def crop(frame, box, pad=0.15, size=128):
 
 
 class Detector:
-    def __init__(self, stage1: Path, stage2: Path | None, imgsz=320, threads=4, thresholds=None, max_crops=16, min_sharpness=30.0):
+    def __init__(self, stage1: Path, stage2: Path | None, imgsz=320, threads=3, thresholds=None, max_crops=16, min_sharpness=30.0):
         self.s1 = Net(stage1, threads)
         self.s2 = Net(stage2, threads) if stage2 else None
         self.imgsz, self.max_crops, self.min_sharpness = imgsz, max_crops, min_sharpness
