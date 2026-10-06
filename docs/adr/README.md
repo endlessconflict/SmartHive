@@ -15,3 +15,4 @@ Process: copy [0000-template.md](0000-template.md), take the next number, open a
 | [0007](0007-filesystem-image-storage.md) | Images on the filesystem, metadata in the database | Proposed | 2026-10-06 |
 | [0008](0008-detector-licensing.md) | Detector framework and repository license | Accepted | 2026-10-06 |
 | [0009](0009-procedural-insect-rendering.md) | Procedural insect rendering instead of photo cutouts | Accepted | 2026-10-06 |
+| [0010](0010-real-photos-with-automatic-labels.md) | Real photos with automatic labels before 3D rendering or diffusion | Accepted | 2026-10-06 |
