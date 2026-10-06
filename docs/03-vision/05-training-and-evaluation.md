@@ -1,6 +1,6 @@
 # Training and evaluation
 
-Status: Proposed
+Status: Implemented for v0.1. Numbers live in [07-results.md](07-results.md).
 
 Owner: Adrien Cubilla
 
@@ -14,11 +14,26 @@ A model trained on synthetic images will always score well on more synthetic ima
 |---|---|---|---|
 | `train` | S | Synthetic images and crops | Fitting weights |
 | `val-syn` | S | Synthetic, generated with a different seed and a held-out subset of assets (cutouts and backgrounds not used in `train`) | Early stopping, threshold tuning, debugging |
-| `val-real` | P (calibration) | Half of the public real data that matches our task | Choosing between generator versions and model variants |
-| `test-real` | P (test) | The other half, frozen with checksums | Final numbers per milestone, opened once |
+| `val-real` | P (calibration) | `calib` half of [`P-inat-v1`](../../vision/splits/P-inat-v1.tsv): 200 bee, 200 hornet, 200 other-insect photos | Choosing between generator versions and model variants |
+| `test-real` | P (test) | `test` half of `P-inat-v1`, same sizes, SHA-256 per file | Final numbers per milestone, opened once |
 | `test-field` | C / F | Team captures and demo hive frames, hand-labeled | Domain gap report and demo |
 
 Holding out assets in `val-syn` matters: if the same bee photo appears in train and validation, even at a different position and lighting, validation overestimates performance. The proposal already warned against nearly identical images and frames from one temporal sequence crossing splits. For public data, split by source video or recording session, never by frame.
+
+## How the tier P test works
+
+The iNaturalist photos have species labels but no boxes, and the insect can fill the frame or be a speck. [`vision/eval_real.py`](../../vision/eval_real.py) therefore runs an **image-level** test:
+
+1. Letterbox each photo into a 640 px square at three scales (long side 640, 320 and 160 px). The smallest one puts a bee at roughly the size it has on our entrance camera.
+2. Run the stage 1 detector on all three at its training input size (320).
+3. The most confident detection across the three names the photo. No detection at all counts as `none`.
+4. Report accuracy over bee/hornet/other (chance is 33 %), recall per class, how often anything is detected, and the confusion matrix.
+
+This measures whether insects drawn by our renderer teach the model what real bees and hornets look like. It does not measure entrance-camera performance (no boards, no crowding, varied viewpoints). That needs tier C/F images from our own camera. Small hive beetle (2 photos) and Varroa (10 photos, mostly close-ups of mites, not bee crops) cannot be scored with this set.
+
+## System-level test on synthetic scenes
+
+[`vision/eval_system.py`](../../vision/eval_system.py) runs the exported ncnn models through the node pipeline itself ([`vision/pipeline.py`](../../vision/pipeline.py)), on full-resolution scenes generated fresh from the validation sprite library. It reports per-class precision and recall at IoU 0.5 with the operating thresholds, scene-level recall for hornets and beetles, Varroa precision and recall on matched walking bees, the true versus estimated Varroa rate, and time per frame. This is tier S, but it is the only test that covers both stages, the crop geometry and the thresholds together.
 
 ## Training recipe (stage 1)
 

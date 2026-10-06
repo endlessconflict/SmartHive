@@ -68,7 +68,7 @@ def write_csv(rs):
             "Component", "Component", "Labels", "Labels", "Labels", "Story Points", "Sprint", "Epic Name", "Epic Link",
             "Original Estimate", "Outward issue link (Blocks)", "Outward issue link (Blocks)", "Outward issue link (Blocks)"]
     with open(HERE / "jira-import.csv", "w", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(cols)
         for r in rs:
             comp, lab, blk = (r.get("Component") or []) + ["", ""], (r.get("Labels") or []) + ["", "", ""], (r.get("Blocks") or []) + ["", "", ""]

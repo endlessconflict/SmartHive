@@ -1,6 +1,6 @@
 # ADR-0002: Synthetic-first training data
 
-Status: Proposed
+Status: Accepted (implemented). How images are made is refined by [ADR-0009](0009-procedural-insect-rendering.md)
 Date: 2026-10-06
 Deciders: Adrien Cubilla (PO), Diego Alejandro Vasquez, James Tack
 

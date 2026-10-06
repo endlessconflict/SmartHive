@@ -1,6 +1,6 @@
 # Dataset versioning and governance
 
-Status: Proposed
+Status: Partly implemented. Dataset IDs, cards, seeds and the frozen real split are in use; DVC and MLflow are not set up yet (Jira EN-06)
 
 Owners: Adrien Cubilla (images), Diego Alejandro Vasquez (telemetry), Maria de los Angeles Agudelo (storage and CI)
 
@@ -48,6 +48,8 @@ Known gaps: no night images; no rain on the lens; varroa only on dorsal thorax a
 ```
 
 ## Asset manifest
+
+The image generator v0.1 uses no external files at all (everything is procedural), so its datasets need no asset manifest. The tier P real photos are listed with license, source URL and observer in [`vision/splits/P-inat-v1.tsv`](../../vision/splits/P-inat-v1.tsv). The rules below apply as soon as any external file (a team photo, a texture, a cutout) enters a generator.
 
 Every external file used by a generator (insect photo, cutout, texture, 3D model, background) is listed in `simulation/images/assets/manifest.csv`:
 

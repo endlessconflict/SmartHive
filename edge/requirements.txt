@@ -1,0 +1,4 @@
+# Raspberry Pi 3B node (aarch64). No torch, no ultralytics: models run through ncnn.
+numpy==2.4.6
+opencv-python-headless>=4.9
+ncnn==1.0.20260526

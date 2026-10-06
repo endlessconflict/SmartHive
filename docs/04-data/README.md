@@ -1,6 +1,6 @@
 # Data
 
-Status: Proposed
+Status: Implemented: telemetry simulator v1.0.0, image generator v0.1, real check set P-inat-v1
 
 Owners: Diego Alejandro Vasquez (telemetry), Adrien Cubilla (images), James Tack (formats and replay)
 
@@ -8,19 +8,19 @@ Owners: Diego Alejandro Vasquez (telemetry), Adrien Cubilla (images), James Tack
 
 The client will not provide data. There are no historical weights, harvests, labeled audio or entrance images to train on, and there will not be. This folder describes how we generate the data instead, and how we avoid fooling ourselves with it.
 
-The approach in one paragraph: we write simulators that produce hive telemetry and entrance images together with perfect labels. The simulators are built from published knowledge about how hives behave and from the measured limits of our own sensors, and they deliberately randomize everything we are unsure about. Models train on this synthetic data. Public datasets and our own captures are used to check whether those models work on real inputs, and they are kept separate from training. Every reported number says which kind of data it came from.
+The approach in one paragraph: we write simulators that produce hive telemetry and entrance images together with perfect labels. The images are drawn entirely by code (procedural insects and boards), so they carry no third-party license. The simulators are built from published knowledge about how hives behave and from the measured limits of our own sensors, and they deliberately randomize everything we are unsure about. Models train on this synthetic data. Public datasets and our own captures are used to check whether those models work on real inputs, and they are kept separate from training. Every reported number says which kind of data it came from.
 
 ```mermaid
 flowchart LR
     K["Published knowledge<br/>(papers, sensor datasheets)"] --> SIM
-    W["Real weather history<br/>(Open-Meteo, CC BY 4.0)"] --> SIM
-    A["Licensed assets<br/>(cutouts, textures)"] --> IMG
+    W["Panama-like weather model<br/>(real history once the apiary is known)"] --> SIM
+    A["Procedural insects<br/>and boards (code)"] --> IMG
     SIM["Telemetry simulator"] --> TS[("Synthetic telemetry<br/>+ event labels")]
     IMG["Image generator"] --> IM[("Synthetic images<br/>+ boxes")]
     TS --> TR["Training"]
     IM --> TR
     TR --> M["Models"]
-    PUB[("Public real data<br/>validation only")] --> EV["Evaluation<br/>per data tier"]
+    PUB[("Public real data<br/>iNaturalist, validation only")] --> EV["Evaluation<br/>per data tier"]
     OWN[("Team captures<br/>from the prototype")] --> EV
     M --> EV
     TS --> REPLAY["MQTT replay<br/>fake nodes"] --> BE["Backend and dashboard<br/>development"]

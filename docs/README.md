@@ -56,6 +56,7 @@ Every document starts with a status line:
 | [04-model-architecture.md](03-vision/04-model-architecture.md) | Two-stage detector for a Raspberry Pi 3B |
 | [05-training-and-evaluation.md](03-vision/05-training-and-evaluation.md) | Splits, metrics, sim-to-real evaluation, acceptance criteria |
 | [06-edge-deployment.md](03-vision/06-edge-deployment.md) | Runtime pipeline on the node |
+| [07-results.md](03-vision/07-results.md) | What the models achieve, per data tier, iteration by iteration |
 
 ### 04 Data
 
@@ -87,6 +88,7 @@ Every document starts with a status line:
 | Document | What it covers |
 |---|---|
 | [roadmap.md](roadmap.md) | Phased plan for all areas, including work not designed yet |
+| [jira/](jira/README.md) | Backlog for Jira: epics, stories, sub-tasks, criteria, estimates, sprints; CSV import |
 | [adr/](adr/README.md) | Architecture decision records |
 | [references.md](references.md) | Papers, datasets and tools cited in these docs |
 

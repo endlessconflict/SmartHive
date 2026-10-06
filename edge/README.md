@@ -2,7 +2,9 @@
 
 Software that runs on the Raspberry Pi 3B node.
 
-Status: Planned. Design is in [docs/05-backend/03-edge-node-software.md](../docs/05-backend/03-edge-node-software.md).
+Status: Planned, except the vision runtime. Design is in [docs/05-backend/03-edge-node-software.md](../docs/05-backend/03-edge-node-software.md).
+
+The detection logic `visiond` will run already exists and is tested: [`vision/pipeline.py`](../vision/pipeline.py) (ncnn only, no torch). Dependencies for the Pi are pinned in [`requirements.txt`](requirements.txt).
 
 | Service | Job | Owner |
 |---|---|---|

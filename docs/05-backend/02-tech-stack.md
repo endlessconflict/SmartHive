@@ -68,16 +68,18 @@ Rules for every choice: an OSI-approved open-source license, no paid tier needed
 | Numerics | NumPy, SciPy, pandas or Polars | BSD-3 / MIT |
 | Columnar files | Apache Arrow / Parquet (pyarrow) | Apache-2.0 |
 | Training | PyTorch, torchvision | BSD-3 |
-| Detector frameworks | Ultralytics YOLO (AGPL-3.0) or NanoDet-Plus / YOLOX (Apache-2.0) | See [ADR-0008](../adr/0008-detector-licensing.md) |
-| Model export | ONNX, onnxsim, NCNN tools (pnnx) | Apache-2.0 / BSD-3 |
-| Segmentation for cutouts | SAM 2 | Apache-2.0 |
-| Dataset browsing | FiftyOne | Apache-2.0 |
+| Detector and classifier training | Ultralytics YOLO11 (AGPL-3.0), chosen in [ADR-0008](../adr/0008-detector-licensing.md) | AGPL-3.0 |
+| Model export | pnnx and ncnn (through Ultralytics' ncnn export) | BSD-3 |
+| Segmentation for cutouts (only if real cutouts are added later) | SAM 2 | Apache-2.0 |
+| Dataset browsing (planned) | FiftyOne | Apache-2.0 |
 | Annotation of real images | Label Studio or CVAT | Apache-2.0 / MIT |
+| Synthetic images | Own procedural renderer: NumPy + OpenCV ([ADR-0009](../adr/0009-procedural-insect-rendering.md)) | Apache-2.0 / BSD |
+| Real-image check set | iNaturalist Open Dataset on AWS, CC0/CC-BY photos only | per photo |
 | 3D rendering (optional) | Blender, BlenderProc | GPL |
 | Classical ML, anomaly baselines | scikit-learn | BSD-3 |
 | Forecasting (Epic 4) | statsmodels; LightGBM | BSD-3 / MIT |
-| Data versioning | DVC | Apache-2.0 |
-| Experiment tracking | MLflow (file or SQLite backend) | Apache-2.0 |
+| Data versioning (planned, EN-06) | DVC | Apache-2.0 |
+| Experiment tracking (planned; runs currently write a JSON summary) | MLflow (file or SQLite backend) | Apache-2.0 |
 | Notebooks | JupyterLab | BSD-3 |
 
 ## Quality, CI and docs

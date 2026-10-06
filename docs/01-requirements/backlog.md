@@ -1,6 +1,6 @@
 # Product backlog
 
-Status: Draft. Only partially recovered.
+Status: Historical. The working backlog now lives in [docs/jira](../jira/README.md) (epics, stories, sub-tasks, estimates, sprints, ready for Jira). This page keeps the rows recovered from the original spreadsheet and how they map.
 
 The team backlog lives in a spreadsheet ("Smarthive- BACKLOG.xlsx") with four sheets: *Product backlog - Initial*, *Product backlog - Sprint 2 (after)*, *Product backlog - Sprint 3 (after)* and *Dropdown menus*. The copy available while writing these docs was a PDF export of the first screen, so only the first rows could be read. They are reproduced below.
 
@@ -15,7 +15,7 @@ The team backlog lives in a spreadsheet ("Smarthive- BACKLOG.xlsx") with four sh
 
 1. Two numbering schemes exist (`US1` in the spreadsheet, `US01` in the epics document). Use the epics numbering everywhere and keep the old ID in a column, as in the table above.
 2. The BOM story lists an ESP32 and a microphone. The current electrical design uses a Raspberry Pi 3B and has no microphone. See [hardware review notes](../02-hardware/hardware-review-notes.md#1-two-different-node-designs-are-in-circulation).
-3. Add the work that the synthetic data decision created. Suggested new backlog items, all technical enablers:
+3. Add the work that the synthetic data decision created. These enablers are now in the Jira backlog with full detail (EN-03 became the procedural renderer, and EN-06 the DVC setup; the benchmark spike is part of US11):
 
 | Proposed ID | Item | Unblocks |
 |---|---|---|

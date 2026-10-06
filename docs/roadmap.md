@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: Proposed. To be reviewed at the next sprint planning.
+Status: Proposed, updated after Sprint 3. The sprint-by-sprint version, with every story, sub-task, estimate and owner, is the [Jira backlog](jira/backlog.md).
 
 This is the plan for the whole project, including the parts that are designed in these docs and the parts that are only proposed. Phases are in two-week sprints. The sprint count per phase is an estimate; the order matters more than the dates.
 
@@ -8,10 +8,10 @@ This is the plan for the whole project, including the parts that are designed in
 
 | Area | Owner | State of the docs | Next document to write |
 |---|---|---|---|
-| Project, requirements | Adrien (PO), Diego (SM) | Done, waiting for client answers | Interview log after the client meeting |
+| Project, requirements | Adrien (PO), Diego (SM) | Done, waiting for client answers; Jira backlog ready | Interview log after the client meeting |
 | Hardware Prototype 1 | Ricardo | Done (from the design document) + review notes | Measured power budget; enclosure design |
-| Data strategy and telemetry simulator | Diego, James | **Designed in detail** | Calibration notebook and targets |
-| Synthetic images and vision | Adrien | **Designed in detail** | Benchmark report (EN-06) |
+| Data strategy and telemetry simulator | Diego, James | **Implemented** (v1.0.0, tested) | Calibration against MSPB; MQTT replay |
+| Synthetic images and vision | Adrien | **Implemented v0.1**: procedural generator, two-stage model trained, ncnn export, Pi estimate | Real backgrounds (tier C), on-device benchmark, public Varroa data |
 | Backend | James | **Designed in detail** | Code |
 | Communications | Karen | Contract designed; link study not started | LoRaWAN / NB-IoT feasibility study |
 | Frontend | Maria | API ready to consume; UI not designed | Dashboard design doc |
@@ -48,10 +48,10 @@ Goal: everyone can work in parallel without waiting for anyone.
 | Client interview (30 questions) | Adrien | Interview log filled in; docs updated where answers change assumptions |
 | Freeze messaging contract v1, JSON Schemas, example fixtures | Karen, James | Schemas merged; contract tests run in CI |
 | Docker Compose skeleton: Mosquitto with TLS, PostgreSQL + TimescaleDB, empty API | Maria, James | `docker compose --profile dev up` works on every laptop |
-| Telemetry simulator v0: environment + temperature/humidity + DHT11 model | Diego | Generates a month for 5 hives; first stylized-fact tests pass |
+| ~~Telemetry simulator v0~~ Done ahead of plan as v1.0.0 (weight, events, node model included) | Diego | Six scenarios, 10 stylized-fact tests |
 | Choose the camera; mount it; tier C captures (backgrounds, gray card, ruler) | Ricardo, Adrien | 200+ background frames in DVC |
-| Download and license-check public datasets; freeze P splits | Adrien | Manifest entries; split files with checksums committed |
-| Decide repository license (ADR-0008) or schedule it after EN-06 | Team | Decision recorded |
+| ~~Download and license-check public datasets; freeze P splits~~ Done: iNaturalist P-inat-v1. Zenodo Varroa sets still to fetch from a machine with access | Adrien | Split file committed |
+| ~~Decide repository license (ADR-0008)~~ Done: Ultralytics YOLO11, repository AGPL-3.0 | Team | Decision recorded |
 | Update presentation and backlog to the Pi 3B design (ADR-0003) | Ricardo | No more contradictions between documents |
 
 ### Phase 1: First end-to-end slice (1 sprint)
@@ -64,8 +64,8 @@ Goal: a reading from a real DHT11 and from a fake node both show up on a chart.
 | Ingestor with dedup; readings API; WebSocket live values | James | US05, US13 |
 | Simulator MQTT replay with node behaviors (outages, duplicates) | James, Diego | EN-02 |
 | Dashboard v0: hive list, latest values, 24 h chart | Maria | US13 |
-| Image compositor v0.1, first TSTR number | Adrien | EN-04 |
-| Pi 3B inference benchmark spike | Adrien | EN-06, US11 |
+| ~~Image compositor v0.1, first TSTR number~~ Done in Sprint 3 | Adrien | EN-04 |
+| Pi 3B inference benchmark: estimate done, on-device run pending the Pi | Adrien, Ricardo | US11 |
 | CI: lint, unit tests, contract tests | Maria | |
 
 ### Phase 2: Vision MVP (2 sprints)
@@ -74,8 +74,8 @@ Goal: a hornet or a Varroa-positive bee in front of the camera (synthetic or rea
 
 | Item | Owner | Stories |
 |---|---|---|
-| Compositor v0.5 to v1.0: shadows, blur, noise, distractors, bee + mite composer | Adrien | US09, US10 |
-| Stage 1 detector and stage 2 classifier trained, exported to NCNN, INT8 | Adrien | US09, US10, US11 |
+| Generator v0.2+: real board backgrounds, sequences, renderer realism driven by the tier P errors | Adrien | US09, US10 |
+| Stage 1 and stage 2 retrained on v0.2+ data; INT8 only if the on-device benchmark needs it | Adrien | US09, US10, US11 |
 | `camd` with motion gating and night mode; `visiond` with aggregation | Ricardo, Adrien | US07, US08, US11 |
 | Image upload endpoint and storage; latest image view | James, Maria | US15 |
 | Alert engine, lifecycle, email and in-app notifications | James, Maria | US12, US14 |

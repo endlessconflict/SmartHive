@@ -58,7 +58,7 @@ def filter_archive(out: Path, taxa_csv: Path):
                 print("observations kept:", len(obs), flush=True)
             elif name == "photos.csv":
                 with open(out / "photos.tsv", "w", newline="") as f:
-                    w = csv.writer(f, delimiter="\t")
+                    w = csv.writer(f, delimiter="\t", lineterminator="\n")
                     w.writerow(["photo_id", "extension", "license", "observer_id", "observation_uuid", "taxon_id", "cls"])
                     for r in rows(tar.extractfile(m)):
                         # photo_uuid, photo_id, observation_uuid, observer_id, extension, license, width, height, position
@@ -73,7 +73,7 @@ def download(out: Path, per_class: int, seed: int = 0):
     for r in csv.DictReader(open(out / "photos.tsv"), delimiter="\t"):
         by_cls.setdefault(r["cls"], []).append(r)
     manifest = open(out / "manifest.tsv", "w", newline="")
-    w = csv.writer(manifest, delimiter="\t")
+    w = csv.writer(manifest, delimiter="\t", lineterminator="\n")
     w.writerow(["file", "cls", "taxon_id", "license", "source_url", "observer_id"])
     rng = random.Random(seed)
     for cls, items in sorted(by_cls.items()):
