@@ -46,8 +46,8 @@ def good(mask):
     return border < 0.05 and main > 0.9 and solidity > 0.55
 
 
-def main(pool: Path, out: Path, limit: int | None, min_conf=0.12):
-    torch.set_num_threads(2)
+def main(pool: Path, out: Path, limit: int | None, min_conf=0.12, threads=2):
+    torch.set_num_threads(threads)
     det, sam = YOLOE(str(WEIGHTS / "yoloe-11s-seg.pt")), SAM(str(WEIGHTS / "sam2.1_t.pt"))
     det.set_classes(PROMPTS, det.get_text_pe(PROMPTS))
     rows = list(csv.DictReader(open(pool / "manifest.tsv"), delimiter="\t"))[:limit]
@@ -89,5 +89,6 @@ if __name__ == "__main__":
     ap.add_argument("pool", type=Path)
     ap.add_argument("out", type=Path)
     ap.add_argument("--limit", type=int)
+    ap.add_argument("--threads", type=int, default=2)
     a = ap.parse_args()
-    main(a.pool, a.out, a.limit)
+    main(a.pool, a.out, a.limit, threads=a.threads)

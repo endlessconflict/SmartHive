@@ -70,12 +70,12 @@ def filter_archive(out: Path, taxa_csv: Path):
                 return
 
 
-def download(out: Path, per_class: int, seed: int = 0, src: Path | None = None, exclude: Path | None = None):
-    """exclude: a split file whose photos must never be downloaded again (keeps an asset pool disjoint from tier P)."""
-    skip = {Path(r["file"]).stem for r in csv.DictReader(open(exclude), delimiter="\t")} if exclude else set()
+def download(out: Path, per_class: int, seed: int = 0, src: Path | None = None, exclude=(), only=None):
+    """exclude: split/manifest files whose photos must never be downloaded again (keeps pools disjoint from tier P)."""
+    skip = {Path(r["file"]).stem for e in exclude for r in csv.DictReader(open(e), delimiter="\t")}
     by_cls = {}
     for r in csv.DictReader(open((src or out) / "photos.tsv"), delimiter="\t"):
-        if r["photo_id"] not in skip:
+        if r["photo_id"] not in skip and (not only or r["cls"] in only):
             by_cls.setdefault(r["cls"], []).append(r)
     out.mkdir(parents=True, exist_ok=True)
     manifest = open(out / "manifest.tsv", "w", newline="")
@@ -110,10 +110,11 @@ if __name__ == "__main__":
     p.add_argument("--taxa", type=Path, help="taxa.csv extracted from the same archive")
     p.add_argument("--per-class", type=int, default=300)
     p.add_argument("--src", type=Path, help="folder with photos.tsv, if not --out")
-    p.add_argument("--exclude", type=Path, help="split file to keep disjoint from, e.g. vision/splits/P-inat-v1.tsv")
+    p.add_argument("--exclude", type=Path, nargs="*", default=[], help="split/manifest files to stay disjoint from, e.g. vision/splits/P-inat-v1.tsv")
+    p.add_argument("--only", nargs="*", help="classes to download")
     p.add_argument("--seed", type=int, default=0)
     a = p.parse_args()
     if a.cmd == "filter":
         filter_archive(a.out, a.taxa)
     else:
-        download(a.out, a.per_class, a.seed, a.src, a.exclude)
+        download(a.out, a.per_class, a.seed, a.src, a.exclude, a.only)

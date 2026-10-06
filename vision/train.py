@@ -22,14 +22,16 @@ DEFAULTS = {
 }
 
 
-def main(stage, dataset: Path, epochs, name, extra):
+def main(stage, dataset: Path, epochs, name, extra, weights=None):
     cfg = dict(DEFAULTS[stage], **extra)
-    model = YOLO(str(WEIGHTS / cfg.pop("model")))
+    start = weights or WEIGHTS / cfg.pop("model")  # weights: fine-tune from a previous run instead of COCO/ImageNet
+    cfg.pop("model", None)
+    model = YOLO(str(start))
     data = dataset / "stage1/data.yaml" if stage == "stage1" else dataset / "stage2"
     res = model.train(data=str(data), epochs=epochs, project=str(Path("runs") / stage), name=name, exist_ok=True,
                       device="cpu", workers=4, seed=0, deterministic=True, plots=True, **cfg)
     run = Path(res.save_dir)
-    (run / "smarthive.json").write_text(json.dumps({"stage": stage, "dataset": dataset.name, "epochs": epochs,
+    (run / "smarthive.json").write_text(json.dumps({"stage": stage, "dataset": dataset.name, "epochs": epochs, "start": str(start),
                                                     "config": cfg, "metrics": res.results_dict}, indent=2, default=str))
     print(run)
 
@@ -41,6 +43,7 @@ if __name__ == "__main__":
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--name")
     ap.add_argument("--set", nargs="*", default=[], help="extra ultralytics args, key=value")
+    ap.add_argument("--weights", type=Path, help="start from these weights (fine-tuning)")
     a = ap.parse_args()
     extra = {k: yaml.safe_load(v) for k, v in (s.split("=", 1) for s in a.set)}
-    main(a.stage, a.dataset, a.epochs, a.name or a.dataset.name, extra)
+    main(a.stage, a.dataset, a.epochs, a.name or a.dataset.name, extra, a.weights)

@@ -27,7 +27,7 @@ import pandas as pd
 
 from simulation.images import render
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 CLASSES = ["bee", "hornet", "shb", "other_insect"]
 FULL = (1640, 1232)  # Raspberry Pi Camera v2 2x2-binned mode; the node analyzes frames this size
 STAGE1 = (640, 480)
@@ -183,7 +183,8 @@ def scene(i, seed, lib):
     by_cls = {c: [k for k, s in enumerate(lib) if s["cls"] == c and s["kind"] != "real"] for c in CLASSES}
     real = {c: [k for k, s in enumerate(lib) if s["cls"] == c and s["kind"] == "real"] for c in CLASSES}
     want = [("bee", int(rng.poisson(rng.uniform(1, 22))))]
-    for c, p, hi in (("hornet", 0.3, 2), ("shb", 0.25, 3), ("other_insect", 0.4, 4)):
+    # v0.3: more distractors; on real photos, wasps and flies were being called hornet or bee
+    for c, p, hi in (("hornet", 0.3, 2), ("shb", 0.25, 3), ("other_insect", 0.65, 6)):
         if rng.random() < p:
             want.append((c, int(rng.integers(1, hi + 1))))
     objs = []
@@ -320,7 +321,7 @@ def _init(lib, real_frac=0.0, dr_frac=0.0):
     LIB.update(lib)
 
 
-def main(out: Path, n: int, seed: int, val_frac: float, workers: int, cutouts: Path | None = None,
+def main(out: Path, n: int, seed: int, val_frac: float, workers: int, cutouts: list[Path] = (),
          real_frac: float = 0.5, dr_frac: float = 0.15):
     cv2.setNumThreads(1)  # no OpenCV worker threads in the parent: forking with live threads deadlocks the pool
     for d in ["stage1/images/train", "stage1/images/val", "stage1/labels/train", "stage1/labels/val",
@@ -329,7 +330,8 @@ def main(out: Path, n: int, seed: int, val_frac: float, workers: int, cutouts: P
     lib = {"train": build_library("train", seed, workers), "val": build_library("val", seed + 10_000, workers)}
     if cutouts:
         for split in lib:
-            lib[split] += load_cutouts(cutouts, split)
+            for folder in cutouts:
+                lib[split] += load_cutouts(folder, split)
     else:
         real_frac = 0.0
     n_val = int(n * val_frac)
@@ -350,7 +352,7 @@ def main(out: Path, n: int, seed: int, val_frac: float, workers: int, cutouts: P
 Tier: S (synthetic). Generator: simulation.images.compose v{VERSION} @ git {commit}, seed {seed}.
 Images: {n} scenes at {FULL[0]}x{FULL[1]} (stage 1 saved at {STAGE1[0]}x{STAGE1[1]}), {n_val} in val.
 Train and val use different procedural sprite libraries (seeds {seed} and {seed + 10_000}).
-Real-photo cutouts: {"none" if not cutouts else f"{cutouts} (share of insects {real_frac}; 1 in 5 files reserved for val; licenses in its manifest.tsv)"}.
+Real-photo cutouts: {"none" if not cutouts else f"{', '.join(map(str, cutouts))} (share of insects {real_frac}; 1 in 5 files reserved for val; licenses in each manifest.tsv)"}.
 Random-texture backgrounds: {dr_frac:.0%} of scenes.
 Assets: {"none external. Every insect, board and stain is procedural, so the dataset has no third-party license." if not cutouts else "procedural, plus CC0/CC-BY iNaturalist cutouts listed with source and license in the cutouts manifest."}
 
@@ -376,7 +378,7 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=1)
     ap.add_argument("--val-frac", type=float, default=0.15)
     ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--cutouts", type=Path, help="folder from simulation/images/cutouts.py (real-photo insects)")
+    ap.add_argument("--cutouts", type=Path, nargs="*", default=[], help="folders from simulation/images/cutouts.py (real-photo insects)")
     ap.add_argument("--real-frac", type=float, default=0.5)
     ap.add_argument("--dr-frac", type=float, default=0.15)
     a = ap.parse_args()

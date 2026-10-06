@@ -22,9 +22,9 @@ def iou(a, b):
     return inter / max(1e-9, (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter)
 
 
-def evaluate(s1, s2, n, seed, workers, thresholds=None):
+def evaluate(s1, s2, n, seed, workers, thresholds=None, threads=3):
     lib = compose.build_library("val", seed + 10_000, workers)
-    det = Detector(Path(s1), Path(s2), thresholds=thresholds)
+    det = Detector(Path(s1), Path(s2), thresholds=thresholds, threads=threads)
     tp, fp, fn = Counter(), Counter(), Counter()
     v = Counter()  # varroa confusion on matched, sharp, walking bees
     scenes_with = Counter()
@@ -80,8 +80,9 @@ if __name__ == "__main__":
     ap.add_argument("--n", type=int, default=200)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--threads", type=int, default=3)
     a = ap.parse_args()
-    res = evaluate(a.stage1, a.stage2, a.n, a.seed, a.workers)
+    res = evaluate(a.stage1, a.stage2, a.n, a.seed, a.workers, threads=a.threads)
     out = Path(a.stage1).parent.parent / "system_eval.json"
     out.write_text(json.dumps(res, indent=2))
     print(json.dumps(res, indent=2))
