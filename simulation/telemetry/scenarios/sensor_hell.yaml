@@ -1,0 +1,6 @@
+# Very high rate of sensor and node faults.
+name: sensor_hell
+hives: 10
+period: {start: "2024-01-01", days: 90}
+sensor: {read_fail_p: 0.15, stuck_per_year: 40, dropout_per_week: 6}
+node: {outage_per_week: 4}

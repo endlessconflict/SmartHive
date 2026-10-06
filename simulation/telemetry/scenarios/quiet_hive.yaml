@@ -1,0 +1,5 @@
+# No colony events at all: baseline for false-alarm rates. Management still happens.
+name: quiet_hive
+hives: 10
+period: {start: "2024-01-01", days: 365}
+events: {swarm_per_year: 0, abscond_per_year: 0, queen_loss_per_year: 0, robbing_per_year: 0}

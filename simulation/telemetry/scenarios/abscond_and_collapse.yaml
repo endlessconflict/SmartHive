@@ -1,0 +1,5 @@
+# Oversampled absconding and queen loss: the "novel" anomalies held out of anomaly-detector training.
+name: abscond_and_collapse
+hives: 30
+period: {start: "2024-03-01", days: 180}
+events: {abscond_per_year: 2, queen_loss_per_year: 3}

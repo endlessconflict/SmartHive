@@ -1,0 +1,6 @@
+# Prototype 1 on battery only, swapped daily at 09:00: shows the daily gaps from the power budget.
+name: battery_node
+hives: 3
+period: {start: "2024-01-01", days: 30}
+output_step_min: 1
+node: {power: battery}

@@ -1,0 +1,5 @@
+# Oversampled swarms during the dry-season flow (training only; rates are not realistic).
+name: swarm_season
+hives: 50
+period: {start: "2024-01-01", days: 120}
+events: {swarm_per_year: 8}

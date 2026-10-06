@@ -1,0 +1,4 @@
+# Normal years, default rates. General training set and dashboard demos.
+name: panama_baseline
+hives: 20
+period: {start: "2023-01-01", days: 730}
