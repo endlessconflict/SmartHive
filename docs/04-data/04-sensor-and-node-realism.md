@@ -1,6 +1,6 @@
 # Sensor and node realism
 
-Status: Proposed
+Status: Implemented in the simulator v1.0.0 (`observe()` in `simulation/telemetry/sim.py`), except the transport model, which belongs to the MQTT replay (planned)
 
 Owners: Diego Alejandro Vasquez (sensor models), Ricardo Villarreal (hardware facts), James Tack (node behavior)
 
@@ -74,7 +74,7 @@ The node samples on a timer, but not perfectly:
 | Buffer overflow | Oldest unsent readings are dropped after the retention limit | Must be visible as a gap, not as silent loss |
 | Thermal throttling | On hot afternoons with heavy detector use, inference slows and some samples slip | Tropical climate, closed enclosure |
 
-## Transport model (MQTT QoS 1)
+## Transport model (MQTT QoS 1), planned with the replay
 
 | Behavior | Model | Why the backend cares |
 |---|---|---|
@@ -96,22 +96,25 @@ Every observed sample carries one flag. The real node uses the same set.
 | `clock_unsynced` | Timestamp taken before the clock was synchronized |
 | `interpolated` | Never produced by the node; reserved for backend-derived series |
 
-## Presets
+## Configuration
+
+The sensor and node blocks of a scenario (defaults in `DEFAULTS` in `sim.py`):
 
 ```yaml
-# sensors/dht11_hx711.yaml
-temp_in:  {model: dht11, bias: {dist: uniform, low: -2, high: 2}, noise_sd: 0.3}
-rh_in:    {model: dht11, bias: {dist: uniform, low: -5, high: 5}, noise_sd: 1.0, fouling: {per_week: 0.3}}
-weight:   {model: hx711, resolution_g: 10, noise_sd_g: 30, temp_coeff_g_per_c: {dist: uniform, low: 5, high: 30}}
-read_failure_p: 0.04
-
-# nodes/pi3b_battery.yaml
-battery_wh: {dist: uniform, low: 47, high: 66}
-avg_draw_w: {day: 3.5, night: 1.8}
-swap_schedule: daily_at_09
-buffer_days: 7
-ntp_delay_s: {dist: lognormal, median: 20, sigma: 1.0}
-duplicate_p: {normal: 0.001, after_reconnect: 0.05}
+sensor:
+  model: dht11              # dht11 | sht31 | bme280 (range, resolution, max bias, noise from the datasheets)
+  read_fail_p: 0.04         # one failed DHT11 read loses temperature and humidity together
+  stuck_per_year: 2
+  dropout_per_week: 1.0
+  hx711: {res_g: 10, noise_g: 30, temp_coeff_g_per_c: [5, 30], gain_err: 0.02, creep_g_per_week: [0, 40], spike_per_day: 0.5}
+node:
+  power: mains              # mains: random outages; battery: energy model, swapped daily at swap_hour
+  outage_per_week: 0.5
+  outage_median_h: 3
+  battery_wh: [47, 66]
+  draw_w: {day: 3.5, night: 1.8}
+  swap_hour: 9
+  ntp_slow_p: 0.1           # share of boots where NTP takes 5 to 60 minutes
 ```
 
-`node: ideal` and `sensor: ideal` presets exist too, for debugging and for measuring the effect of each imperfection.
+Planned: `ideal` presets that switch every imperfection off, to measure how much each one costs a model, and the transport model (duplicates, late batches) in the MQTT replay.

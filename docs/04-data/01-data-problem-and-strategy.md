@@ -1,6 +1,6 @@
 # The data problem and the strategy
 
-Status: Proposed. Decision recorded in [ADR-0002](../adr/0002-synthetic-first-training-data.md).
+Status: Accepted and implemented for telemetry and vision training data. Decision recorded in [ADR-0002](../adr/0002-synthetic-first-training-data.md).
 
 ## What changed
 
@@ -64,8 +64,11 @@ Licenses must be confirmed on each dataset page before use. "Verify" means we co
 
 ### Images
 
+The tier P set actually built is the first row: the iNaturalist Open Dataset on AWS was the only source reachable from the build environment (Zenodo, Hugging Face, Kaggle, Roboflow and Wikimedia are blocked there). The other rows stay listed for team members who can download them locally.
+
 | Dataset | Content | Fit for us | License |
 |---|---|---|---|
+| **iNaturalist Open Dataset** (`s3://inaturalist-open-data`, metadata snapshot 2021-04-07), built by [`vision/inat.py`](../../vision/inat.py), frozen in [`vision/splits/P-inat-v1.tsv`](../../vision/splits/P-inat-v1.tsv) | Research-grade observations, first photo only: 400 *Apis mellifera*, 400 *Vespa* spp., 400 other insects (flies, *Polistes*, *Vespula*, *Bombus*, ants), plus every available *Aethina tumida* (2) and *Varroa destructor* (10) photo. Split 50/50 into calibration and test, with SHA-256 per file | Real insects at arbitrary scale and background: an appearance test, not an entrance-camera test. Too few SHB and Varroa photos to score those classes | CC0 and CC BY only, per photo, with observer ID and source URL in the split file (attribution) |
 | VarroaDataset, TU Wien Computer Vision Lab ([Zenodo 4085044](https://zenodo.org/record/4085044)) | 13,509 bee crops (160 × 280 px), 3,947 with Varroa, 9,562 healthy, controlled environment, predefined splits | Good validation set for the stage 2 Varroa classifier | Verify |
 | Bilik et al. 2021, "Visual diagnosis of the Varroa destructor parasitic mite in honeybees using object detector techniques" | 600 annotated images of healthy and infected bees in several scenes; YOLO and SSD baselines (F1 up to 0.874 for infected bees, 0.714 for mites) | Closest published setup to ours; good test set and baseline | Verify availability |
 | Kaggle BeeImage dataset (Jenny Yang) | 5,100+ bee crops from time-lapse video, labeled with health status (including Varroa and hive beetles), subspecies, pollen | Varroa and beetle examples at entrance-like conditions | Verify |

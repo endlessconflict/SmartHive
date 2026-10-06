@@ -1,6 +1,6 @@
 # Scenarios and events
 
-Status: Proposed
+Status: Implemented in the simulator v1.0.0, except where marked "planned"
 
 Owner: Diego Alejandro Vasquez
 
@@ -17,10 +17,10 @@ Signatures describe the true signal. The sensor model is applied afterwards. Mag
 | `swarm` | Old queen leaves with a large share of workers | Drop of 1 to 4 kg within 10 to 30 min, usually 09:00 to 15:00, warm day, during a flow. Afternoon gains smaller for weeks after | Small disturbance, then normal; brood still present | Small change | Burst during the event, lower after | Start, end, kg lost, share of `N` lost |
 | `absconding` | Whole colony leaves (common in Africanized bees) | Drop of most of the bee mass plus some stores; no more daily cycle | Converges to ambient within hours | Tracks ambient | Burst, then near zero | Start, end |
 | `queen_loss` | Queen dies, no immediate replacement | No immediate change | Normal while capped brood remains (about 3 weeks), then looser regulation (`γ` up, `T_set` down) | Slowly less regulated | Slowly lower | Start (hidden in signals for weeks) |
-| `supersedure` | Queen replaced by a new one | Slightly lower gains for a few weeks | Brief brood gap | | | Start, end |
+| `supersedure` (planned) | Queen replaced by a new one | Slightly lower gains for a few weeks | Brief brood gap | | | Start, end |
 | `robbing` | Other colonies steal honey | Unusual weight loss during the afternoon on flight days, 0.2 to 2 kg/day | Normal | Normal | Very high | Start, end, daily loss |
-| `starvation_risk` | Stores fall low during a dearth | Steady decline, `S` below threshold | Regulation loosens as the colony weakens | | Lower | Start (when `S` crosses threshold) |
-| `colony_collapse` | Gradual decline to death (from disease, pests...) | Daily cycle shrinks over weeks | `γ` rises steadily, then ambient | | Falls to zero | Start, end |
+| `starvation_risk` (planned label; starvation itself is modeled) | Stores fall low during a dearth | Steady decline, `S` below threshold | Regulation loosens as the colony weakens | | Lower | Start (when `S` crosses threshold) |
+| `colony_collapse` (emerges from queen loss or starvation; no separate label yet) | Gradual decline to death (from disease, pests...) | Daily cycle shrinks over weeks | `γ` rises steadily, then ambient | | Falls to zero | Start, end |
 
 ### Management events (the beekeeper)
 
@@ -29,8 +29,8 @@ Signatures describe the true signal. The sensor model is applied afterwards. Mag
 | `inspection` | Spike and dip of a few kg over 5 to 30 min (hands, lid, frames out), back to baseline | Drop of 1 to 4 °C, recovers within an hour | Must not be flagged as an anomaly. The dashboard should let the beekeeper log visits so the backend can mask them |
 | `super_added` | Step up equal to the empty super | Small dip | Input to Epic 4 |
 | `harvest` | Step down of several kg during a visit | Like an inspection | Yield ground truth for Epic 4 |
-| `feeding` | Step up by the syrup mass, then gradual decrease as it is stored and consumed | | |
-| `treatment` | Small step (strips, trays) | Possible small change | |
+| `feeding` | Step up of 3 to 5 kg of syrup, then consumed like stores. The simulated beekeeper feeds at an inspection when honey falls below 2 kg | | Keeps colonies alive through the dearth |
+| `treatment` (planned) | Small step (strips, trays) | Possible small change | |
 
 ### Sensor and node events
 
@@ -40,28 +40,30 @@ Described in [sensor and node realism](04-sensor-and-node-realism.md). They are 
 |---|---|
 | `sensor_dropout` | Readings missing for minutes to hours |
 | `sensor_stuck` | Same value repeated |
-| `sensor_drift` | Slow bias change |
-| `sensor_spike` | Isolated outliers |
+| `sensor_drift` | Slow bias change (humidity fouling is modeled, not labeled) |
+| `sensor_spike` | Isolated outliers (load cell spikes are modeled, not labeled) |
 | `node_offline` | All channels missing, data arrives later in a burst (or never, if the outage outlasts the local buffer) |
-| `clock_jump` | Timestamps shifted after a cold boot without NTP |
-| `scale_creep` | Load cell slowly drifts under constant load (when weight exists) |
+| `clock_jump` | Timestamps shifted after a cold boot without NTP (rows flagged `clock_unsynced` with `clock_offset_s`) |
+| `scale_creep` | Load cell slowly drifts under constant load (modeled, not labeled) |
 
 ## Event rates
 
 Each scenario includes an events file with a rate per type and per season. Defaults:
 
+Defaults in `simulation/telemetry/sim.py` (`DEFAULTS`), overridden per scenario:
+
 ```yaml
-# events/default_rates.yaml  (rates per hive; values are starting assumptions)
-swarm:            {per_year: 0.6, season: flow, daytime: [9, 15], requires: [queen_present, strong_colony]}
-absconding:       {per_year: 0.15}
-queen_loss:       {per_year: 0.2}
-robbing:          {per_year: 0.3, season: dearth}
-inspection:       {every_days: {dist: uniform, low: 7, high: 21}, daytime: [8, 16]}
-super_added:      {rule: "S > 0.7 * capacity and season == flow"}
-harvest:          {rule: "supers_full and season_end"}
-sensor_dropout:   {per_week: 1.0, duration_min: {dist: lognormal, median: 20, sigma: 1.2}}
-sensor_stuck:     {per_year: 2}
-node_offline:     {per_week: 0.5, duration_h: {dist: lognormal, median: 3, sigma: 1.0}}
+events:
+  swarm_per_year: 0.6        # weighted towards the flow; needs a laying queen, N > 20,000, bloom > 0.3; 10:00-14:00
+  abscond_per_year: 0.15     # needs N > 1,000
+  queen_loss_per_year: 0.2
+  robbing_per_year: 0.3      # weighted towards the dearth; 2-5 days, 13:00-17:00
+  inspection_every_days: [7, 21]
+  supers: true               # added when honey > 70 % of capacity during a flow (max 3)
+  harvest: true              # when the flow ends and honey > 12 kg; leaves 8-12 kg
+  feed_below_kg: 2.0
+sensor: {read_fail_p: 0.04, stuck_per_year: 2, dropout_per_week: 1.0}
+node:   {power: mains, outage_per_week: 0.5, outage_median_h: 3}
 ```
 
 Rare events can be oversampled for training datasets (for example "every hive swarms once in this dataset") while test datasets keep realistic rates. Both versions are written down in the dataset card.
@@ -70,12 +72,15 @@ Rare events can be oversampled for training datasets (for example "every hive sw
 
 | Scenario | Purpose | Hives × duration |
 |---|---|---|
-| `panama_baseline` | Normal year, default rates. General training and dashboard demos | 20 × 2 years |
+| `panama_baseline` | Normal years, default rates. General training and dashboard demos | 20 × 2 years |
 | `swarm_season` | Oversampled swarms during the flow | 50 × 4 months |
-| `abscond_and_collapse` | Oversampled absconding and slow collapse | 30 × 6 months |
+| `abscond_and_collapse` | Oversampled absconding and queen loss | 30 × 6 months |
 | `sensor_hell` | Very high rate of every sensor and node fault | 10 × 3 months |
-| `quiet_hive` | No events at all. Baseline for false-positive rates | 10 × 1 year |
-| `demo_day` | A scripted day with one swarm at 11:00, a hornet detection at 14:00 and a node dropout at 16:00, replayed over MQTT at 1× for the final demo | 1 × 1 day |
+| `quiet_hive` | No colony events. Baseline for false-positive rates | 10 × 1 year |
+| `battery_node` | Battery-only node swapped daily at 09:00, 1-minute step | 3 × 30 days |
+| `demo_day` (planned with the MQTT replay) | A scripted day with one swarm at 11:00, a hornet detection at 14:00 and a node dropout at 16:00, replayed at 1× for the final demo | 1 × 1 day |
+
+Event counts in `panama_baseline`, seed 42 (20 hives, 2 years): 12 swarms, 4 absconding, 3 queen losses, 10 robbing episodes, 1,028 inspections, 42 supers added, 24 harvests (median 17.8 kg), 124 feedings, plus 2,082 sensor dropouts, 81 stuck-sensor episodes and 1,044 node outages.
 
 ## How the events are used
 

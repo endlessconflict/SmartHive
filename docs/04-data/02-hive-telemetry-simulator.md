@@ -1,256 +1,191 @@
 # Hive telemetry simulator
 
-Status: Proposed
+Status: Implemented (v1.0.0). Calibration against real hive data is still open (see the end of this page).
 
 Owners: Diego Alejandro Vasquez (models), James Tack (output formats and MQTT replay)
 
-Code: `simulation/telemetry/` (planned)
+Code: [`simulation/telemetry/sim.py`](../../simulation/telemetry/sim.py), tests in [`test_sim.py`](../../simulation/telemetry/test_sim.py), scenarios in [`scenarios/`](../../simulation/telemetry/scenarios/)
+
+```bash
+python -m simulation.telemetry.sim simulation/telemetry/scenarios/panama_baseline.yaml --seed 42
+# -> data/sim/S-telemetry-panama_baseline-v1.0.0-s42/
+python -m pytest simulation/telemetry/test_sim.py      # stylized facts, about 4 s
+```
+
+All six scenarios together generate in under a minute on a laptop.
+
+![A simulated swarm](../assets/data/telemetry-swarm-week.png)
+
+*Four days of one simulated hive (tier S). Blue: the true signal. Orange: what the Prototype 1 node would report. The colony holds its brood at about 35 °C within a few tenths of a degree, and the DHT11 turns that into an integer that flips between 34 and 35. Humidity carries a fixed +5 % sensor bias. The swarm at 10:33 removes about 1.5 kg in a quarter of an hour; afterwards the daily cycle shrinks because there are fewer foragers. The weight reading drifts with the load cell's temperature.*
 
 ## What it produces
 
-For each simulated hive, at a configurable time step (default 1 minute):
+| File | Content |
+|---|---|
+| `telemetry.parquet` | One row per hive and output step (default 5 min, 1 min for node-realism scenarios). Columns: `ts`, `hive_id`, `temp_in`, `temp_in_true`, `temp_in_q`, `rh_in`, `rh_in_true`, `rh_in_q`, `weight`, `weight_true`, `weight_q`, `clock_offset_s`, `traffic_true` |
+| `events.parquet` | Every labeled event: `hive_id`, `type`, `start`, `end`, `params` (JSON) |
+| `colony_daily.parquet` | Ground truth per hive and day: adult bees `N`, brood cells `B`, honey `S_kg`, fresh nectar `P_kg`, supers, queen state, bloom |
+| `weather.parquet` | The site weather actually used, at the output step |
+| `manifest.json` | Generator version, git commit, seed, full config and the parameters drawn for every hive |
 
-| Channel | Unit | In Prototype 1 hardware? |
-|---|---|---|
-| `temp_in` | °C | Yes (DHT11 inside the hive) |
-| `rh_in` | % RH | Yes (DHT11) |
-| `temp_out`, `rh_out` | °C, % RH | Optional second sensor |
-| `weight` | kg | No (simulated until a load cell exists) |
-| `traffic` | bees per minute through the entrance | No (could come from the camera later) |
+The columns without a suffix are what the node would report. `_true` is the model value, and `_q` is the quality flag (`ok`, `read_error`, `clipped`, `stuck`, `clock_unsynced`, and the dataset-only `no_data`, used when the node was off and the real system would have no row at all). The table is wide rather than long (one column per channel). That keeps two years of 20 hives at 5-minute steps to about 4 million rows.
 
-Each channel comes in two versions: the true value from the model, and the observed value after the [sensor and node model](04-sensor-and-node-realism.md) has quantized, biased, clipped and dropped it. Alongside the series, the simulator writes a table of labeled events (swarms, harvests, sensor faults...) with exact start and end times. See [scenarios and events](03-scenarios-and-events.md).
-
-It can write files for training (Parquet) or publish live over MQTT as fake nodes for the backend (`replay`).
+Hive IDs start with `sim-`, matching the rule in the [messaging contract](../05-backend/04-messaging-contract.md) that simulated nodes can never be mistaken for real ones.
 
 ## Design principles
 
-- Mechanistic and simple. Each signal comes from a small model of the physical cause. We prefer a model with five understandable parameters over a better-looking one nobody can explain at the review.
-- Real weather in, hive behavior out. The hive reacts to actual historical weather for the site, so rain days, heat waves and seasonal shifts are real.
-- Every uncertain parameter is a range. The scenario file gives a distribution, each hive draws its own values, and the drawn values are saved with the output so any result can be traced back.
-- Deterministic. Same scenario file and seed, same output, on any machine.
+- Mechanistic and simple. Each signal comes from a small model of its physical cause, with parameters a person can explain at a review.
+- Every uncertain parameter is a range. Each hive draws its own values, and the draws are saved in the manifest.
+- Deterministic. One generator per hive, seeded from `(seed, hive index)`. Same scenario and seed, same files on any machine (checked by a test).
+- Fast. The colony state steps once per day; within each day everything is vectorized over 1,440 minutes, and the slow first-order dynamics (nectar ripening, thermal lag) use `scipy.signal.lfilter`.
 
 ## Structure
 
 ```mermaid
 flowchart TB
-    CFG[Scenario YAML + seed] --> P[Parameter sampler]
-    WX[Weather provider<br/>Open-Meteo cache or stochastic] --> ENV[Environment<br/>T, RH, rain, wind, radiation, daylight]
-    P --> COL
-    ENV --> FOR[Forage availability<br/>season × weather]
-    FOR --> COL[Colony state<br/>daily: bees, brood, stores, queen]
-    COL --> ACT[Foraging activity<br/>within-day]
-    ENV --> ACT
-    ACT --> WT[Weight model]
+    CFG[Scenario YAML + seed] --> P[Per-hive parameter draws]
+    WX[Weather<br/>stochastic, Panama-like] --> ENV[Temperature, humidity, rain,<br/>wind, radiation, sun elevation]
+    ENV --> FLY[Flight conditions]
+    BL[Bloom calendar] --> COL
+    P --> COL[Colony, daily<br/>bees, brood, honey, queen]
+    COL --> ACT[Foraging, per minute]
+    FLY --> ACT
+    ACT --> WT[Weight]
     COL --> WT
-    COL --> TH[Thermal model]
+    COL --> TH[Brood temperature]
     ENV --> TH
-    COL --> HU[Humidity model]
+    COL --> HU[Brood humidity]
     ENV --> HU
-    EV[Event injector] --> COL
+    EV[Events<br/>colony and management] --> COL
     EV --> WT
     EV --> TH
-    WT --> TRUE[(True series)]
+    WT --> TRUE[(true values)]
     TH --> TRUE
     HU --> TRUE
-    ACT --> TRUE
-    TRUE --> SENS[Sensor and node model]
-    SENS --> OBS[(Observed series)]
-    EV --> LAB[(Event labels)]
+    TRUE --> SENS[DHT11 / HX711 model]
+    SENS --> NODE[Node model<br/>outages, clock]
+    NODE --> OBS[(observed values)]
+    EV --> LAB[(event labels)]
 ```
 
-## 1. Environment
+## 1. Weather
 
-Source: Open-Meteo historical API (ERA5 reanalysis), hourly variables `temperature_2m`, `relative_humidity_2m`, `precipitation`, `shortwave_radiation`, `wind_speed_10m`, `cloud_cover`. Responses are cached to Parquet the first time, so later runs work offline and are reproducible. Sunrise and sunset are computed from the coordinates with `astral`.
+The weather is generated, not downloaded. It is shared by all hives in a scenario, as they sit at the same site.
 
-Hourly values are interpolated to the time step (cubic for temperature and humidity, step for precipitation).
+- Daily mean temperature by season (dry season December to April around 27.5 °C, rainy season around 26.5 °C) plus AR(1) day-to-day drift.
+- A daily cycle with its minimum at 06:00 and maximum at 14:00, with a random amplitude (larger in the dry season).
+- Wet days from a two-state Markov chain (wet days cluster), with afternoon convective showers of 20 minutes to 3 hours. Rain cools the air and saturates it, and the effect fades over about an hour.
+- Humidity moves against temperature around a seasonal mean.
+- Sun elevation from the coordinates, using a simple declination and hour-angle formula. Radiation follows the sun and the cloud cover.
 
-For unit tests and for runs without network there is a stochastic weather fallback: a daily temperature sine wave around a seasonal mean, AR(1) noise, and a two-state Markov chain for rain. It is not meant to be realistic, only fast and dependency-free.
+The design originally used the Open-Meteo historical API. Open-Meteo is not reachable from the environment where the generator was built and tested, so the stochastic model is the default. Swapping in real history for the apiary's coordinates is a small change once the location is known. The generator only needs a per-minute weather frame with the same columns.
 
-Default site: Panama. The coordinates go in the scenario file and must be replaced by the real apiary location once we know it.
+## 2. Bloom and flight
 
-## 2. Forage availability
+`bloom(day)` is a floor plus Gaussian bumps from the scenario. The default is a 0.15 floor (tropical forage never fully stops), a main flow centered on 10 February about 110 days wide, and a weak flow in late July. **This calendar is an assumption to confirm with the client** (EL-10, Epic 4).
 
-`F(t)` in [0, 1] is how much nectar the landscape offers, and how much of it the bees can reach right now.
+Flight conditions per minute fall to zero in rain and recover slowly after it. They also drop in strong wind, below about 12 °C, in heat above 36 °C, and under heavy cloud.
 
-```text
-F(t) = bloom(day_of_year) × flight_ok(t)
-```
+## 3. Colony (daily step)
 
-- `bloom(doy)` is a seasonal calendar defined in the scenario as a sum of Gaussian bumps (center, width, height). The default for Panama puts the main flow in the dry season (roughly December to April) with weak secondary flows in the rainy season. **This calendar is an assumption to confirm with the client** (it affects EL-10 and Epic 4).
-- `flight_ok(t)` is the weather's effect on flight: zero at night, zero during rain above a threshold, reduced by strong wind and low radiation, reduced by extreme heat in the early afternoon.
-
-## 3. Colony state (daily step)
-
-A deliberately small population model, in the spirit of published colony models such as BEEHAVE (Becher et al. 2014) but with far fewer moving parts.
-
-| State | Meaning | Daily update |
-|---|---|---|
-| `N` | Adult workers | Emergence from brood minus mortality; foragers die faster when foraging is heavy |
-| `B` | Brood (cells) | Queen laying rate × (1 if queen present) × resource factor, minus emergence after about 21 days |
-| `S` | Honey stores (kg) | Integrated from the weight model's intake and consumption terms |
-| `queen` | `present`, `absent`, `virgin` | Changed only by events (swarm, queen loss, supersedure) |
-| `forager_frac` | Share of `N` that forages | Rises with colony age structure and forage availability; typically 0.2 to 0.35 |
-
-What matters for the signals is that `N` sets the size of the daily weight swing and the colony's heating power, `B > 0` turns on precise thermoregulation, and `S` drifts with the season.
-
-Starting values are drawn per hive from the scenario (for example `N ~ Uniform(15k, 40k)`), so the dataset contains weak and strong colonies.
-
-## 4. Foraging activity (within the day)
-
-Following the pattern measured by Meikle et al. (2018) and modeled in [arXiv 2211.02335](https://arxiv.org/pdf/2211.02335):
-
-- At first light, foragers start leaving. The hive gets lighter for a few hours because departures outnumber returns.
-- Around midday departures and returns balance. With forage available, the hive starts gaining weight, because returning bees carry nectar and pollen.
-- Towards dusk all foragers return.
-- At night the hive slowly loses weight (water evaporating from nectar, consumption).
-
-We model the number of bees outside as
-
-```text
-N_out(t) = forager_frac × N × F(t) × g(t)
-```
-
-where `g(t)` is a smooth bell over daylight hours with a randomized onset delay after sunrise and a randomized end before sunset. Traffic through the entrance is the derivative of the outbound and inbound flows plus a random component, which also feeds the image generator (busier entrance in synthetic images at busy times).
-
-## 5. Weight
-
-```text
-W(t) = W_tare + W_supers(t) + S(t) + P(t) + m_bee × (N − N_out(t)) + W_water(t)
-```
-
-| Term | Meaning | Default range |
-|---|---|---|
-| `W_tare` | Empty boxes, frames, comb, lid | Drawn per hive |
-| `W_supers` | Supers added or removed by events | Step changes |
-| `S` | Ripe honey | From colony state |
-| `P` | Fresh nectar not yet ripened | Gains from returning foragers, loses water overnight |
-| `m_bee` | Mass of one worker | About 0.1 g |
-| `W_water` | Rain on the lid, dew | Small, positive during and after rain, decays as it dries |
-
-Fresh nectar dynamics:
-
-```text
-dP/dt = intake(t) − k_ripen × P
-dS/dt = (1 − water_loss) × k_ripen × P − consumption(N, B, T_out)
-intake(t) = returning_foragers(t) × load × F(t)
-```
-
-`water_loss` is the share of nectar mass that evaporates when it ripens into honey. Nectar is roughly half water and honey under a fifth, so this share is large, which is exactly why the hive loses weight overnight during a flow.
-
-The parameter values for `load`, `k_ripen` and `consumption` are initial guesses in the scenario file, to be calibrated so the simulator reproduces the published daily curves (amplitude of the morning drop, rate of the afternoon gain, overnight loss). The calibration notebook and the target numbers will live in `simulation/telemetry/calibration/`. Until it is done, any weight-based result is marked "uncalibrated".
-
-## 6. Internal temperature
-
-The probe position matters as much as the colony. A DHT11 in the center of the brood nest sees a regulated 34 to 36 °C; one at the edge of the box or in a super sees something much closer to ambient. The scenario chooses a position, and each position maps to a coupling range.
-
-With brood present:
-
-```text
-T_target(t) = T_set + γ × (T_out(t) − T_set) + heat_stress(t)
-dT_in/dt   = (T_target − T_in) / τ
-```
-
-| Parameter | Meaning | Brood center | Brood edge | Super |
-|---|---|---|---|---|
-| `T_set` | Colony set point | Uniform(34.0, 35.5) °C | same | same |
-| `γ` | Leak of ambient into the probe reading. Higher for weak colonies | 0.02 to 0.10 | 0.10 to 0.30 | 0.30 to 0.60 |
-| `τ` | Thermal lag | 30 to 90 min | | |
-| `heat_stress` | Overshoot on very hot afternoons when fanning cannot keep up | 0 to +1.5 °C above ~36 °C ambient | | |
-
-`γ` also scales with colony strength: `γ_eff = γ × (N_ref / N)^0.5`, so a colony that shrinks starts losing control of its temperature, which is one of the earliest signs of trouble.
-
-Without brood (queenless after the brood has emerged, or broodless periods), regulation is loose: `T_set` drops and `γ` rises.
-
-After absconding, or if the colony dies, the probe tracks ambient through the thermal mass of the box: `γ = 1` with a lag of one to three hours, plus solar heating of the box on sunny afternoons.
-
-## 7. Internal humidity
-
-Bees regulate humidity in the brood nest too. Published measurements put the brood area around 50 to 60 % RH. During a strong nectar flow the evaporation of nectar pushes humidity up, mostly at night.
-
-```text
-RH_target(t) = RH_set + a × P(t)/P_ref + b × (RH_out(t) − RH_set)
-dRH_in/dt    = (RH_target − RH_in) / τ_rh
-```
-
-| Parameter | Default |
+| State | Update |
 |---|---|
-| `RH_set` | Uniform(50, 65) % |
-| `a` | Effect of fresh nectar, Uniform(5, 15) % at a reference load |
-| `b` | Ambient coupling, 0.05 to 0.2 at the brood center, larger elsewhere |
-| `τ_rh` | 30 to 120 min |
+| Laying | `lay_max × (0.3 + 0.7 × bloom)`; zero without a laying queen; reduced when stores are nearly empty |
+| Brood `B` | Eggs laid over the last 21 days |
+| Adult bees `N` | `+ 0.85 ×` eggs laid 21 days ago `− N/30` per day, more when starving |
+| Honey `S` | Integrated from the per-minute model below, never below zero |
+| Queen | `present`, `virgin` (after a swarm, mates within 10 to 16 days, 90 % success), `absent`, or `dead` colony |
 
-Values are clipped to [0, 100] before the sensor model, which clips again to the DHT11's 20 to 90 % range.
+`N` and `B` are interpolated across the day, so there is no step at midnight.
 
-## 8. Output format
+## 4. Foraging and weight
+
+Bees outside at minute `t`:
 
 ```text
-data/sim/<dataset_name>/
-├── manifest.json          scenario, seed, git commit, generator version, drawn parameters per hive
-├── telemetry.parquet      ts, hive_id, channel, value_true, value_obs, quality
-├── events.parquet         event_id, hive_id, type, start, end, severity, params (JSON)
-├── colony_daily.parquet   date, hive_id, N, B, S, queen, forager_frac (ground truth for analysis)
-└── weather.parquet        the environment actually used
+n_out(t) = forager_frac × N × peak_out × g(t) × flight(t) × (0.3 + 0.7 × bloom)
 ```
 
-`quality` uses the same codes as the real node (`ok`, `read_error`, `clipped`, `stuck`, `clock_unsynced`), so code written against simulated data works on real data.
+`g(t)` is a bell over daylight, starting 20 to 60 minutes after the sun rises and ending 20 to 60 minutes before it sets. Returning foragers bring nectar:
+
+```text
+intake(t) = n_out(t) / trip_min × load × bloom
+P(t)      = (1 − k) P(t−1) + intake(t)                  fresh nectar, k = 1/1440 per minute
+S(t)      = S(t−1) + 0.5 × k × P(t) − consumption(t)    half the nectar mass evaporates as it ripens
+W(t)      = tare + supers + S + P + 0.1 g × (N − n_out) + brood + rainwater + events
+```
+
+This reproduces the pattern measured by Meikle et al. (2018) without being fitted to it. The hive gets lighter in the morning as foragers leave, heavier in the afternoon as nectar arrives, and lighter overnight as water evaporates. Rain adds water on the lid that dries over a few hours.
+
+## 5. Brood temperature
+
+The probe position is drawn per hive: brood center (70 %), brood edge (20 %) or super (10 %).
+
+```text
+T_target = T_set + γ_eff × (T_out − T_set) + heat_stress + γ_eff × solar
+T_in     = first-order lag of T_target, τ = 30 to 90 min
+γ_eff    = γ × sqrt(30,000 / N)      (a shrinking colony loses control)
+```
+
+| Parameter | Brood center | Brood edge | Super |
+|---|---|---|---|
+| `T_set` | 34.3 to 35.5 °C | same | same |
+| `γ` | 0.01 to 0.05 | 0.10 to 0.30 | 0.30 to 0.60 |
+
+Without brood the set point drops about 3 °C and `γ` is at least 0.4. After absconding the probe follows outside air plus solar heating of the box. An inspection lowers the target by 1 to 4 °C while the hive is open.
+
+## 6. Brood humidity
+
+```text
+RH_target = RH_set + a × P / (P + 0.5) + b × (RH_out − RH_set)
+```
+
+`RH_set` 50 to 65 %, `a` 3 to 10 points (nectar evaporation, saturating), `b` 0.02 to 0.10 at the brood center and larger elsewhere, with a lag of 30 to 120 minutes.
+
+## 7. Events
+
+Colony events (swarm, absconding, queen loss, robbing) and management (inspection, super added, harvest, feeding) are described in [scenarios and events](03-scenarios-and-events.md). Management never happens on a swarm or absconding day, so each labeled event keeps a clean signature.
+
+## 8. Sensor and node model
+
+Described in [sensor and node realism](04-sensor-and-node-realism.md). Presets exist for DHT11 (default), SHT31 and BME280.
 
 ## 9. Stylized-fact tests
 
-Each of these is an automated test in `simulation/telemetry/tests/`. A change to the simulator that breaks one fails CI.
-
 | # | Fact | Check |
 |---|---|---|
-| 1 | Healthy colony with brood, probe at brood center: internal temperature stays within about 34 to 36 °C most of the time | ≥ 90 % of true samples in [33.5, 36.5] °C over a month without events |
-| 2 | Internal temperature varies much less than ambient | Daily std of `temp_in` < 0.3 × daily std of `temp_out` |
-| 3 | Weight falls in the morning on flight days | Mean slope over the first 2 h of activity < 0 on ≥ 80 % of flight days |
-| 4 | During a flow, the hive gains weight in the afternoon and loses some overnight | Both conditions on ≥ 70 % of flow days |
-| 5 | Rainy days stop foraging | Daily net weight change on full-rain days ≤ 0 |
-| 6 | A swarm is a sudden drop during daytime | Drop of 1 to 4 kg within 30 min, starting between 09:00 and 15:00 local |
-| 7 | After absconding, internal temperature converges to ambient | Within 6 h, |`temp_in` − `temp_out`| < 2 °C except solar heating |
-| 8 | Brood nest humidity stays mostly in 45 to 70 % | ≥ 80 % of true samples |
-| 9 | Determinism | Same seed twice → identical files (checksum) |
+| 1 | A strong, healthy colony holds the brood nest within about 34 to 36 °C | ≥ 90 % of true samples in [33.5, 36.5] °C on event-free days, strong colonies (N > 15,000) with brood and the probe at the brood center |
+| 2 | Inside varies far less than outside | Median ratio of daily std (inside / outside) < 0.3 |
+| 3 | Weight falls in the morning on flight days | Weight at 09:00 below 07:00 on ≥ 80 % of dry flow days |
+| 4 | Afternoon gain and overnight loss during a flow | Both on ≥ 70 % of dry flow days |
+| 5 | Rain costs foraging | Paired by hive, the mean 24-hour weight change on wet flow days (≥ 2 h of rain between 09:00 and 16:00) is below that on dry days |
+| 6 | A swarm is a sudden daytime drop | 0.8 to 4 kg lost across the event, starting between 10:00 and 14:00 |
+| 7 | After absconding the inside goes to ambient | Mean night-time difference < 2 °C between 6 and 30 hours after |
+| 8 | Brood humidity is regulated | ≥ 80 % of true samples in 45 to 70 % |
+| 9 | Determinism | Two runs with the same seed give identical files |
+| 10 | Sensor limits respected | DHT11 output integer, temperature within 0 to 50 °C, humidity within 20 to 90 % |
 
-These ranges come from the literature cited in this page and in [references](../references.md). When the MSPB dataset is downloaded, tests 1, 2 and 8 get a second check: summary statistics of simulated and real series must fall in the same ranges.
+The suite runs in about 4 seconds. It was checked against ten different seeds; the only failure was a sample-size guard in one seed (too few hives with both wet and dry days), which the test now handles.
 
-## 10. Interfaces
+Building the tests also caught real bugs in early versions of the model: nectar intake counted the bloom and flight factors twice (colonies starved), the bloom window was too narrow for a tropical dry season, management could land on top of a swarm, and humidity grew without bound during strong flows. Each fix is in the git history.
 
-```bash
-# Generate a dataset
-smarthive-sim generate simulation/telemetry/scenarios/panama_baseline.yaml --seed 42 --out data/sim/panama_baseline_s42
+## 10. Scenarios
 
-# Publish 5 fake hives over MQTT, 60x faster than real time, with outages
-smarthive-sim replay data/sim/panama_baseline_s42 --broker mqtts://localhost:8883 --speed 60 --node-behavior realistic
-```
+| Scenario | Hives × days | Purpose |
+|---|---|---|
+| `panama_baseline` | 20 × 730 | Normal years, default rates. General training and dashboard demos |
+| `swarm_season` | 50 × 120 | Swarms oversampled during the flow |
+| `abscond_and_collapse` | 30 × 180 | Absconding and queen loss oversampled: the novel anomalies held out of anomaly-detector training |
+| `sensor_hell` | 10 × 90 | Very high rates of sensor and node faults |
+| `quiet_hive` | 10 × 365 | No colony events: baseline for false-alarm rates |
+| `battery_node` | 3 × 30, 1-minute step | Prototype 1 on battery alone, swapped daily: the gaps the power budget predicts |
 
-Scenario file sketch:
+Seed 42 of each takes about 340 MB of Parquet in total, stored under `data/` (not in git).
 
-```yaml
-name: panama_baseline
-site: {lat: 8.98, lon: -79.52, tz: America/Panama}   # replace with the apiary location
-period: {start: 2023-01-01, end: 2024-12-31}
-step: 1min
-weather: {provider: open-meteo, cache: data/cache/weather}
-hives:
-  count: 20
-  colony:
-    N0: {dist: uniform, low: 15000, high: 40000}
-    forager_frac: {dist: uniform, low: 0.2, high: 0.35}
-  probe_position: {choice: [brood_center, brood_center, brood_edge]}
-bloom:
-  - {center: "02-15", width_days: 45, height: 1.0}   # dry season flow (assumption)
-  - {center: "07-01", width_days: 20, height: 0.3}
-events: !include events/default_rates.yaml
-sensor: !include sensors/dht11_hx711.yaml
-node: !include nodes/pi3b_battery.yaml
-```
+## What it does not do yet
 
-## Libraries
-
-Python 3.11, NumPy, pandas or Polars, SciPy (ODE integration and interpolation), Pydantic (config validation), PyYAML, PyArrow (Parquet), astral (sun times), httpx (Open-Meteo), paho-mqtt (replay). All are BSD, MIT or Apache-2.0 licensed.
-
-## What this simulator will not do well
-
-- Long-term colony dynamics over many seasons. We simulate one or two years and treat the colony model as a driver for the signals, not as biology to publish.
-- Disease progression. Varroa load does not feed back into the telemetry in v1.
-- Acoustic signals. Out of scope until there is a microphone.
-- Pinpoint realism for a specific apiary. Without real data from that apiary it cannot be calibrated to it. The aim is that the real hive falls inside the range of what we simulate.
+- Calibration against a real hive. The parameter ranges come from literature and common sense. When the MSPB dataset (or our own node) provides real series, compare summary statistics (daily amplitude, autocorrelation, event signatures) and tighten the ranges.
+- Real weather. See section 1.
+- MQTT replay of the generated files as fake nodes. It belongs with the backend work and is planned in the [roadmap](../roadmap.md).
+- A scripted `demo_day` scenario with events at fixed times. Also planned with the replay.
+- Disease dynamics (Varroa load does not feed back into the colony) and acoustics.

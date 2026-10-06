@@ -1,0 +1,819 @@
+# Single source of truth for the Jira backlog. Edit this file, then run:
+#   python docs/jira/build.py
+# which regenerates jira-import.csv (Jira CSV importer) and backlog.md (readable view).
+# Conventions: docs/jira/README.md
+
+project: {key: SH, name: SmartHive}
+repo: https://github.com/endlessconflict/SmartHive/blob/main
+
+people:
+  james: James Tack
+  ricardo: Ricardo Villarreal
+  adrien: Adrien Cubilla
+  diego: Diego Alejandro Vasquez
+  karen: Karen Jimenez
+  maria: Maria de los Angeles Agudelo
+
+# Two-week sprints. Dates after Sprint 3 are a proposal; adjust in Jira and here together.
+sprints:
+  - {name: SH Sprint 3, start: 2026-09-28, end: 2026-10-11, goal: "Foundations: documented architecture, synthetic data generators and a first trained vision model"}
+  - {name: SH Sprint 4, start: 2026-10-12, end: 2026-10-25, goal: "Contracts frozen, Compose stack up, camera chosen, client interview done"}
+  - {name: SH Sprint 5, start: 2026-10-26, end: 2026-11-08, goal: "First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard"}
+  - {name: SH Sprint 6, start: 2026-11-09, end: 2026-11-22, goal: "Vision on the node: detections become events"}
+  - {name: SH Sprint 7, start: 2026-11-23, end: 2026-12-06, goal: "Alerts: a hornet in front of the camera becomes an email"}
+  - {name: SH Sprint 8, start: 2026-12-07, end: 2026-12-20, goal: "Intelligence: anomaly detection on synthetic telemetry, Varroa index in the UI"}
+  - {name: SH Sprint 9, start: 2027-01-04, end: 2027-01-17, goal: "Evaluation report per data tier; optional yield proof of concept"}
+  - {name: SH Sprint 10, start: 2027-01-18, end: 2027-01-31, goal: "Field install, soak test, final demo"}
+
+components:
+  edge: Software on the Raspberry Pi node
+  backend: Ingestor, API, worker, database
+  vision: Detector and classifier training, export, benchmarks
+  simulation: Synthetic telemetry and image generators
+  ml: Time-series models
+  frontend: Dashboard
+  infra: Docker Compose, broker, certificates, CI
+  hardware: Electrical design, sensors, power, enclosure
+  docs: Documentation and project management
+
+epics:
+  - id: E1
+    name: Sensor node & IoT connectivity
+    owner: ricardo
+    component: edge
+    description: "EPIC 1 of the project plan. The Raspberry Pi 3B node measures the hive's internal climate (and later weight), stores readings locally and sends them securely to the server."
+    docs: [docs/02-hardware/electrical-design-prototype-1.md, docs/05-backend/03-edge-node-software.md]
+  - id: E2
+    name: Pest & threat detection
+    owner: adrien
+    component: vision
+    description: "EPIC 2. The entrance camera and a two-stage model on the node detect hornets, small hive beetles and Varroa-carrying bees, and turn them into events and alerts."
+    docs: [docs/03-vision/README.md]
+  - id: E3
+    name: Colony dashboard
+    owner: maria
+    component: frontend
+    description: "EPIC 3. History, latest image, alert log and anomaly warnings for each colony."
+    docs: [docs/05-backend/06-api-design.md]
+  - id: E4
+    name: Honey flow & yield optimization (optional)
+    owner: diego
+    component: ml
+    description: "EPIC 4, optional. 7-day yield estimate as a range, and super/harvest recommendations. Only if Epics 1 to 3 are on track."
+    docs: [docs/04-data/03-scenarios-and-events.md]
+  - id: E5
+    name: Synthetic data platform
+    owner: diego
+    component: simulation
+    description: "New epic created when the client confirmed there is no data. Generators for hive telemetry and entrance images, a real-image check set, dataset governance."
+    docs: [docs/04-data/README.md, docs/adr/0002-synthetic-first-training-data.md]
+  - id: E6
+    name: Backend platform & DevOps
+    owner: james
+    component: backend
+    description: "Enablers for every user-facing story: message contract, Compose stack, database, CI."
+    docs: [docs/05-backend/README.md]
+  - id: E7
+    name: Project foundations
+    owner: adrien
+    component: docs
+    description: "Requirements, architecture, decisions, documentation and the client interview."
+    docs: [docs/README.md]
+
+# Story fields: id, epic, summary, story (user story text), type (Story|Task|Spike), priority (Highest|High|Medium|Low),
+# points (Fibonacci), sprint, assignee, components, labels, status (To Do|In Progress|Done), ac (acceptance criteria),
+# docs, blocked_by, evidence (for Done items), subtasks [{summary, assignee, hours, status}]
+stories:
+  # ---------------------------------------------------------------- E7 Project foundations
+  - id: PM-01
+    epic: E7
+    type: Task
+    summary: Repository structure, contribution rules and documentation set
+    story: "As a team, we need one organized repository with the project's documentation in English so that everyone works from the same plan."
+    priority: High
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [docs]
+    labels: [documentation]
+    status: Done
+    ac:
+      - "Given the repository, when a new member opens the README, then they find the overview, team, architecture diagram, repo map and roadmap"
+      - "Given the team's source documents (plan, design, epics, elicitation, proposal, backlog), when they are migrated, then each lives in docs/ in English and contradictions are flagged"
+      - "Given a pull request, when it is opened, then a template asks for area, contract impact, tests and data provenance"
+    docs: [README.md, CONTRIBUTING.md, docs/README.md]
+    evidence: [docs/README.md]
+    subtasks:
+      - {summary: "Translate and migrate design document, epics, elicitation matrix", assignee: adrien, hours: 6, status: Done}
+      - {summary: "README, CONTRIBUTING, issue and PR templates", assignee: maria, hours: 3, status: Done}
+      - {summary: "Docs index, glossary, risk register, way of working", assignee: diego, hours: 3, status: Done}
+  - id: PM-02
+    epic: E7
+    type: Task
+    summary: Architecture decision records 0001 to 0008
+    story: "As a team, we need our expensive-to-reverse decisions written down with alternatives so that nobody reopens them by accident."
+    priority: High
+    points: 3
+    sprint: SH Sprint 3
+    assignee: james
+    components: [docs]
+    labels: [architecture]
+    status: Done
+    ac:
+      - "Given each major decision (synthetic data, Pi 3B, MQTT, PostgreSQL/TimescaleDB, modular monolith, image storage, detector license), when reviewing docs/adr, then an ADR states context, decision, alternatives and consequences"
+    docs: [docs/adr/README.md]
+    evidence: [docs/adr/README.md]
+    subtasks:
+      - {summary: "Write ADR-0001 to ADR-0007", assignee: james, hours: 4, status: Done}
+      - {summary: "Decide ADR-0008 (detector framework and repository license) with benchmark numbers", assignee: adrien, hours: 2, status: Done}
+  - id: PM-03
+    epic: E7
+    type: Task
+    summary: Client interview with the 30 elicitation questions
+    story: "As the product owner, I need the client's answers to the elicitation matrix so that working assumptions become requirements."
+    priority: Highest
+    points: 3
+    sprint: SH Sprint 4
+    assignee: adrien
+    components: [docs]
+    labels: [requirements, client]
+    status: To Do
+    ac:
+      - "Given the interview, when it ends, then every EL-xx row has an answer or an explicit 'client does not know'"
+      - "Given an answer that contradicts a working assumption, when the log is filled, then the affected document or ADR is updated in the same sprint"
+    docs: [docs/01-requirements/elicitation-matrix.md]
+    subtasks:
+      - {summary: "Schedule the meeting and send the question list in advance", assignee: adrien, hours: 1, status: To Do}
+      - {summary: "Run the interview and fill the interview log", assignee: adrien, hours: 3, status: To Do}
+      - {summary: "Propagate answers to docs (thresholds, retention, channels, demo scope)", assignee: diego, hours: 3, status: To Do}
+  - id: PM-04
+    epic: E7
+    type: Task
+    summary: Align presentation and spreadsheet backlog with the Pi 3B design
+    story: "As a team, we need the presentation and backlog to describe the same node as the electrical design so that reviewers are not confused."
+    priority: Medium
+    points: 1
+    sprint: SH Sprint 4
+    assignee: ricardo
+    components: [docs, hardware]
+    labels: [consistency]
+    status: To Do
+    ac:
+      - "Given the presentation and the spreadsheet backlog, when they are reviewed, then they mention the Raspberry Pi 3B + Ethernet node of Prototype 1 and list ESP32/LoRaWAN only as a future option (ADR-0003)"
+    docs: [docs/02-hardware/hardware-review-notes.md, docs/adr/0003-raspberry-pi-3b-edge-node.md]
+    subtasks:
+      - {summary: "Update slides 8 and 9 (system design, technologies)", assignee: ricardo, hours: 1, status: To Do}
+      - {summary: "Renumber spreadsheet stories to US01-US22 and add EN items", assignee: diego, hours: 1, status: To Do}
+
+  # ---------------------------------------------------------------- E5 Synthetic data platform
+  - id: EN-01
+    epic: E5
+    type: Story
+    summary: Hive telemetry simulator v1 with stylized-fact tests
+    story: "As the ML and backend teams, we need realistic simulated hive telemetry with labeled events so that we can build and test models and the dashboard without client data."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 3
+    assignee: diego
+    components: [simulation]
+    labels: [synthetic-data, telemetry]
+    status: Done
+    ac:
+      - "Given a scenario YAML and a seed, when the simulator runs, then it writes telemetry, events, colony ground truth, weather and a manifest, identical on every run"
+      - "Given the default scenario, when the stylized-fact tests run, then brood temperature, daily weight cycle, rain, swarm, absconding and humidity facts all pass"
+      - "Given the observed columns, when compared with the DHT11 datasheet, then values are integers within its range and carry quality flags"
+      - "Given six scenarios (baseline, swarm season, abscond/collapse, sensor faults, quiet hive, battery node), when generated with seed 42, then all finish in under a minute"
+    docs: [docs/04-data/02-hive-telemetry-simulator.md, docs/04-data/03-scenarios-and-events.md, docs/04-data/04-sensor-and-node-realism.md]
+    evidence: [simulation/telemetry/sim.py, simulation/telemetry/test_sim.py]
+    subtasks:
+      - {summary: "Weather, bloom and flight model", assignee: diego, hours: 4, status: Done}
+      - {summary: "Colony, foraging, weight, temperature and humidity models", assignee: diego, hours: 8, status: Done}
+      - {summary: "Colony and management events with labels", assignee: diego, hours: 4, status: Done}
+      - {summary: "DHT11/HX711 and node outage/clock model", assignee: ricardo, hours: 3, status: Done}
+      - {summary: "Stylized-fact tests and seed sweep", assignee: diego, hours: 3, status: Done}
+      - {summary: "Scenario files and docs figure", assignee: diego, hours: 2, status: Done}
+  - id: EN-01b
+    epic: E5
+    type: Story
+    summary: Calibrate the telemetry simulator against real hive series
+    story: "As the ML team, we need the simulator's parameter ranges checked against real measurements so that models trained on it transfer to a real hive."
+    priority: Medium
+    points: 5
+    sprint: SH Sprint 8
+    assignee: diego
+    components: [simulation, ml]
+    labels: [synthetic-data, calibration]
+    status: To Do
+    ac:
+      - "Given MSPB (or our node's own data), when summary statistics are computed (daily amplitude, autocorrelation, event signatures), then simulated and real values overlap, or the ranges are tightened until they do"
+      - "Given real weather history for the apiary's coordinates, when it replaces the stochastic weather, then the tests still pass"
+    docs: [docs/04-data/02-hive-telemetry-simulator.md]
+    subtasks:
+      - {summary: "Download MSPB on a machine with Zenodo access; compute summary statistics", assignee: diego, hours: 4, status: To Do}
+      - {summary: "Optional Open-Meteo history provider with Parquet cache", assignee: james, hours: 3, status: To Do}
+      - {summary: "Tighten parameter ranges and record before/after in the doc", assignee: diego, hours: 3, status: To Do}
+  - id: EN-02
+    epic: E5
+    type: Story
+    summary: MQTT replay of simulated hives (fake nodes)
+    story: "As the backend and frontend developers, we want simulated hives to publish over the real MQTT contract so that we can build and demo the system before the hardware is ready."
+    priority: High
+    points: 5
+    sprint: SH Sprint 5
+    assignee: james
+    components: [simulation, backend]
+    labels: [synthetic-data, integration]
+    status: To Do
+    blocked_by: [EN-07]
+    ac:
+      - "Given a generated telemetry dataset, when replay runs at speed N, then each sim- hive publishes valid telemetry, status and health messages on smarthive/v1/nodes/{node_id}/..."
+      - "Given node outages in the dataset, when replayed, then the fake node goes offline (last will) and later sends its backlog, with some duplicates, like a real node"
+      - "Given the demo_day scenario, when replayed at 1x, then a swarm at 11:00 and a node dropout at 16:00 happen on schedule"
+    docs: [docs/05-backend/04-messaging-contract.md, docs/04-data/04-sensor-and-node-realism.md]
+    subtasks:
+      - {summary: "Replay CLI publishing from Parquet with paho-mqtt", assignee: james, hours: 5, status: To Do}
+      - {summary: "Transport model: duplicates, late batches, reordering", assignee: karen, hours: 3, status: To Do}
+      - {summary: "demo_day scenario with scripted events", assignee: diego, hours: 3, status: To Do}
+      - {summary: "Contract test: replay output validates against JSON Schemas", assignee: karen, hours: 2, status: To Do}
+  - id: EN-03
+    epic: E5
+    type: Story
+    summary: Procedural insect renderer (license-free sprites)
+    story: "As the vision team, we need labeled images of bees, Varroa, hornets, beetles and distractors without any licensed photo so that training data is unlimited and free to publish."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [simulation, vision]
+    labels: [synthetic-data, vision]
+    status: Done
+    ac:
+      - "Given a species and px/mm, when a sprite is rendered, then its size follows real body lengths (bee 12-15 mm, hornet 20-30 mm, SHB 5-7 mm, Varroa 1.6 x 1.1 mm)"
+      - "Given a bee with mites, when rendered, then each mite sits on the dorsal thorax or abdomen and its pixel footprint matches 1.6 mm at that scale (test)"
+      - "Given the renderer, when reviewed, then no external image or 3D model is used"
+    docs: [docs/03-vision/03-synthetic-image-pipeline.md]
+    evidence: [simulation/images/render.py, simulation/images/test_images.py]
+    subtasks:
+      - {summary: "Generic segmented-insect renderer (shading, bands, hair, wings, legs, antennae)", assignee: adrien, hours: 8, status: Done}
+      - {summary: "Species samplers: bee (incl. Africanized), hornet (velutina, crabro), SHB, fly, ant, wasp, bumblebee", assignee: adrien, hours: 4, status: Done}
+      - {summary: "Varroa sprite and anatomical placement; pollen loads as look-alikes", assignee: adrien, hours: 3, status: Done}
+  - id: EN-04
+    epic: E5
+    type: Story
+    summary: Entrance scene compositor with exact labels
+    story: "As the vision team, we need full entrance scenes with occlusion-aware boxes and bee crops so that both model stages can be trained."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [simulation, vision]
+    labels: [synthetic-data, vision]
+    status: Done
+    ac:
+      - "Given a seed, when scenes are generated, then the same images and labels come out every time (test)"
+      - "Given a scene, when labels are written, then every box lies inside the image and comes from the visible (not occluded) part of the insect"
+      - "Given a bee crop, when it is labeled varroa, then at least one mite of that bee is visible in the scene"
+      - "Given the dataset, when generated, then train and val use different sprite libraries and a dataset card is written"
+    docs: [docs/03-vision/03-synthetic-image-pipeline.md, docs/04-data/05-dataset-versioning-and-governance.md]
+    evidence: [simulation/images/compose.py]
+    subtasks:
+      - {summary: "Procedural boards: wood, paint, chips, stains, debris, entrance slot", assignee: adrien, hours: 4, status: Done}
+      - {summary: "Behavioral placement, shadows, lighting, camera model", assignee: adrien, hours: 5, status: Done}
+      - {summary: "Occlusion-aware labels, stage 1 YOLO export, stage 2 crops, dataset card", assignee: adrien, hours: 4, status: Done}
+      - {summary: "Tier C: replace procedural boards with real board photos from the chosen camera", assignee: ricardo, hours: 3, status: To Do}
+  - id: EN-05
+    epic: E5
+    type: Story
+    summary: Real-image check set (tier P) from the iNaturalist Open Dataset
+    story: "As the vision team, we need a frozen set of real, openly licensed insect photos so that we can measure how well synthetic training transfers to real images."
+    priority: High
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [vision]
+    labels: [real-data, evaluation]
+    status: Done
+    ac:
+      - "Given the iNaturalist open data, when filtered, then only research-grade, CC0/CC-BY first photos of our taxa are kept"
+      - "Given the photos, when the split is frozen, then each file has class, split (calib/test), SHA-256, license, source URL and observer"
+      - "Given the test split, when any training config is reviewed, then no test file is used for training or tuning"
+    docs: [docs/04-data/01-data-problem-and-strategy.md]
+    evidence: [vision/inat.py, vision/splits/P-inat-v1.tsv]
+    subtasks:
+      - {summary: "Streaming filter over the 4.8 GB metadata archive", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Download capped photos per class with manifest", assignee: adrien, hours: 1, status: Done}
+      - {summary: "Freeze calib/test split with checksums", assignee: adrien, hours: 1, status: Done}
+      - {summary: "Add the public Varroa datasets (Zenodo, Bilik et al.) from a machine with access", assignee: adrien, hours: 3, status: To Do}
+  - id: EN-06
+    epic: E5
+    type: Task
+    summary: Dataset versioning with DVC and dataset cards
+    story: "As a team, we need datasets and weights versioned outside git so that any reported number can be reproduced."
+    priority: Medium
+    points: 3
+    sprint: SH Sprint 4
+    assignee: maria
+    components: [infra, simulation]
+    labels: [mlops]
+    status: To Do
+    ac:
+      - "Given a dataset under data/, when dvc push runs, then it is stored in the team's free remote and dvc pull restores it on another machine"
+      - "Given a training run, when logged, then the dataset ID, generator commit and seed are recorded next to the metrics"
+    docs: [docs/04-data/05-dataset-versioning-and-governance.md]
+    subtasks:
+      - {summary: "dvc init, SSH or folder remote on the gateway PC", assignee: maria, hours: 2, status: To Do}
+      - {summary: "Track simulation outputs, tier P split files and released weights", assignee: adrien, hours: 2, status: To Do}
+
+  # ---------------------------------------------------------------- E2 Pest & threat detection
+  - id: US07
+    epic: E2
+    summary: Periodic hive entrance image capture
+    story: "As a beekeeper, I want the system to capture periodic images of the hive entrance so that bee traffic and potential intruders can be analyzed automatically."
+    priority: High
+    points: 5
+    sprint: SH Sprint 6
+    assignee: ricardo
+    components: [edge, hardware]
+    labels: [camera]
+    status: To Do
+    blocked_by: [HW-01]
+    ac:
+      - "Given the node by day, when camd runs, then a low-res stream is analyzed for motion and a full-res still is taken on motion"
+      - "Given night mode hours, when the clock enters them, then the camera stops and the sensors keep running"
+      - "Given a configurable interval, when no motion happens for an hour, then one periodic image is still kept for the dashboard"
+    docs: [docs/03-vision/06-edge-deployment.md, docs/03-vision/02-camera-and-optics.md]
+    subtasks:
+      - {summary: "picamera2 dual stream (or V4L2) capture service", assignee: ricardo, hours: 5, status: To Do}
+      - {summary: "Motion gate (vision/pipeline.py MotionGate) wired to capture", assignee: adrien, hours: 2, status: To Do}
+      - {summary: "Night mode and periodic sample", assignee: ricardo, hours: 2, status: To Do}
+  - id: US08
+    epic: E2
+    summary: Storage optimization based on relevance
+    story: "As a beekeeper, I want the system to store only images where something relevant is detected so that storage is used efficiently."
+    priority: Medium
+    points: 3
+    sprint: SH Sprint 6
+    assignee: adrien
+    components: [edge]
+    labels: [storage]
+    status: To Do
+    blocked_by: [US11]
+    ac:
+      - "Given an analyzed frame with no threat and no Varroa-positive bee, when processing ends, then the full frame is not written to the SD card"
+      - "Given a threat or a Varroa-positive bee, when processing ends, then the frame and its crops are saved and queued for upload"
+    docs: [docs/05-backend/03-edge-node-software.md]
+    subtasks:
+      - {summary: "Keep/discard rule and tmpfs frame handling", assignee: adrien, hours: 3, status: To Do}
+      - {summary: "Image table in the outbox with upload state", assignee: karen, hours: 2, status: To Do}
+  - id: US09
+    epic: E2
+    summary: Automated Varroa mite detection
+    story: "As a beekeeper, I want the system to automatically identify Varroa mites on returning bees so that I can start treatment before the infestation spreads."
+    priority: Highest
+    points: 13
+    sprint: SH Sprint 6
+    assignee: adrien
+    components: [vision, edge]
+    labels: [varroa, model]
+    status: In Progress
+    ac:
+      - "Given a sharp bee crop at >= 8 px/mm, when stage 2 runs, then it outputs p(varroa) and the frame record carries it"
+      - "Given synthetic validation crops (held-out sprites), when evaluated, then recall and precision for varroa are reported (tier S)"
+      - "Given the public Varroa datasets, when available, then recall >= 0.75 and precision >= 0.70 on their test split (tier P target)"
+      - "Given a rolling window, when bees are classified, then the Varroa index is reported with its count and 95 % Wilson interval"
+    docs: [docs/03-vision/04-model-architecture.md, docs/03-vision/05-training-and-evaluation.md]
+    evidence: [vision/pipeline.py, docs/03-vision/07-results.md]
+    subtasks:
+      - {summary: "Train stage 2 classifier on synthetic crops (v0.1)", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Varroa index with Wilson interval in the aggregator", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Evaluate on public Varroa crops (VarroaDataset) when downloaded", assignee: adrien, hours: 3, status: To Do}
+      - {summary: "Bee tracking across frames to count individuals (v2)", assignee: adrien, hours: 8, status: To Do}
+  - id: US10
+    epic: E2
+    summary: Small hive beetle and Asian hornet detection
+    story: "As a beekeeper, I want the system to detect small hive beetles and Asian hornets at the entrance so that I can intervene before they damage the colony."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 6
+    assignee: adrien
+    components: [vision]
+    labels: [hornet, shb, model]
+    status: In Progress
+    ac:
+      - "Given a frame, when stage 1 runs, then bee, hornet, shb and other_insect are detected with per-class thresholds"
+      - "Given the tier P iNaturalist test split, when evaluated, then hornet recall and bee/hornet/other accuracy are reported against chance"
+      - "Given k-of-n aggregation, when a hornet appears in 3 of 10 analyzed frames, then exactly one threat_detected event is raised per episode"
+    docs: [docs/03-vision/04-model-architecture.md, docs/03-vision/07-results.md]
+    evidence: [vision/train.py, vision/eval_real.py, vision/pipeline.py]
+    subtasks:
+      - {summary: "Train stage 1 detector on synthetic scenes (iterations v0.1+)", assignee: adrien, hours: 6, status: Done}
+      - {summary: "Tier P evaluation script and report", assignee: adrien, hours: 3, status: Done}
+      - {summary: "k-of-n aggregator with self-check", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Raise SHB tier P coverage (more photos, field captures)", assignee: adrien, hours: 4, status: To Do}
+  - id: US11
+    epic: E2
+    summary: Edge AI detection model execution
+    story: "As a beekeeper, I want the pest detection model to run directly on the sensor node so that detections happen even with limited connectivity."
+    priority: High
+    points: 8
+    sprint: SH Sprint 6
+    assignee: adrien
+    components: [vision, edge]
+    labels: [edge-ai, ncnn]
+    status: In Progress
+    blocked_by: [HW-01]
+    ac:
+      - "Given trained weights, when exported, then ncnn param/bin files load with the ncnn Python bindings and no torch"
+      - "Given the Pi 3B, when the benchmark runs with the node software active, then stage 1 p95 <= 1.0 s and a frame with 15 bees p95 <= 2.0 s"
+      - "Given the vision service, when running, then its RSS stays under its 250 MB systemd limit"
+    docs: [docs/03-vision/06-edge-deployment.md]
+    evidence: [vision/export.py, vision/bench.py, vision/pipeline.py]
+    subtasks:
+      - {summary: "Export to ncnn and torch-free two-stage pipeline", assignee: adrien, hours: 4, status: Done}
+      - {summary: "Pi latency estimate anchored to ncnn's published Pi 3B+ benchmarks", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Run vision/bench.py on the real Pi 3B and replace the estimate", assignee: ricardo, hours: 2, status: To Do}
+      - {summary: "visiond systemd unit with MemoryMax", assignee: ricardo, hours: 2, status: To Do}
+  - id: US12
+    epic: E2
+    summary: Multi-channel threat & pest notifications
+    story: "As a beekeeper, I want to receive an in-app and email alert when a pest or intruder is detected so that I can act quickly without constantly checking the dashboard."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 7
+    assignee: james
+    components: [backend, frontend]
+    labels: [alerts]
+    status: To Do
+    blocked_by: [EN-07, EN-08]
+    ac:
+      - "Given a threat_detected event, when the worker processes it, then one alert opens (dedup per episode) and in-app plus email notifications are sent within 10 s"
+      - "Given the mail server is down, when notifications fail, then they are retried and not lost"
+      - "Given a simulated node, when an event fires, then no email is sent unless the demo profile allows it"
+    docs: [docs/05-backend/07-alerts-and-rules.md]
+    subtasks:
+      - {summary: "Event rules and alert lifecycle in the worker", assignee: james, hours: 6, status: To Do}
+      - {summary: "SMTP and in-app channels with retries; Mailpit in dev", assignee: james, hours: 4, status: To Do}
+      - {summary: "Notification inbox in the dashboard", assignee: maria, hours: 4, status: To Do}
+
+  # ---------------------------------------------------------------- E1 Sensor node & connectivity
+  - id: HW-01
+    epic: E1
+    type: Task
+    summary: Choose, mount and characterize the entrance camera
+    story: "As the team, we need a camera that gives >= 8 px/mm on the landing board so that Varroa is visible to the model."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 4
+    assignee: ricardo
+    components: [hardware]
+    labels: [camera]
+    status: To Do
+    ac:
+      - "Given the mounting distance, when a ruler is photographed on the board, then the measured px/mm is >= 8 and recorded in the generator config"
+      - "Given the camera, when 200+ empty-board frames across a day are captured, then they are stored as tier C backgrounds"
+      - "Given a gray card at several light levels, when captured, then the noise profile is fitted for the generator"
+    docs: [docs/03-vision/02-camera-and-optics.md]
+    subtasks:
+      - {summary: "Select camera (CSI preferred) and lens focus for 10-25 cm", assignee: ricardo, hours: 3, status: To Do}
+      - {summary: "Mount with shade hood; ruler frame; px/mm", assignee: ricardo, hours: 3, status: To Do}
+      - {summary: "Tier C capture session (backgrounds, gray card)", assignee: adrien, hours: 3, status: To Do}
+  - id: US01
+    epic: E1
+    summary: Continuous internal temperature and humidity measurement
+    story: "As a beekeeper, I want the hive to continuously measure internal temperature and humidity so that I can monitor environmental conditions remotely."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 5
+    assignee: ricardo
+    components: [edge, hardware]
+    labels: [sensors]
+    status: To Do
+    ac:
+      - "Given dtoverlay=dht11 on GPIO4, when sensord runs, then a reading with quality flag is stored every configured interval (default 60 s)"
+      - "Given a failed read, when it happens, then one retry is made and otherwise a read_error row is stored, never a fake value"
+      - "Given the probe, when installed, then it sits in the brood nest on a cable, away from the Pi's heat"
+    docs: [docs/05-backend/03-edge-node-software.md, docs/02-hardware/hardware-review-notes.md]
+    subtasks:
+      - {summary: "Kernel IIO driver setup and sensord service", assignee: ricardo, hours: 4, status: To Do}
+      - {summary: "Fake sensor reading simulator output for tests", assignee: diego, hours: 2, status: To Do}
+  - id: US02
+    epic: E1
+    summary: Continuous hive weight measurement
+    story: "As a beekeeper, I want the hive to continuously measure its weight so that I can track nectar accumulation without a physical visit."
+    priority: High
+    points: 8
+    sprint: SH Sprint 8
+    assignee: ricardo
+    components: [hardware, edge]
+    labels: [sensors, weight]
+    status: To Do
+    ac:
+      - "Given an HX711 and load cell under the hive, when calibrated with known masses, then readings are within the simulator's assumed noise (about 30 g)"
+      - "Given weight readings, when published, then they use quantity=weight in kg and need no backend change"
+    docs: [docs/02-hardware/electrical-design-prototype-1.md]
+    subtasks:
+      - {summary: "Wire HX711 and load cell; add to schematic", assignee: ricardo, hours: 5, status: To Do}
+      - {summary: "Calibration procedure and temperature coefficient measurement", assignee: ricardo, hours: 3, status: To Do}
+  - id: US03
+    epic: E1
+    summary: Local data storage and offline synchronization
+    story: "As a beekeeper, I want the collected data to be saved locally if the Internet connection is lost, and synchronized once the connection is restored."
+    priority: High
+    points: 5
+    sprint: SH Sprint 5
+    assignee: karen
+    components: [edge]
+    labels: [store-and-forward]
+    status: To Do
+    ac:
+      - "Given the broker is unreachable, when readings are produced, then they accumulate in the SQLite outbox"
+      - "Given the broker comes back, when uplinkd reconnects, then events are sent first, then telemetry oldest first, and rows are marked sent only after PUBACK"
+      - "Given storage runs low, when data must be dropped, then the drop is counted in health messages"
+    docs: [docs/05-backend/03-edge-node-software.md]
+    subtasks:
+      - {summary: "Outbox schema and batching writer", assignee: karen, hours: 3, status: To Do}
+      - {summary: "uplinkd publish loop with backoff and PUBACK marking", assignee: karen, hours: 5, status: To Do}
+  - id: US04
+    epic: E1
+    summary: Data encryption and in-transit protection
+    story: "As a system administrator, I want hive information to be protected while it travels to the system, so that no one else can see or tamper with it."
+    priority: High
+    points: 5
+    sprint: SH Sprint 4
+    assignee: karen
+    components: [infra]
+    labels: [security, mqtt]
+    status: To Do
+    ac:
+      - "Given the broker, when a client connects on 1883 from the LAN, then it is refused; 8883 with TLS is the only external port"
+      - "Given device credentials, when a node publishes to another node's topic, then the ACL denies it"
+    docs: [docs/05-backend/08-deployment-and-operations.md, docs/05-backend/04-messaging-contract.md]
+    subtasks:
+      - {summary: "Local CA and certificate scripts", assignee: karen, hours: 3, status: To Do}
+      - {summary: "Mosquitto TLS, password file and pattern ACLs", assignee: karen, hours: 3, status: To Do}
+  - id: US05
+    epic: E1
+    summary: Centralized data synchronization
+    story: "As a system administrator, I want all hive information to arrive at one central place, so that every part of the system uses the same, consistent data."
+    priority: High
+    points: 5
+    sprint: SH Sprint 5
+    assignee: james
+    components: [backend]
+    labels: [ingestion]
+    status: To Do
+    blocked_by: [EN-07, EN-08]
+    ac:
+      - "Given a valid telemetry batch, when ingested, then rows are inserted once even if the batch arrives twice"
+      - "Given an invalid payload, when received, then it is rejected, logged and does not stop ingestion"
+    docs: [docs/05-backend/05-data-model.md]
+    subtasks:
+      - {summary: "Ingestor with schema validation and idempotent inserts", assignee: james, hours: 6, status: To Do}
+      - {summary: "Integration test with Testcontainers", assignee: james, hours: 3, status: To Do}
+  - id: US06
+    epic: E1
+    summary: Device connection loss and power alert
+    story: "As a beekeeper, I want to be warned when a hive stops sending information, so that I can check whether the device has run out of power or lost its connection."
+    priority: Medium
+    points: 5
+    sprint: SH Sprint 7
+    assignee: karen
+    components: [backend, hardware]
+    labels: [alerts, power]
+    status: To Do
+    ac:
+      - "Given a node loses power, when the broker publishes its last will, then a node_offline warning opens within N heartbeats"
+      - "Given an INA219 is fitted, when voltage drops before silence, then the alert says 'probably battery'"
+    docs: [docs/02-hardware/power-budget.md, docs/05-backend/07-alerts-and-rules.md]
+    subtasks:
+      - {summary: "Last will + heartbeat timeout rule", assignee: james, hours: 3, status: To Do}
+      - {summary: "INA219 battery monitor and health field", assignee: ricardo, hours: 4, status: To Do}
+
+  # ---------------------------------------------------------------- E6 Backend platform & DevOps
+  - id: EN-07
+    epic: E6
+    type: Story
+    summary: Freeze messaging contract v1 (JSON Schemas + contract tests)
+    story: "As every team, we need the MQTT payloads frozen as JSON Schemas so that node, simulator and backend can be built in parallel."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 4
+    assignee: karen
+    components: [infra]
+    labels: [contract, mqtt]
+    status: To Do
+    ac:
+      - "Given infra/contracts, when CI runs, then every example in the messaging contract doc validates"
+      - "Given a schema change, when a PR is opened, then both contract owners must approve"
+    docs: [docs/05-backend/04-messaging-contract.md]
+    subtasks:
+      - {summary: "Schemas: telemetry, event, summary, health, status, config, cmd", assignee: karen, hours: 5, status: To Do}
+      - {summary: "Generated Pydantic models and CI validation job", assignee: james, hours: 3, status: To Do}
+  - id: EN-08
+    epic: E6
+    type: Story
+    summary: Docker Compose stack v1 (broker, database, API)
+    story: "As developers, we need one command that starts the server side so that everyone runs the same stack."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 4
+    assignee: maria
+    components: [infra]
+    labels: [devops]
+    status: To Do
+    ac:
+      - "Given infra/compose.yaml, when docker compose --profile dev up runs, then Mosquitto (TLS), PostgreSQL with TimescaleDB (Apache-2.0 build), the API and Mailpit start healthy"
+    docs: [docs/05-backend/08-deployment-and-operations.md]
+    subtasks:
+      - {summary: "Compose file with profiles and health checks", assignee: maria, hours: 4, status: To Do}
+      - {summary: "Alembic baseline migration from the data model", assignee: james, hours: 4, status: To Do}
+  - id: EN-09
+    epic: E6
+    type: Task
+    summary: CI pipeline (lint, tests, contracts)
+    story: "As developers, we need CI on every pull request so that main always works."
+    priority: High
+    points: 3
+    sprint: SH Sprint 4
+    assignee: maria
+    components: [infra]
+    labels: [ci]
+    status: To Do
+    ac:
+      - "Given a pull request, when CI runs, then ruff, pytest (simulation tests included) and contract validation must pass"
+    docs: [docs/05-backend/08-deployment-and-operations.md]
+    subtasks:
+      - {summary: "GitHub Actions workflow with Python cache", assignee: maria, hours: 3, status: To Do}
+
+  # ---------------------------------------------------------------- E3 Colony dashboard
+  - id: US13
+    epic: E3
+    summary: Historical environmental data & trend view
+    story: "As a beekeeper, I want to see how my hive's conditions have changed over time, so that I can understand how the colony is doing and spot problems early."
+    priority: High
+    points: 8
+    sprint: SH Sprint 5
+    assignee: maria
+    components: [frontend, backend]
+    labels: [charts]
+    status: To Do
+    blocked_by: [EN-02]
+    ac:
+      - "Given a hive, when the user picks 24 h, 7 d, 30 d or a custom range, then temperature, humidity and weight charts load with gaps shown as gaps"
+      - "Given simulated hives, when shown, then a visible badge marks them as simulated"
+    docs: [docs/05-backend/06-api-design.md]
+    subtasks:
+      - {summary: "Readings endpoint with time_bucket", assignee: james, hours: 4, status: To Do}
+      - {summary: "Chart view and range picker", assignee: maria, hours: 6, status: To Do}
+  - id: US14
+    epic: E3
+    summary: Alert history and response log
+    story: "As a beekeeper, I want to see the alert history for a colony so that I can review past events and my responses to them."
+    priority: Medium
+    points: 5
+    sprint: SH Sprint 7
+    assignee: maria
+    components: [frontend, backend]
+    labels: [alerts]
+    status: To Do
+    blocked_by: [US12]
+    ac:
+      - "Given an alert, when acknowledged or resolved with a note, then the log shows who and when"
+    docs: [docs/05-backend/07-alerts-and-rules.md]
+    subtasks:
+      - {summary: "Alert endpoints and event log", assignee: james, hours: 3, status: To Do}
+      - {summary: "Alert history UI", assignee: maria, hours: 4, status: To Do}
+  - id: US15
+    epic: E3
+    summary: Latest hive entrance camera image view
+    story: "As a beekeeper, I want to see the latest entrance camera image for a colony so that I can visually confirm what the system detected."
+    priority: Medium
+    points: 3
+    sprint: SH Sprint 6
+    assignee: maria
+    components: [frontend, backend]
+    labels: [images]
+    status: To Do
+    ac:
+      - "Given an uploaded image, when the hive page opens, then the latest image shows with its detected boxes"
+      - "Given the refresh button, when pressed, then a capture_now command is sent to the node"
+    docs: [docs/05-backend/06-api-design.md]
+    subtasks:
+      - {summary: "Image upload endpoint and storage", assignee: james, hours: 4, status: To Do}
+      - {summary: "Latest image component with boxes", assignee: maria, hours: 3, status: To Do}
+  - id: US16
+    epic: E3
+    summary: Flagging unusual hive behavior patterns
+    story: "As a beekeeper, I want the system to flag unusual hive behavior that does not match any known pattern so that I can investigate even when the cause is not yet identified."
+    priority: Medium
+    points: 8
+    sprint: SH Sprint 8
+    assignee: diego
+    components: [ml]
+    labels: [anomaly]
+    status: To Do
+    ac:
+      - "Given the abscond_and_collapse scenario (never seen in training), when the model runs, then event recall and detection delay are reported"
+      - "Given quiet_hive, when the model runs for a year, then false alerts per hive per week are reported"
+    docs: [docs/04-data/03-scenarios-and-events.md]
+    subtasks:
+      - {summary: "Daily feature extraction from telemetry", assignee: diego, hours: 4, status: To Do}
+      - {summary: "Baselines: robust z-scores, seasonal residuals, Isolation Forest", assignee: diego, hours: 6, status: To Do}
+      - {summary: "Event-level evaluation on known vs novel events", assignee: diego, hours: 4, status: To Do}
+  - id: US17
+    epic: E3
+    summary: Preventive anomaly dashboard warnings
+    story: "As a beekeeper, I want anomalies to appear in the dashboard as a warning rather than a critical alert so that I can review them without feeling pressured to act immediately."
+    priority: Medium
+    points: 2
+    sprint: SH Sprint 8
+    assignee: maria
+    components: [frontend]
+    labels: [anomaly]
+    status: To Do
+    blocked_by: [US16]
+    ac:
+      - "Given an anomaly window, when shown, then it appears as a warning band on the charts and no notification is sent"
+    docs: [docs/05-backend/07-alerts-and-rules.md]
+    subtasks:
+      - {summary: "Warning band on charts", assignee: maria, hours: 3, status: To Do}
+
+  # ---------------------------------------------------------------- E4 Honey flow & yield (optional)
+  - id: US18
+    epic: E4
+    summary: 7-day honey production yield estimation
+    story: "As a beekeeper, I want the system to estimate how much honey my hive will produce in the next 7 days so that I can plan my harvest in advance."
+    priority: Low
+    points: 8
+    sprint: SH Sprint 9
+    assignee: diego
+    components: [ml]
+    labels: [yield, optional]
+    status: To Do
+    ac:
+      - "Given simulated history, when the model predicts, then it beats 'same as last week' and 'seasonal mean' baselines on held-out hives"
+    docs: [docs/04-data/03-scenarios-and-events.md]
+    subtasks:
+      - {summary: "Label function (net gain excluding management)", assignee: diego, hours: 2, status: To Do}
+      - {summary: "Quantile model and baselines", assignee: diego, hours: 6, status: To Do}
+  - id: US19
+    epic: E4
+    summary: Prediction range visualization
+    story: "As a beekeeper, I want the prediction to be shown as a range rather than an exact number so that I understand there is inherent uncertainty in the estimate."
+    priority: Low
+    points: 2
+    sprint: SH Sprint 9
+    assignee: maria
+    components: [frontend]
+    labels: [yield, optional]
+    status: To Do
+    blocked_by: [US18]
+    ac:
+      - "Given a prediction with p10/p50/p90, when shown, then the range is drawn and the point estimate is secondary"
+    subtasks:
+      - {summary: "Range chart component", assignee: maria, hours: 3, status: To Do}
+  - id: US20
+    epic: E4
+    summary: Weather data integration for yield accuracy
+    story: "As a beekeeper, I want the system to combine hive weight data with local weather information to improve the accuracy of the yield prediction."
+    priority: Low
+    points: 3
+    sprint: SH Sprint 9
+    assignee: james
+    components: [backend, ml]
+    labels: [weather, optional]
+    status: To Do
+    ac:
+      - "Given the apiary coordinates, when the worker runs daily, then Open-Meteo forecast and history are stored per apiary"
+    subtasks:
+      - {summary: "Open-Meteo client and weather table", assignee: james, hours: 3, status: To Do}
+  - id: US21
+    epic: E4
+    summary: Optimal honey super addition recommendation
+    story: "As a beekeeper, I want to receive a recommendation when conditions are optimal to add a honey super so that I can maximize production without intervening too early."
+    priority: Low
+    points: 3
+    sprint: SH Sprint 9
+    assignee: diego
+    components: [ml, backend]
+    labels: [recommendation, optional]
+    status: To Do
+    ac:
+      - "Given predicted stores above 70 % of capacity during a flow, when the rule runs, then an informative recommendation appears (EL-11 assumption)"
+    subtasks:
+      - {summary: "Rule and evaluation on simulated super_added events", assignee: diego, hours: 3, status: To Do}
+  - id: US22
+    epic: E4
+    summary: Optimal honey harvest timing recommendation
+    story: "As a beekeeper, I want to receive a recommendation when the honey is ready to harvest so that I do not extract too early or miss the right window."
+    priority: Low
+    points: 3
+    sprint: SH Sprint 9
+    assignee: diego
+    components: [ml, backend]
+    labels: [recommendation, optional]
+    status: To Do
+    ac:
+      - "Given the end of a flow and stores above the reserve, when the rule runs, then a harvest recommendation appears, checked against simulated harvest events"
+    subtasks:
+      - {summary: "Rule and evaluation on simulated harvest events", assignee: diego, hours: 3, status: To Do}
