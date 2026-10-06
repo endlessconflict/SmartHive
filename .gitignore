@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / frontend
+node_modules/
+dist/
+.svelte-kit/
+.next/
+
+# Data and models: large files are versioned with DVC, not git
+/data/
+*.parquet
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pth
+*.tflite
+*.ncnn.bin
+*.ncnn.param
+runs/
+mlruns/
+!docs/assets/**
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+!infra/**/README.md
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
