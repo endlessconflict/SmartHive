@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 
 from vision.insectness import cached_proposals
-from vision.labeler import Labeler
+from vision.labeler import Labeler, iou
 
 CLASSES = ["bee", "hornet", "shb", "other_insect"]
 
@@ -27,6 +27,20 @@ CLASSES = ["bee", "hornet", "shb", "other_insect"]
 def yolo_line(cls, box, w, h):
     x0, y0, x1, y1 = box
     return f"{cls} {(x0 + x1) / 2 / w:.6f} {(y0 + y1) / 2 / h:.6f} {(x1 - x0) / w:.6f} {(y1 - y0) / h:.6f}"
+
+
+def tidy(boxes, w, h, rel_area=0.1, min_area=0.0015, dup_iou=0.3):
+    """One observation shows insects of one species at a similar size: drop boxes far smaller than the
+    largest (a rock, a fingertip) or tiny in the photo, and near-duplicates. From a visual audit of v2."""
+    area = lambda b: (b[2] - b[0]) * (b[3] - b[1])
+    if not boxes:
+        return []
+    big = max(area(b) for b in boxes)
+    keep = []
+    for b in boxes:  # already sorted by insect probability
+        if area(b) >= max(rel_area * big, min_area * w * h) and all(iou(b, k) < dup_iou for k in keep):
+            keep.append(b)
+    return keep
 
 
 def main(pool: Path, insectness: Path, out: Path, min_p=0.7, max_boxes=8, threads=4):
@@ -40,11 +54,11 @@ def main(pool: Path, insectness: Path, out: Path, min_p=0.7, max_boxes=8, thread
     for r in rows:
         f = pool / r["file"]
         img = cv2.imread(str(f))
-        bs = lab(img, min_p=min_p, props=props[f.name])[:max_boxes]
+        h, w = img.shape[:2]
+        bs = tidy(lab(img, min_p=min_p, props=props[f.name]), w, h)[:max_boxes]
         if not bs:
             stats["no_insect"] += 1
             continue
-        h, w = img.shape[:2]
         name = f"{r['cls']}_{f.stem}"
         cv2.imwrite(str(out / "images/train" / f"{name}.jpg"), img, [cv2.IMWRITE_JPEG_QUALITY, 92])
         (out / "labels/train" / f"{name}.txt").write_text("\n".join(yolo_line(CLASSES.index(r["cls"]), b[:4], w, h) for b in bs) + "\n")
