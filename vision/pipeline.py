@@ -29,8 +29,12 @@ class Net:
         self.net.load_model(str(Path(folder) / "model.ncnn.bin"))
 
     def __call__(self, chw: np.ndarray) -> np.ndarray:
+        # ncnn.Mat wraps the numpy buffer without copying: keep both alive until extract() has run,
+        # or ncnn reads freed memory and returns noise (seen as near-zero precision in eval_system)
+        x = np.ascontiguousarray(chw, dtype=np.float32)
+        mat = ncnn.Mat(x)
         ex = self.net.create_extractor()
-        ex.input("in0", ncnn.Mat(np.ascontiguousarray(chw, dtype=np.float32)))
+        ex.input("in0", mat)
         _, out = ex.extract("out0")
         return np.array(out)
 
@@ -157,4 +161,11 @@ if __name__ == "__main__":
     assert agg.update({"objects": [{"cls": "hornet"}]}) == []  # same episode, no duplicate event
     p, lo, hi = wilson(3, 100)
     assert abs(p - 0.03) < 1e-9 and 0.005 < lo < 0.03 < hi < 0.09
+    release = Path(__file__).parent.parent / "models/v0.2/stage1"
+    if release.exists():  # same input, same output: guards the ncnn.Mat lifetime bug
+        net, x = Net(release), np.random.default_rng(0).random((3, 320, 320))
+        ref = net(x)
+        for _ in range(20):
+            junk = [np.ones(x.size) for _ in range(3)]  # reuse freed memory if a buffer is released too early
+            assert np.allclose(net(x), ref, atol=1e-3)
     print("ok")
