@@ -974,11 +974,102 @@ stories:
       - {summary: "Train v0.4 (30 epochs, CPU) and evaluate tiers S and P", assignee: adrien, hours: 3, status: Done}
       - {summary: "Fix ncnn input buffer lifetime in the node pipeline; add a determinism self-check", assignee: adrien, hours: 2, status: Done}
       - {summary: "Package release v0.4, model card, attribution; update results", assignee: adrien, hours: 2, status: Done}
+  - id: EN-14
+    epic: E5
+    type: Story
+    summary: Real-photo data v2 (iNaturalist 2026 snapshot, tier P v2, Open Images)
+    story: "As the vision team, we need many more real photos of hornets and of what looks like them, and a real-photo test that shares no photographer with training, so that real-world numbers can be trusted."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [vision]
+    labels: [real-data, evaluation]
+    status: Done
+    ac:
+      - "Given the 2026-09-27 iNaturalist snapshot (36 GB), when streamed and filtered without storing it, then research-grade CC0/CC BY first photos of 27 taxon groups are indexed with observer, date and position (result: 743,462 photos)"
+      - "Given that index, when tier P v2 is built, then photographers are hashed into test, calibration and training buckets, no photographer is on two sides, and test holds at least 450 hornets and 600 look-alike insects in named groups (result: 500 bee, 477 hornet, 635 look-alikes in 23 groups)"
+      - "Given Open Images V7, when bee boxes are filtered, then only photos whose bees are boxed one by one are kept, with author and license per photo (result: 2,896 photos, 5,267 boxes)"
+    docs: [docs/04-data/01-data-problem-and-strategy.md, docs/03-vision/05-training-and-evaluation.md]
+    evidence: [vision/inat.py, vision/openimages.py, vision/splits/P-inat-v2.tsv]
+    subtasks:
+      - {summary: "Probe reachable hosts; choose snapshot and Open Images", assignee: adrien, hours: 1, status: Done}
+      - {summary: "inat.py: header-based streaming filter, 27 groups, most specific ancestor", assignee: adrien, hours: 3, status: Done}
+      - {summary: "inat.py v2: photographer buckets, quotas per group, parallel download with checksums", assignee: adrien, hours: 3, status: Done}
+      - {summary: "openimages.py: individually boxed bees, credits per photo", assignee: adrien, hours: 2, status: Done}
+  - id: EN-15
+    epic: E5
+    type: Story
+    summary: Automatic labeling with OSI-licensed weights only, scored against human boxes
+    story: "As the vision team, we need automatic boxes made only with OSI-licensed models, and a measured error rate, so that the training data respects the FOSS rule and its quality is known."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [vision]
+    labels: [real-data, licensing]
+    status: Done
+    ac:
+      - "Given that YOLOE text prompts load Apple's research-only MobileCLIP weights, when the labeling pipeline is reviewed, then ADR-0011 records the finding and no code calls text prompts"
+      - "Given prompt-free YOLOE proposals and an insectness classifier trained on Open Images human boxes, when scored on held-out Open Images photos, then precision and recall at IoU 0.5 are reported per threshold (result: 0.65 / 0.65 at insect probability 0.7)"
+      - "Given the 13,090-photo training pool, when labeled and tidied, then a visual audit is recorded (result: 10,783 photos, 12,732 boxes; 6,497 SAM 2.1 cutouts)"
+    docs: [docs/adr/0011-osi-clean-automatic-labeling.md, docs/03-vision/03-synthetic-image-pipeline.md]
+    evidence: [vision/labeler.py, vision/insectness.py, vision/pseudolabel.py, simulation/images/cutouts.py]
+    subtasks:
+      - {summary: "Check MobileCLIP license; ADR-0011; delete the weights", assignee: adrien, hours: 1, status: Done}
+      - {summary: "Benchmark prompt-free YOLOE sizes against Open Images boxes", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Insectness classifier v1, then v2 with partial-box negatives", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Label the pool, audit, tidy rule, relabel; cutouts v3; real mosaics", assignee: adrien, hours: 4, status: Done}
+  - id: EN-16
+    epic: E5
+    type: Story
+    summary: Species verifier (stage 1b) for hornet and other-insect detections
+    story: "As a beekeeper, I want a hornet alert to mean a hornet, not a wasp or a hoverfly, so that I act on alerts instead of ignoring them."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [vision, edge]
+    labels: [hornet, false-alarms]
+    status: Done
+    ac:
+      - "Given real crops of hornets and look-alikes plus synthetic top-down crops, when a 160 px YOLO26n-cls is trained, then top-1 on held-out photographers is reported (result: 0.922)"
+      - "Given the unchanged v0.4 detector on tier P v2 calibration, when the verifier re-checks hornet and other-insect detections, then hornet precision rises above the 0.70 target (result: 0.566 to 0.903; look-alikes called hornet 133 to 20)"
+      - "Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())"
+      - "Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)"
+    docs: [docs/03-vision/04-model-architecture.md]
+    evidence: [vision/verifier.py, vision/pipeline.py]
+    subtasks:
+      - {summary: "Verifier dataset: real crops by photographer bucket, synthetic crops", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Train, export to ncnn, compare with PyTorch", assignee: adrien, hours: 2, status: Done}
+      - {summary: "decide() rule in pipeline and eval_real; threshold sweep on calib", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Open Images honeybee filter", assignee: adrien, hours: 1, status: Done}
+  - id: EN-17
+    epic: E5
+    type: Story
+    summary: Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5)
+    story: "As the vision team, we need a detector trained on the larger, cleaner real data and a release that beats v0.4 on the new photographer-disjoint test."
+    priority: Highest
+    points: 8
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [vision]
+    labels: [sim-to-real, evaluation]
+    status: In Progress
+    ac:
+      - "Given synthetic scenes with cutouts v3, auto-labeled photos, real mosaics and verified Open Images bees, when YOLO26n is trained at 320 px, then tier S and tier P v2 calibration are compared with v0.4"
+      - "Given the chosen detector and verifier, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups"
+      - "Given the release, when published under models/v0.5, then it has a model card, checksums, attribution and the Pi 3B latency estimate including stage 1b"
+    docs: [docs/03-vision/07-results.md]
+    subtasks:
+      - {summary: "Compose v0.5 scenes with cutouts v3", assignee: adrien, hours: 1, status: Done}
+      - {summary: "Train YOLO26n detector and YOLO26n-cls stage 2", assignee: adrien, hours: 3, status: In Progress}
+      - {summary: "Evaluate tiers S, P v1, P v2; latency; release", assignee: adrien, hours: 4, status: To Do}
   - id: EN-12
     epic: E5
     type: Story
-    summary: Vision iteration v0.5 (real backgrounds, fresher photos, thresholds)
-    story: "As the vision team, we need the detector trained on our own board and on photos from many more photographers so that hornet alerts reach the 0.70 precision and 0.90 recall targets before the field test."
+    summary: Vision iteration v0.6 (real backgrounds, 416 px trial, Varroa threshold)
+    story: "As the vision team, we need the detector trained on our own board and checked at the camera's real scale so that the field test starts from entrance-domain numbers."
     priority: High
     points: 8
     sprint: SH Sprint 5
@@ -988,18 +1079,14 @@ stories:
     status: To Do
     blocked_by: [HW-01]
     ac:
-      - "Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then generator v0.5 places insects on them with the camera's measured px/mm"
-      - "Given a newer iNaturalist metadata snapshot, when new pools are drawn, then they include local wasps, stingless bees and flies as other_insect, and an observer-disjoint tier P subset with at least 50 hornets is reported next to the current split"
-      - "Given the tier P calibration photos that v0.4 calls hornet, when reviewed, then their insect groups are added to training as other_insect (test split never used)"
-      - "Given model v0.5, when per-class thresholds are chosen on the calibration split, then tier P hornet precision and recall on the test split are reported against the 0.70 and 0.90 targets"
+      - "Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then the generator places insects on them with the camera's measured px/mm"
       - "Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s"
       - "Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported"
+      - "Given team captures of real bees at the entrance (tier C), when labeled, then the detector and verifier are scored on them"
     docs: [docs/03-vision/07-results.md, docs/03-vision/05-training-and-evaluation.md]
     subtasks:
       - {summary: "Capture empty-board backgrounds with the mounted camera", assignee: ricardo, hours: 2, status: To Do}
-      - {summary: "Generator v0.5: tier C backgrounds", assignee: adrien, hours: 4, status: To Do}
-      - {summary: "Newer iNaturalist snapshot: new pools and observer-disjoint check", assignee: adrien, hours: 3, status: To Do}
-      - {summary: "Review calib hornet false positives and add matching negatives", assignee: adrien, hours: 3, status: To Do}
-      - {summary: "Train v0.5 and 416 px trial; estimate latency", assignee: adrien, hours: 4, status: To Do}
-      - {summary: "Per-class thresholds on calib; Varroa threshold at realistic prevalence", assignee: diego, hours: 3, status: To Do}
-      - {summary: "Tier P test, results document update, release v0.5", assignee: adrien, hours: 2, status: To Do}
+      - {summary: "Generator: tier C backgrounds", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "416 px trial; estimate latency", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "Varroa threshold at realistic prevalence", assignee: diego, hours: 3, status: To Do}
+      - {summary: "Label 200 tier C frames and score detector and verifier", assignee: adrien, hours: 4, status: To Do}

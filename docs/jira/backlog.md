@@ -2,13 +2,13 @@
 
 Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Edit the YAML, not this file.
 
-45 stories and tasks, 126 sub-tasks, 241 story points (52 done).
+49 stories and tasks, 139 sub-tasks, 267 story points (70 done).
 
 ## Sprints
 
 | Sprint | Dates | Goal | Points | Done |
 |---|---|---|---|---|
-| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 52 | 52 |
+| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 78 | 70 |
 | SH Sprint 4 | 2026-10-12 to 2026-10-25 | Contracts frozen, Compose stack up, camera chosen, client interview done | 30 | 0 |
 | SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 41 | 0 |
 | SH Sprint 6 | 2026-11-09 to 2026-11-22 | Vision on the node: detections become events | 27 | 0 |
@@ -23,7 +23,7 @@ Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Ed
 |---|---|---|---|---|---|---|---|---|
 | James Tack | 3 |  | 10 |  | 8 |  | 3 |  |
 | Ricardo Villarreal |  | 6 | 10 | 13 |  | 13 |  | 5 |
-| Adrien Cubilla | 41 | 3 | 8 | 11 | 13 |  |  | 8 |
+| Adrien Cubilla | 67 | 3 | 8 | 11 | 13 |  |  | 8 |
 | Diego Alejandro Vasquez | 8 |  |  |  |  | 13 | 14 |  |
 | Karen Jimenez |  | 10 | 5 |  | 5 |  |  |  |
 | Maria de los Angeles Agudelo |  | 11 | 8 | 3 | 5 | 2 | 2 |  |
@@ -597,7 +597,11 @@ Owner: Diego Alejandro Vasquez. Component: `simulation`.
 | [EN-10](#en-10) | Story | Hybrid sprite library with real-photo cutouts (vision iteration v0.2) | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-11](#en-11) | Story | Vision iteration v0.3 (distractors), model release v0.2 and per-tier results report | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-13](#en-13) | Story | Vision iteration v0.4 (real photos with automatic labels) and model release v0.4 | 5 | Sprint 3 | Adrien Cubilla | Done |
-| [EN-12](#en-12) | Story | Vision iteration v0.5 (real backgrounds, fresher photos, thresholds) | 8 | Sprint 5 | Adrien Cubilla | To Do |
+| [EN-14](#en-14) | Story | Real-photo data v2 (iNaturalist 2026 snapshot, tier P v2, Open Images) | 8 | Sprint 3 | Adrien Cubilla | Done |
+| [EN-15](#en-15) | Story | Automatic labeling with OSI-licensed weights only, scored against human boxes | 5 | Sprint 3 | Adrien Cubilla | Done |
+| [EN-16](#en-16) | Story | Species verifier (stage 1b) for hornet and other-insect detections | 5 | Sprint 3 | Adrien Cubilla | Done |
+| [EN-17](#en-17) | Story | Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5) | 8 | Sprint 3 | Adrien Cubilla | In Progress |
+| [EN-12](#en-12) | Story | Vision iteration v0.6 (real backgrounds, 416 px trial, Varroa threshold) | 8 | Sprint 5 | Adrien Cubilla | To Do |
 
 ### EN-01
 
@@ -829,20 +833,108 @@ Evidence: [vision/pseudolabel.py](../../vision/pseudolabel.py), [docs/03-vision/
 | EN-13.5 Fix ncnn input buffer lifetime in the node pipeline; add a determinism self-check | Adrien Cubilla | 2 | Done |
 | EN-13.6 Package release v0.4, model card, attribution; update results | Adrien Cubilla | 2 | Done |
 
-### EN-12
+### EN-14
 
-**Vision iteration v0.5 (real backgrounds, fresher photos, thresholds)** (Story, High, 8 pts, SH Sprint 5, Adrien Cubilla, To Do)
+**Real-photo data v2 (iNaturalist 2026 snapshot, tier P v2, Open Images)** (Story, Highest, 8 pts, SH Sprint 3, Adrien Cubilla, Done)
 
-> As the vision team, we need the detector trained on our own board and on photos from many more photographers so that hornet alerts reach the 0.70 precision and 0.90 recall targets before the field test.
+> As the vision team, we need many more real photos of hornets and of what looks like them, and a real-photo test that shares no photographer with training, so that real-world numbers can be trusted.
 
 Acceptance criteria:
 
-1. Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then generator v0.5 places insects on them with the camera's measured px/mm
-2. Given a newer iNaturalist metadata snapshot, when new pools are drawn, then they include local wasps, stingless bees and flies as other_insect, and an observer-disjoint tier P subset with at least 50 hornets is reported next to the current split
-3. Given the tier P calibration photos that v0.4 calls hornet, when reviewed, then their insect groups are added to training as other_insect (test split never used)
-4. Given model v0.5, when per-class thresholds are chosen on the calibration split, then tier P hornet precision and recall on the test split are reported against the 0.70 and 0.90 targets
-5. Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s
-6. Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported
+1. Given the 2026-09-27 iNaturalist snapshot (36 GB), when streamed and filtered without storing it, then research-grade CC0/CC BY first photos of 27 taxon groups are indexed with observer, date and position (result: 743,462 photos)
+2. Given that index, when tier P v2 is built, then photographers are hashed into test, calibration and training buckets, no photographer is on two sides, and test holds at least 450 hornets and 600 look-alike insects in named groups (result: 500 bee, 477 hornet, 635 look-alikes in 23 groups)
+3. Given Open Images V7, when bee boxes are filtered, then only photos whose bees are boxed one by one are kept, with author and license per photo (result: 2,896 photos, 5,267 boxes)
+
+Design: [docs/04-data/01-data-problem-and-strategy.md](../../docs/04-data/01-data-problem-and-strategy.md), [docs/03-vision/05-training-and-evaluation.md](../../docs/03-vision/05-training-and-evaluation.md)
+
+Evidence: [vision/inat.py](../../vision/inat.py), [vision/openimages.py](../../vision/openimages.py), [vision/splits/P-inat-v2.tsv](../../vision/splits/P-inat-v2.tsv)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-14.1 Probe reachable hosts; choose snapshot and Open Images | Adrien Cubilla | 1 | Done |
+| EN-14.2 inat.py: header-based streaming filter, 27 groups, most specific ancestor | Adrien Cubilla | 3 | Done |
+| EN-14.3 inat.py v2: photographer buckets, quotas per group, parallel download with checksums | Adrien Cubilla | 3 | Done |
+| EN-14.4 openimages.py: individually boxed bees, credits per photo | Adrien Cubilla | 2 | Done |
+
+### EN-15
+
+**Automatic labeling with OSI-licensed weights only, scored against human boxes** (Story, Highest, 5 pts, SH Sprint 3, Adrien Cubilla, Done)
+
+> As the vision team, we need automatic boxes made only with OSI-licensed models, and a measured error rate, so that the training data respects the FOSS rule and its quality is known.
+
+Acceptance criteria:
+
+1. Given that YOLOE text prompts load Apple's research-only MobileCLIP weights, when the labeling pipeline is reviewed, then ADR-0011 records the finding and no code calls text prompts
+2. Given prompt-free YOLOE proposals and an insectness classifier trained on Open Images human boxes, when scored on held-out Open Images photos, then precision and recall at IoU 0.5 are reported per threshold (result: 0.65 / 0.65 at insect probability 0.7)
+3. Given the 13,090-photo training pool, when labeled and tidied, then a visual audit is recorded (result: 10,783 photos, 12,732 boxes; 6,497 SAM 2.1 cutouts)
+
+Design: [docs/adr/0011-osi-clean-automatic-labeling.md](../../docs/adr/0011-osi-clean-automatic-labeling.md), [docs/03-vision/03-synthetic-image-pipeline.md](../../docs/03-vision/03-synthetic-image-pipeline.md)
+
+Evidence: [vision/labeler.py](../../vision/labeler.py), [vision/insectness.py](../../vision/insectness.py), [vision/pseudolabel.py](../../vision/pseudolabel.py), [simulation/images/cutouts.py](../../simulation/images/cutouts.py)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-15.1 Check MobileCLIP license; ADR-0011; delete the weights | Adrien Cubilla | 1 | Done |
+| EN-15.2 Benchmark prompt-free YOLOE sizes against Open Images boxes | Adrien Cubilla | 2 | Done |
+| EN-15.3 Insectness classifier v1, then v2 with partial-box negatives | Adrien Cubilla | 3 | Done |
+| EN-15.4 Label the pool, audit, tidy rule, relabel; cutouts v3; real mosaics | Adrien Cubilla | 4 | Done |
+
+### EN-16
+
+**Species verifier (stage 1b) for hornet and other-insect detections** (Story, Highest, 5 pts, SH Sprint 3, Adrien Cubilla, Done)
+
+> As a beekeeper, I want a hornet alert to mean a hornet, not a wasp or a hoverfly, so that I act on alerts instead of ignoring them.
+
+Acceptance criteria:
+
+1. Given real crops of hornets and look-alikes plus synthetic top-down crops, when a 160 px YOLO26n-cls is trained, then top-1 on held-out photographers is reported (result: 0.922)
+2. Given the unchanged v0.4 detector on tier P v2 calibration, when the verifier re-checks hornet and other-insect detections, then hornet precision rises above the 0.70 target (result: 0.566 to 0.903; look-alikes called hornet 133 to 20)
+3. Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())
+4. Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)
+
+Design: [docs/03-vision/04-model-architecture.md](../../docs/03-vision/04-model-architecture.md)
+
+Evidence: [vision/verifier.py](../../vision/verifier.py), [vision/pipeline.py](../../vision/pipeline.py)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-16.1 Verifier dataset: real crops by photographer bucket, synthetic crops | Adrien Cubilla | 2 | Done |
+| EN-16.2 Train, export to ncnn, compare with PyTorch | Adrien Cubilla | 2 | Done |
+| EN-16.3 decide() rule in pipeline and eval_real; threshold sweep on calib | Adrien Cubilla | 2 | Done |
+| EN-16.4 Open Images honeybee filter | Adrien Cubilla | 1 | Done |
+
+### EN-17
+
+**Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5)** (Story, Highest, 8 pts, SH Sprint 3, Adrien Cubilla, In Progress)
+
+> As the vision team, we need a detector trained on the larger, cleaner real data and a release that beats v0.4 on the new photographer-disjoint test.
+
+Acceptance criteria:
+
+1. Given synthetic scenes with cutouts v3, auto-labeled photos, real mosaics and verified Open Images bees, when YOLO26n is trained at 320 px, then tier S and tier P v2 calibration are compared with v0.4
+2. Given the chosen detector and verifier, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups
+3. Given the release, when published under models/v0.5, then it has a model card, checksums, attribution and the Pi 3B latency estimate including stage 1b
+
+Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+
+| Sub-task | Assignee | Hours | Status |
+|---|---|---|---|
+| EN-17.1 Compose v0.5 scenes with cutouts v3 | Adrien Cubilla | 1 | Done |
+| EN-17.2 Train YOLO26n detector and YOLO26n-cls stage 2 | Adrien Cubilla | 3 | In Progress |
+| EN-17.3 Evaluate tiers S, P v1, P v2; latency; release | Adrien Cubilla | 4 | To Do |
+
+### EN-12
+
+**Vision iteration v0.6 (real backgrounds, 416 px trial, Varroa threshold)** (Story, High, 8 pts, SH Sprint 5, Adrien Cubilla, To Do)
+
+> As the vision team, we need the detector trained on our own board and checked at the camera's real scale so that the field test starts from entrance-domain numbers.
+
+Acceptance criteria:
+
+1. Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then the generator places insects on them with the camera's measured px/mm
+2. Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s
+3. Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported
+4. Given team captures of real bees at the entrance (tier C), when labeled, then the detector and verifier are scored on them
 
 Blocked by: [HW-01](#hw-01)
 
@@ -851,12 +943,10 @@ Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [doc
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
 | EN-12.1 Capture empty-board backgrounds with the mounted camera | Ricardo Villarreal | 2 | To Do |
-| EN-12.2 Generator v0.5: tier C backgrounds | Adrien Cubilla | 4 | To Do |
-| EN-12.3 Newer iNaturalist snapshot: new pools and observer-disjoint check | Adrien Cubilla | 3 | To Do |
-| EN-12.4 Review calib hornet false positives and add matching negatives | Adrien Cubilla | 3 | To Do |
-| EN-12.5 Train v0.5 and 416 px trial; estimate latency | Adrien Cubilla | 4 | To Do |
-| EN-12.6 Per-class thresholds on calib; Varroa threshold at realistic prevalence | Diego Alejandro Vasquez | 3 | To Do |
-| EN-12.7 Tier P test, results document update, release v0.5 | Adrien Cubilla | 2 | To Do |
+| EN-12.2 Generator: tier C backgrounds | Adrien Cubilla | 4 | To Do |
+| EN-12.3 416 px trial; estimate latency | Adrien Cubilla | 4 | To Do |
+| EN-12.4 Varroa threshold at realistic prevalence | Diego Alejandro Vasquez | 3 | To Do |
+| EN-12.5 Label 200 tier C frames and score detector and verifier | Adrien Cubilla | 4 | To Do |
 
 ## E6 Backend platform & DevOps
 
