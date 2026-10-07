@@ -7,7 +7,9 @@ which boxes hold an insect; the species comes from iNaturalist. All weights invo
 Training crops:
 - insect: Open Images human bee boxes (train split images) and procedural hornets, wasps, flies, ants,
   beetles and bees pasted on real background patches, so "insect" does not collapse into "bee";
-- background: prompt-free boxes in the same Open Images photos that overlap no bee (IoU < 0.1).
+- background: prompt-free boxes in the same Open Images photos that overlap no bee (IoU < 0.1), and
+  boxes that cover only part of a bee or much more than it (IoU 0.1 to 0.45), so that a whole-insect
+  box wins over a partial one.
 Open Images validation and test images stay out, to score the whole labeler (vision/labeler.py).
 
     python -m vision.insectness data/raw/oi-bees --out data/sim/C-insectness-v1
@@ -73,12 +75,12 @@ def main(oi: Path, out: Path, seed=0, size=128, neg_per_image=6, workers=3):
     rng = np.random.default_rng(seed)
     split_of = {r["file"]: ("train" if r["split"] == "train" else "val") for r in csv.DictReader(open(oi / "manifest.tsv"), delimiter="\t")}
     files = sorted(f for f in (oi / "images").glob("*.jpg") if f.name in split_of)
-    props = cached_proposals(YOLOE(str(Path("data/weights") / PF)), files, oi / f"proposals-{PF}.json")
+    props = cached_proposals(YOLOE(str(Path("data/weights") / PF)), files, oi / f"proposals-{Path(PF).stem}.json")
     for s in ("train", "val"):
         for c in ("insect", "background"):
             (out / "stage2" / s / c).mkdir(parents=True, exist_ok=True)
     bgs = {"train": [], "val": []}
-    n = {"insect": 0, "background": 0, "synthetic": 0}
+    n = {"insect": 0, "background": 0, "partial": 0, "synthetic": 0}
     for f in files:
         s = split_of[f.name]
         img = cv2.imread(str(f))
@@ -87,12 +89,17 @@ def main(oi: Path, out: Path, seed=0, size=128, neg_per_image=6, workers=3):
         for k, g in enumerate(gts):
             cv2.imwrite(str(out / "stage2" / s / "insect" / f"{f.stem}_{k}.jpg"), crop(img, g, pad=rng.uniform(0.05, 0.3), size=size))
             n["insect"] += 1
-        negs = [p for p in props[f.name] if max((iou(p, g) for g in gts), default=0) < 0.1]
+        best = [max((iou(p, g) for g in gts), default=0) for p in props[f.name]]
+        negs = [p for p, b in zip(props[f.name], best) if b < 0.1]
+        parts = [p for p, b in zip(props[f.name], best) if 0.1 <= b < 0.45]  # part of a bee, or a loose box around it
         for k in rng.permutation(len(negs))[:neg_per_image]:
             c = crop(img, negs[k][:4], pad=0.15, size=size)
             cv2.imwrite(str(out / "stage2" / s / "background" / f"{f.stem}_n{k}.jpg"), c)
             bgs[s].append(c)
             n["background"] += 1
+        for k in rng.permutation(len(parts))[:3]:
+            cv2.imwrite(str(out / "stage2" / s / "background" / f"{f.stem}_p{k}.jpg"), crop(img, parts[k][:4], pad=0.15, size=size))
+            n["partial"] += 1
     for s, lib_seed in (("train", seed + 1), ("val", seed + 2)):
         lib = [sp for sp in compose.build_library(s, lib_seed, workers) if sp["cls"] != "bee" or rng.random() < 0.3]
         for k, sp in enumerate(lib):
