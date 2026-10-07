@@ -60,9 +60,11 @@ def crop(frame, box, pad=0.15, size=128):
 VERIFIER_CLASSES = ["bee", "hornet", "other_insect"]  # ultralytics sorts class folders alphabetically
 
 
-def decide(pred, v, vth=0.5, flip=0.9):
+def decide(pred, v, vth=0.2, flip=0.6):
     """Stage 1b rule on verifier probabilities v (class -> p). A hornet stays a hornet only if the verifier
-    agrees with at least vth; a bee or other insect changes class only if the verifier is flip sure."""
+    gives it at least vth; a bee or other insect changes class only if the verifier is flip sure.
+    Defaults chosen on tier P v2 calibration (v0.5): the most accurate pair with hornet recall >= 0.90
+    and precision >= 0.70 (0.907 / 0.904)."""
     if pred == "hornet" and v["hornet"] < vth:
         return max(("bee", "other_insect"), key=v.get)
     if pred in ("bee", "other_insect"):
@@ -74,11 +76,11 @@ def decide(pred, v, vth=0.5, flip=0.9):
 
 class Detector:
     def __init__(self, stage1: Path, stage2: Path | None, imgsz=320, threads=3, thresholds=None, max_crops=16, min_sharpness=30.0,
-                 verifier: Path | None = None, vth=0.5):
+                 verifier: Path | None = None, vth=0.2, flip=0.6):
         self.s1 = Net(stage1, threads)
         self.s2 = Net(stage2, threads) if stage2 else None
         self.v = Net(verifier, threads) if verifier else None
-        self.vth = vth
+        self.vth, self.flip = vth, flip
         self.imgsz, self.max_crops, self.min_sharpness = imgsz, max_crops, min_sharpness
         self.th = dict(DEFAULT_THRESHOLDS, **(thresholds or {}))
 
@@ -109,7 +111,7 @@ class Detector:
                 if o["cls"] in ("hornet", "other_insect"):
                     p = self.v(crop(frame_rgb, o["box"], size=160).transpose(2, 0, 1) / 255.0).reshape(-1)
                     v = dict(zip(VERIFIER_CLASSES, p.tolist()))
-                    o["detector_cls"], o["cls"] = o["cls"], decide(o["cls"], v, self.vth)
+                    o["detector_cls"], o["cls"] = o["cls"], decide(o["cls"], v, self.vth, self.flip)
                     o["verifier_p"] = round(v[o["cls"]], 3)
         t1 = time.perf_counter()
         if self.s2:
@@ -184,10 +186,10 @@ if __name__ == "__main__":
     assert agg.update({"objects": [{"cls": "hornet"}]}) == [] and agg.update({"objects": [{"cls": "hornet"}]}) == []
     assert agg.update({"objects": [{"cls": "hornet"}]})[0]["cls"] == "hornet"  # third sighting in 10 frames
     assert agg.update({"objects": [{"cls": "hornet"}]}) == []  # same episode, no duplicate event
-    assert decide("hornet", {"bee": 0.1, "hornet": 0.3, "other_insect": 0.6}) == "other_insect"
-    assert decide("hornet", {"bee": 0.1, "hornet": 0.6, "other_insect": 0.3}) == "hornet"
-    assert decide("other_insect", {"bee": 0.02, "hornet": 0.95, "other_insect": 0.03}) == "hornet"
-    assert decide("other_insect", {"bee": 0.1, "hornet": 0.8, "other_insect": 0.1}) == "other_insect"
+    assert decide("hornet", {"bee": 0.1, "hornet": 0.15, "other_insect": 0.75}) == "other_insect"
+    assert decide("hornet", {"bee": 0.1, "hornet": 0.3, "other_insect": 0.6}) == "hornet"
+    assert decide("other_insect", {"bee": 0.05, "hornet": 0.65, "other_insect": 0.3}) == "hornet"
+    assert decide("other_insect", {"bee": 0.2, "hornet": 0.5, "other_insect": 0.3}) == "other_insect"
     p, lo, hi = wilson(3, 100)
     assert abs(p - 0.03) < 1e-9 and 0.005 < lo < 0.03 < hi < 0.09
     release = Path(__file__).parent.parent / "models/v0.2/stage1"

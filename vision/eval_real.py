@@ -6,7 +6,7 @@ all three, and the most confident detection names the photo. Classes without eno
 (shb: 2, varroa: 10) are reported but not scored.
 
     python -m vision.eval_real runs/stage1/<run>/weights/best.pt --split calib
-    python -m vision.eval_real <best.pt> --tier P2 --split calib --verifier <verifier best.pt> --vth 0.5
+    python -m vision.eval_real <best.pt> --tier P2 --split calib --verifier <verifier best.pt>
 
 Tier P2 (vision/splits/P-inat-v2.tsv) shares no photographer with any training pool and leans on the
 insects that get confused with hornets and bees; its rows carry a group, reported separately.
@@ -39,14 +39,14 @@ def letterbox(img, side, canvas=640):
     return out, (k, x, y)
 
 
-def verify(verifier, img, box, vth, pred):
+def verify(verifier, img, box, vth, flip, pred):
     """Stage 1b on a crop of the original photo, with the node's rule (vision.pipeline.decide)."""
     from vision.pipeline import crop, decide
     probs = verifier.predict(crop(img, box, size=160), imgsz=160, verbose=False, device="cpu")[0].probs.data.tolist()
-    return decide(pred, dict(zip(verifier.names.values(), probs)), vth)
+    return decide(pred, dict(zip(verifier.names.values(), probs)), vth, flip)
 
 
-def evaluate(weights, split, imgsz, conf=0.05, tier="P1", verifier=None, vth=0.5):
+def evaluate(weights, split, imgsz, conf=0.05, tier="P1", verifier=None, vth=0.2, flip=0.6):
     model = YOLO(str(weights), task="detect")
     split_file, root = TIERS[tier]
     rows = [r for r in csv.DictReader(open(split_file), delimiter="\t") if r["split"] == split]
@@ -63,7 +63,7 @@ def evaluate(weights, split, imgsz, conf=0.05, tier="P1", verifier=None, vth=0.5
             for c, p, b in zip(res.boxes.cls.tolist(), res.boxes.conf.tolist(), res.boxes.xyxy.tolist()):
                 if p > best[1]:
                     best = (names[int(c)], p, [(b[0] - x) / k, (b[1] - y) / k, (b[2] - x) / k, (b[3] - y) / k])
-        pred = verify(ver, img, best[2], vth, best[0]) if ver and best[2] and best[0] != "shb" else best[0]
+        pred = verify(ver, img, best[2], vth, flip, best[0]) if ver and best[2] and best[0] != "shb" else best[0]
         preds.append({"file": r["file"], "true": r["cls"], "group": r.get("group", ""), "detector": best[0], "pred": pred, "conf": round(best[1], 3)})
         conf_m[(r["cls"], pred)] += 1
     scored = [p for p in preds if p["true"] in SCORED]
@@ -89,9 +89,10 @@ if __name__ == "__main__":
     ap.add_argument("--imgsz", type=int, default=320)
     ap.add_argument("--tier", default="P1", choices=list(TIERS))
     ap.add_argument("--verifier", type=Path)
-    ap.add_argument("--vth", type=float, default=0.5)
+    ap.add_argument("--vth", type=float, default=0.2)
+    ap.add_argument("--flip", type=float, default=0.6)
     a = ap.parse_args()
-    res = evaluate(a.weights, a.split, a.imgsz, tier=a.tier, verifier=a.verifier, vth=a.vth)
+    res = evaluate(a.weights, a.split, a.imgsz, tier=a.tier, verifier=a.verifier, vth=a.vth, flip=a.flip)
     suffix = ("" if a.tier == "P1" else "_p2") + ("_verified" if a.verifier else "")
     out = a.weights.parent.parent / f"real_{a.split}{suffix}.json"
     out.write_text(json.dumps(res, indent=2))
