@@ -12,6 +12,7 @@ CC0 / CC-BY licenses, then downloads a capped number of photos per class.
 import argparse
 import csv
 import hashlib
+import http.client
 import random
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -210,7 +211,7 @@ def fetch(rows, out: Path, workers=8):
                 data = urllib.request.urlopen(f"{BUCKET}/photos/{r['photo_id']}/medium.{r['extension']}", timeout=60).read()
                 dst.write_bytes(data)
             return {**r, "file": str(dst.relative_to(out)), "sha256": hashlib.sha256(dst.read_bytes()).hexdigest()}
-        except OSError as e:
+        except (OSError, http.client.HTTPException) as e:  # IncompleteRead is not an OSError
             print("skip", r["photo_id"], e, flush=True)
     with ThreadPoolExecutor(workers) as ex:
         return [r for r in ex.map(one, rows) if r]
