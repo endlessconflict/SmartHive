@@ -26,10 +26,10 @@ from vision.inat import bucket
 from vision.pipeline import crop
 
 CLASSES = ["bee", "hornet", "other_insect"]
-YOLO_CLASSES = ["bee", "hornet", "shb", "other_insect"]
 
 
 def build(real: Path, out: Path, size=160, n_scenes=1500, seed=5, workers=3):
+    cv2.setNumThreads(1)  # OpenCV threads plus the fork in compose.build_library deadlock
     for s in ("train", "val"):
         for c in CLASSES:
             (out / "stage2" / s / c).mkdir(parents=True, exist_ok=True)

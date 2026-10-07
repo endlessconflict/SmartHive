@@ -71,6 +71,7 @@ def paste_sprite(rng, bg, sprite):
 
 
 def main(oi: Path, out: Path, seed=0, size=128, neg_per_image=6, workers=3):
+    cv2.setNumThreads(1)  # OpenCV threads plus the fork in compose.build_library deadlock
     from ultralytics import YOLOE
     rng = np.random.default_rng(seed)
     split_of = {r["file"]: ("train" if r["split"] == "train" else "val") for r in csv.DictReader(open(oi / "manifest.tsv"), delimiter="\t")}
