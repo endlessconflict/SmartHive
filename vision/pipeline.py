@@ -57,10 +57,28 @@ def crop(frame, box, pad=0.15, size=128):
     return cv2.warpAffine(frame, M, (size, size), flags=cv2.INTER_AREA, borderMode=cv2.BORDER_REFLECT)
 
 
+VERIFIER_CLASSES = ["bee", "hornet", "other_insect"]  # ultralytics sorts class folders alphabetically
+
+
+def decide(pred, v, vth=0.5, flip=0.9):
+    """Stage 1b rule on verifier probabilities v (class -> p). A hornet stays a hornet only if the verifier
+    agrees with at least vth; a bee or other insect changes class only if the verifier is flip sure."""
+    if pred == "hornet" and v["hornet"] < vth:
+        return max(("bee", "other_insect"), key=v.get)
+    if pred in ("bee", "other_insect"):
+        best = max(VERIFIER_CLASSES, key=v.get)
+        if best != pred and v[best] >= max(flip, vth if best == "hornet" else 0):
+            return best
+    return pred
+
+
 class Detector:
-    def __init__(self, stage1: Path, stage2: Path | None, imgsz=320, threads=3, thresholds=None, max_crops=16, min_sharpness=30.0):
+    def __init__(self, stage1: Path, stage2: Path | None, imgsz=320, threads=3, thresholds=None, max_crops=16, min_sharpness=30.0,
+                 verifier: Path | None = None, vth=0.5):
         self.s1 = Net(stage1, threads)
         self.s2 = Net(stage2, threads) if stage2 else None
+        self.v = Net(verifier, threads) if verifier else None
+        self.vth = vth
         self.imgsz, self.max_crops, self.min_sharpness = imgsz, max_crops, min_sharpness
         self.th = dict(DEFAULT_THRESHOLDS, **(thresholds or {}))
 
@@ -86,6 +104,13 @@ class Detector:
         """frame_rgb: full-resolution RGB uint8. Returns the per-frame record of the output contract."""
         t0 = time.perf_counter()
         objs = self.stage1(frame_rgb)
+        if self.v:  # stage 1b: only hornet and other-insect candidates, rare at an entrance
+            for o in objs:
+                if o["cls"] in ("hornet", "other_insect"):
+                    p = self.v(crop(frame_rgb, o["box"], size=160).transpose(2, 0, 1) / 255.0).reshape(-1)
+                    v = dict(zip(VERIFIER_CLASSES, p.tolist()))
+                    o["detector_cls"], o["cls"] = o["cls"], decide(o["cls"], v, self.vth)
+                    o["verifier_p"] = round(v[o["cls"]], 3)
         t1 = time.perf_counter()
         if self.s2:
             bees = sorted((o for o in objs if o["cls"] == "bee"), key=lambda o: -o["conf"])[: self.max_crops]
@@ -159,6 +184,10 @@ if __name__ == "__main__":
     assert agg.update({"objects": [{"cls": "hornet"}]}) == [] and agg.update({"objects": [{"cls": "hornet"}]}) == []
     assert agg.update({"objects": [{"cls": "hornet"}]})[0]["cls"] == "hornet"  # third sighting in 10 frames
     assert agg.update({"objects": [{"cls": "hornet"}]}) == []  # same episode, no duplicate event
+    assert decide("hornet", {"bee": 0.1, "hornet": 0.3, "other_insect": 0.6}) == "other_insect"
+    assert decide("hornet", {"bee": 0.1, "hornet": 0.6, "other_insect": 0.3}) == "hornet"
+    assert decide("other_insect", {"bee": 0.02, "hornet": 0.95, "other_insect": 0.03}) == "hornet"
+    assert decide("other_insect", {"bee": 0.1, "hornet": 0.8, "other_insect": 0.1}) == "other_insect"
     p, lo, hi = wilson(3, 100)
     assert abs(p - 0.03) < 1e-9 and 0.005 < lo < 0.03 < hi < 0.09
     release = Path(__file__).parent.parent / "models/v0.2/stage1"

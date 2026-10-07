@@ -40,18 +40,10 @@ def letterbox(img, side, canvas=640):
 
 
 def verify(verifier, img, box, vth, pred):
-    """Stage 1b on a crop of the original photo: a hornet stays a hornet only if the verifier agrees;
-    another insect becomes a hornet only if the verifier is at least vth sure."""
-    from vision.pipeline import crop
+    """Stage 1b on a crop of the original photo, with the node's rule (vision.pipeline.decide)."""
+    from vision.pipeline import crop, decide
     probs = verifier.predict(crop(img, box, size=160), imgsz=160, verbose=False, device="cpu")[0].probs.data.tolist()
-    v = dict(zip(verifier.names.values(), probs))
-    if pred == "hornet" and v["hornet"] < vth:
-        return max(("bee", "other_insect"), key=v.get)
-    if pred in ("bee", "other_insect") and v["hornet"] >= max(vth, 0.9):
-        return "hornet"
-    if pred in ("bee", "other_insect") and v["bee" if pred == "other_insect" else "other_insect"] >= 0.9:
-        return "bee" if pred == "other_insect" else "other_insect"
-    return pred
+    return decide(pred, dict(zip(verifier.names.values(), probs)), vth)
 
 
 def evaluate(weights, split, imgsz, conf=0.05, tier="P1", verifier=None, vth=0.5):
