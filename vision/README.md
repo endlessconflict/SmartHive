@@ -2,12 +2,13 @@
 
 Training, real-image evaluation, export and benchmarking of the two-stage pest detector, plus the torch-free inference pipeline the node runs.
 
-Status: three iterations trained on synthetic data; v0.2 is released in [`models/v0.2`](../models/v0.2/MODEL_CARD.md). Results and iterations: [docs/03-vision/07-results.md](../docs/03-vision/07-results.md).
+Status: four iterations; v0.4 (synthetic scenes plus auto-labeled real photos) is released in [`models/v0.4`](../models/v0.4/MODEL_CARD.md). Results and iterations: [docs/03-vision/07-results.md](../docs/03-vision/07-results.md).
 
 | File | What it does |
 |---|---|
 | `train.py` | Stage 1 (YOLO11n detector, 320 px) and stage 2 (YOLO11n-cls Varroa classifier, 128 px) with project defaults |
-| `inat.py` | Builds the tier P check set from the iNaturalist Open Dataset (CC0/CC-BY only) |
+| `inat.py` | Builds the tier P check set and the disjoint training pools from the iNaturalist Open Dataset (CC0/CC-BY only) |
+| `pseudolabel.py` | Real pool photos to detector training images: class from iNaturalist, box from YOLOE ([ADR-0010](../docs/adr/0010-real-photos-with-automatic-labels.md)) |
 | `splits/P-inat-v1.tsv` | Frozen calib/test split: class, SHA-256, license, source URL, observer |
 | `eval_real.py` | Image-level evaluation of a detector on real iNaturalist photos |
 | `export.py` | PyTorch to ncnn |

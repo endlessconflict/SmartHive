@@ -8,7 +8,7 @@ Owners: Diego Alejandro Vasquez (telemetry), Adrien Cubilla (images), James Tack
 
 The client will not provide data. There are no historical weights, harvests, labeled audio or entrance images to train on, and there will not be. This folder describes how we generate the data instead, and how we avoid fooling ourselves with it.
 
-The approach in one paragraph: we write simulators that produce hive telemetry and entrance images together with perfect labels. The images are drawn entirely by code (procedural insects and boards), so they carry no third-party license. The simulators are built from published knowledge about how hives behave and from the measured limits of our own sensors, and they deliberately randomize everything we are unsure about. Models train on this synthetic data. Public datasets and our own captures are used to check whether those models work on real inputs, and they are kept separate from training. Every reported number says which kind of data it came from.
+The approach in one paragraph: we write simulators that produce hive telemetry and entrance images together with perfect labels. The images start from code (procedural insects and boards); since v0.2 they also use openly licensed iNaturalist photos, as cutouts and, since v0.4, as whole photos with automatic labels ([ADR-0010](../adr/0010-real-photos-with-automatic-labels.md)). The simulators are built from published knowledge about how hives behave and from the measured limits of our own sensors, and they deliberately randomize everything we are unsure about. Models train on this synthetic data. A frozen public test set and our own captures check whether those models work on real inputs; no test photo, and no other photo of the same observation, is ever used for training. Every reported number says which kind of data it came from.
 
 ```mermaid
 flowchart LR
@@ -20,7 +20,8 @@ flowchart LR
     TS --> TR["Training"]
     IM --> TR
     TR --> M["Models"]
-    PUB[("Public real data<br/>iNaturalist, validation only")] --> EV["Evaluation<br/>per data tier"]
+    POOL[("iNaturalist pools<br/>CC0 / CC BY, auto-labeled")] --> TR
+    PUB[("iNaturalist tier P<br/>frozen, test only")] --> EV["Evaluation<br/>per data tier"]
     OWN[("Team captures<br/>from the prototype")] --> EV
     M --> EV
     TS --> REPLAY["MQTT replay<br/>fake nodes"] --> BE["Backend and dashboard<br/>development"]

@@ -74,8 +74,9 @@ Goal: a hornet or a Varroa-positive bee in front of the camera (synthetic or rea
 
 | Item | Owner | Stories |
 |---|---|---|
-| ~~Generator v0.2 and v0.3: real-photo cutouts, more distractors~~ Done in Sprint 3; model v0.2 released | Adrien | EN-10, EN-11 |
-| Generator and model v0.4: real board backgrounds, hornet versus wasp negatives, per-class thresholds, 416 px trial; INT8 only if the on-device benchmark needs it | Adrien, Diego | EN-12, US09, US10, US11 |
+| ~~Generator v0.2 and v0.3: real-photo cutouts, more distractors~~ Done in Sprint 3 | Adrien | EN-10, EN-11 |
+| ~~Model v0.4: real photos with automatic labels~~ Done in Sprint 3; model v0.4 released (tier P 0.73) | Adrien | EN-13 |
+| Model v0.5: real board backgrounds, newer iNaturalist snapshot, hard negatives, per-class thresholds, 416 px trial; INT8 only if the on-device benchmark needs it | Adrien, Diego | EN-12, US09, US10, US11 |
 | Generator sequences, to measure false threat events per day | Adrien | US10 |
 | `camd` with motion gating and night mode; `visiond` with aggregation | Ricardo, Adrien | US07, US08, US11 |
 | Image upload endpoint and storage; latest image view | James, Maria | US15 |

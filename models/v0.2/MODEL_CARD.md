@@ -1,5 +1,7 @@
 # SmartHive vision models v0.2
 
+Superseded by [v0.4](../v0.4/MODEL_CARD.md), which keeps this stage 2 and replaces the detector. Kept for comparison.
+
 Two ncnn models for the entrance camera on the hive node: a detector (stage 1) and a Varroa crop classifier (stage 2). Released 2026-10-06. Full evaluation: [vision results](../../docs/03-vision/07-results.md).
 
 ## Files

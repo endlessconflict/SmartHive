@@ -1,6 +1,6 @@
 # Model architecture
 
-Status: Implemented (v0.1/v0.2). Framework chosen in [ADR-0008](../adr/0008-detector-licensing.md): YOLO11n (stage 1) and YOLO11n-cls (stage 2). Runtime: [`vision/pipeline.py`](../../vision/pipeline.py). Latency is an estimate anchored to published Raspberry Pi 3 measurements until the on-device run (Jira US11); see [results](07-results.md).
+Status: Implemented (v0.1 to v0.4; release v0.4). Framework chosen in [ADR-0008](../adr/0008-detector-licensing.md): YOLO11n (stage 1) and YOLO11n-cls (stage 2). Runtime: [`vision/pipeline.py`](../../vision/pipeline.py). Latency is an estimate anchored to published Raspberry Pi 3 measurements until the on-device run (Jira US11); see [results](07-results.md).
 
 Owner: Adrien Cubilla
 

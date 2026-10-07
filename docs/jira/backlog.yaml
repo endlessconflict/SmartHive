@@ -947,11 +947,38 @@ stories:
       - {summary: "Fine-tune from v0.2 and compare on tier P calib", assignee: adrien, hours: 2, status: Done}
       - {summary: "Final tier P test, system-level test, latency estimate, results document", assignee: adrien, hours: 3, status: Done}
       - {summary: "Package ncnn release v0.2: model card, SHA256SUMS, attribution", assignee: adrien, hours: 1, status: Done}
+  - id: EN-13
+    epic: E5
+    type: Story
+    summary: Vision iteration v0.4 (real photos with automatic labels) and model release v0.4
+    story: "As the vision team, we need real insect appearance in detector training without drawing boxes by hand so that real wasps and bees stop being called hornets."
+    priority: Highest
+    points: 5
+    sprint: SH Sprint 3
+    assignee: adrien
+    components: [vision]
+    labels: [sim-to-real, evaluation]
+    status: Done
+    ac:
+      - "Given the Blender plus ControlNet proposal, when each step is checked against our evidence, hardware and FOSS rule, then the decision and its reasons are recorded in ADR-0010"
+      - "Given iNaturalist pools that share no photo and no observation with tier P, when YOLOE labels them, then each kept photo has the iNaturalist species as class and its license and source recorded (result: 2,333 of 3,900 photos, 2,410 boxes)"
+      - "Given a visual check of 15 random auto-labeled photos, when reviewed, then the label noise is reported in the results document (2 wrong, 1 partial, 2 photos with unboxed insects)"
+      - "Given v0.4 trained with the v0.2 recipe on v0.2 scenes plus the photos, when evaluated, then tier S does not drop against v0.2 and tier P is reported on calib, then on the test split once (result: test accuracy 0.728 against 0.433, hornet P/R 0.68/0.83)"
+      - "Given the release, when published under models/v0.4, then it has a model card, checksums and the attribution list of every real photo used"
+    docs: [docs/adr/0010-real-photos-with-automatic-labels.md, docs/03-vision/07-results.md, models/v0.4/MODEL_CARD.md]
+    evidence: [vision/pseudolabel.py, docs/03-vision/07-results.md, models/v0.4/MODEL_CARD.md]
+    subtasks:
+      - {summary: "ADR-0010: review the 3D rendering and diffusion proposal", assignee: adrien, hours: 2, status: Done}
+      - {summary: "pseudolabel.py: YOLOE boxes, iNaturalist classes, observation-level exclusion of tier P", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Label 3,900 pool photos and audit a random sample", assignee: adrien, hours: 1, status: Done}
+      - {summary: "Train v0.4 (30 epochs, CPU) and evaluate tiers S and P", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Fix ncnn input buffer lifetime in the node pipeline; add a determinism self-check", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Package release v0.4, model card, attribution; update results", assignee: adrien, hours: 2, status: Done}
   - id: EN-12
     epic: E5
     type: Story
-    summary: Vision iteration v0.4 (real backgrounds, hornet versus wasp, thresholds)
-    story: "As the vision team, we need the detector trained on our own board and tuned against real wasps so that hornet alerts reach the 0.70 precision target before the field test."
+    summary: Vision iteration v0.5 (real backgrounds, fresher photos, thresholds)
+    story: "As the vision team, we need the detector trained on our own board and on photos from many more photographers so that hornet alerts reach the 0.70 precision and 0.90 recall targets before the field test."
     priority: High
     points: 8
     sprint: SH Sprint 5
@@ -961,16 +988,18 @@ stories:
     status: To Do
     blocked_by: [HW-01]
     ac:
-      - "Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then generator v0.4 places insects on them with the camera's measured px/mm"
-      - "Given the tier P calibration photos that v0.2 calls hornet, when reviewed, then their insect groups are added to the generator as other_insect and as hard negatives (test split never used)"
-      - "Given model v0.4, when per-class thresholds are chosen on the calibration split, then tier P hornet precision on the test split is reported against the 0.70 target"
+      - "Given 50 or more empty-board frames from the mounted camera (tier C), when used as backgrounds, then generator v0.5 places insects on them with the camera's measured px/mm"
+      - "Given a newer iNaturalist metadata snapshot, when new pools are drawn, then they include local wasps, stingless bees and flies as other_insect, and an observer-disjoint tier P subset with at least 50 hornets is reported next to the current split"
+      - "Given the tier P calibration photos that v0.4 calls hornet, when reviewed, then their insect groups are added to training as other_insect (test split never used)"
+      - "Given model v0.5, when per-class thresholds are chosen on the calibration split, then tier P hornet precision and recall on the test split are reported against the 0.70 and 0.90 targets"
       - "Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s"
       - "Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported"
     docs: [docs/03-vision/07-results.md, docs/03-vision/05-training-and-evaluation.md]
     subtasks:
       - {summary: "Capture empty-board backgrounds with the mounted camera", assignee: ricardo, hours: 2, status: To Do}
-      - {summary: "Generator v0.4: tier C backgrounds, wasp negatives", assignee: adrien, hours: 4, status: To Do}
-      - {summary: "Review calib hornet false positives and mine hard negatives", assignee: adrien, hours: 3, status: To Do}
-      - {summary: "Train v0.4 and 416 px trial; estimate latency", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "Generator v0.5: tier C backgrounds", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "Newer iNaturalist snapshot: new pools and observer-disjoint check", assignee: adrien, hours: 3, status: To Do}
+      - {summary: "Review calib hornet false positives and add matching negatives", assignee: adrien, hours: 3, status: To Do}
+      - {summary: "Train v0.5 and 416 px trial; estimate latency", assignee: adrien, hours: 4, status: To Do}
       - {summary: "Per-class thresholds on calib; Varroa threshold at realistic prevalence", assignee: diego, hours: 3, status: To Do}
-      - {summary: "Tier P test, results document update, release v0.4", assignee: adrien, hours: 2, status: To Do}
+      - {summary: "Tier P test, results document update, release v0.5", assignee: adrien, hours: 2, status: To Do}
