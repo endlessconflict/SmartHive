@@ -1,6 +1,6 @@
 # Model architecture
 
-Status: Implemented (v0.1 to v0.4; release v0.4). Framework chosen in [ADR-0008](../adr/0008-detector-licensing.md): YOLO11n (stage 1) and YOLO11n-cls (stage 2). Runtime: [`vision/pipeline.py`](../../vision/pipeline.py). Latency is an estimate anchored to published Raspberry Pi 3 measurements until the on-device run (Jira US11); see [results](07-results.md).
+Status: Implemented (v0.1 to v0.5). Framework chosen in [ADR-0008](../adr/0008-detector-licensing.md). From v0.5: YOLO26n (stage 1), a YOLO26n-cls species verifier (stage 1b) and YOLO26n-cls (stage 2); v0.1 to v0.4 used YOLO11n and YOLO11n-cls. Runtime: [`vision/pipeline.py`](../../vision/pipeline.py). Latency is an estimate anchored to published Raspberry Pi 3 measurements until the on-device run (Jira US11); see [results](07-results.md).
 
 Owner: Adrien Cubilla
 
@@ -22,12 +22,15 @@ A reference point for speed: an SSD MobileNet detector in TensorFlow Lite runs a
 flowchart LR
     F[Full-res frame<br/>e.g. 1640×1232] --> D[Downscale<br/>to 320 or 416]
     D --> S1[Stage 1: detector<br/>bee, hornet, shb, other_insect]
+    S1 -->|hornet and other-insect boxes| V[Stage 1b: species verifier<br/>160×160 crop, bee / hornet / other]
+    F --> V
+    V --> OUT
     S1 -->|bee boxes| C[Crop from full-res frame<br/>pad 15%, resize 128×128]
     F --> C
     C --> Q{Sharp enough?<br/>Laplacian variance}
     Q -- no --> SKIP[Skip crop]
     Q -- yes --> S2[Stage 2: classifier<br/>varroa yes/no]
-    S1 -->|threat boxes| OUT[Frame result]
+    S1 -->|beetle boxes| OUT[Frame result]
     S2 --> OUT
 ```
 
@@ -45,13 +48,24 @@ Candidates (all can export to ONNX and then NCNN):
 
 Verify these figures against the current README of each project before relying on them.
 
-Chosen: YOLO11n at 320 px, COCO-pretrained, for one training and export toolchain across both stages (ADR-0008). NanoDet-Plus stays the fallback if the on-device benchmark misses the budget.
+Chosen: YOLO11n at 320 px for v0.1 to v0.4; **YOLO26n at 320 px from v0.5**, COCO-pretrained, same toolchain (ADR-0008). YOLO26 (January 2026) drops DFL, adds a label assignment aimed at small objects, and is faster on CPUs at a similar size (2.4 M parameters). Its NMS-free head cannot run in ncnn (no `topk` operator), so the export keeps the regular head and the pipeline keeps its NMS; the output layout is the same as YOLO11's, so `vision/pipeline.py` reads both. NanoDet-Plus stays the fallback if the on-device benchmark misses the budget.
 
 Settings:
 
 - Input 320 px to start; try 416 if small objects (beetles, flying bees) are missed.
 - Pretrained on COCO (transfer learning), fine-tuned on synthetic data. The proposal asked to compare against training from scratch; keep that as one experiment, since with unlimited synthetic data the answer is not obvious.
 - Export straight to ncnn (`vision/export.py`, through pnnx). Weights are FP32; the runtime uses fp16 storage, which halves memory traffic on the A53 without changing accuracy in a meaningful way. INT8 needs the C++ `ncnn2table`/`ncnn2int8` tools and a calibration set; it is deferred until the on-device benchmark shows it is needed.
+
+### Stage 1b: species verifier on hornet and other-insect candidates
+
+At 320 px a hornet and a *Vespula* or *Dolichovespula* wasp differ by a few pixels, and the detector's real-photo errors are mostly that confusion (see [results](07-results.md)). Every hornet or other-insect detection therefore gets a second look: a 160×160 crop from the full-resolution frame goes to a YOLO26n-cls with three classes (bee, hornet, other_insect), trained mostly on real photos of the insects that get confused (hornets, *Vespula*, *Polistes*, *Dolichovespula*, *Scoliidae*, hornet-mimic hoverflies and moths, bumblebees, other bees) plus synthetic top-down crops ([`vision/verifier.py`](../../vision/verifier.py)).
+
+The rule (`decide()` in `vision/pipeline.py`, the same code the evaluation uses):
+
+- a hornet stays a hornet only if the verifier gives it at least `vth` (0.5 by default, chosen on tier P calibration photos);
+- a bee or other insect changes class only if the verifier is at least 0.9 sure.
+
+Cost: about 0.2 GFLOPs per crop. Hornets and other insects are a small fraction of entrance traffic, so this is a few crops per minute at most, not per frame. Bees never go through it, so the per-frame budget is unchanged.
 
 ### Stage 2: Varroa classifier on bee crops
 
@@ -62,7 +76,8 @@ For each bee box from stage 1, crop the corresponding region from the full-resol
 | MobileNetV3-Small, width 0.5 to 1.0, 128 px | A few tens of MFLOPs | ImageNet-pretrained weights available in torchvision (BSD-3) |
 | Custom small CNN (4 to 6 conv blocks) | Less | Trains from scratch on synthetic crops; easiest to quantize |
 | Tiny detector on the crop | More | Gives the mite's position, nice for the UI; only if the classifier's errors show it is needed |
-| **YOLO11n-cls, 128 px (chosen)** | 0.13 GFLOPs, 2.8 M parameters | Same toolchain as stage 1; ImageNet-pretrained; exports to ncnn the same way |
+| YOLO11n-cls, 128 px (v0.1 to v0.4) | 0.13 GFLOPs, 2.8 M parameters | Same toolchain as stage 1; ImageNet-pretrained; exports to ncnn the same way |
+| **YOLO26n-cls, 128 px (from v0.5)** | Similar cost | Same toolchain; newer backbone |
 
 Expected cost: on the order of 10 to 40 ms per crop on the Pi 3B. A frame with 20 bees adds up to under a second. Crops can be capped per frame (for example the 16 sharpest bees) to bound latency.
 

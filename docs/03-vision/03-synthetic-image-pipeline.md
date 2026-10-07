@@ -23,6 +23,19 @@ This differs from the original plan in the [first version of this document](http
 
 The cost is realism. Drawn insects are not photographs, and a model may learn the renderer's style. We measure that gap directly on real photos (tier P, see [training and evaluation](05-training-and-evaluation.md)), and close it in later iterations. The options are real backgrounds from our camera, real-photo cutouts where licenses allow, and the 3D route.
 
+## Real insects in the scenes (from v0.2)
+
+The measurements settled it: drawn insects alone stayed at chance on real photos, and real appearance is what moved the numbers ([results](07-results.md)). From v0.2 the compositor mixes procedural sprites with **cutouts** of real insects (`--cutouts`, `--real-frac`), and from v0.4 the detector also trains on whole real photos ([ADR-0010](../adr/0010-real-photos-with-automatic-labels.md)).
+
+How cutouts are made ([`simulation/images/cutouts.py`](../../simulation/images/cutouts.py), v3 from v0.5):
+
+1. Photos come from a training pool that shares no photo, observation or photographer with the tier P test ([`vision/inat.py`](../../vision/inat.py) `v2`).
+2. A prompt-free YOLOE proposes boxes; our insectness classifier keeps the insect ([`vision/labeler.py`](../../vision/labeler.py), [ADR-0011](../adr/0011-osi-clean-automatic-labeling.md)). The species comes from iNaturalist.
+3. SAM 2.1 tiny turns the box into a mask; shape checks drop masks that are too small, too large, touch the border, are fragmented or not compact.
+4. On 45 % of real bees the compositor paints procedural mites at physical scale, so stage 2 cannot learn "real-looking bee means clean".
+
+Cutouts v3: 6,497 (2,006 bee, 1,496 hornet, 2,995 other) from 13,090 photos; a visual check of 24 found 2 bad (a leaf, an abdomen fragment). Cutouts v1 and v2 (626 and 757) were made with YOLOE text prompts, which load a research-only text encoder; they are no longer used.
+
 ![Procedural sprites](../assets/vision/procedural-sprites.png)
 
 *Sprites from the renderer at 12 px/mm: bees with 0, 1 and 2 Varroa mites and with pollen loads (a deliberate look-alike), Vespa velutina, small hive beetles, and distractors (ant, wasp, fly). No photograph is involved.*
@@ -122,9 +135,8 @@ Stage 2 crops are taken from the full 1640 × 1232 frame before JPEG compression
 | Item | Why it matters | Plan |
 |---|---|---|
 | Real backgrounds (tier C) | The board is the largest area of every image | As soon as the camera is mounted: 200+ empty-board frames ([camera doc](02-camera-and-optics.md#team-captures-tier-c-to-make-now)); the compositor takes a folder of backgrounds |
-| Real-photo cutouts | Closes the appearance gap for bees and hornets | Optional: segment CC0/CC-BY iNaturalist photos from the calibration split only. Never from the test split |
 | Sequences | Motion gate and k-of-n rule need clips | v0.2: move sprites along trajectories |
-| 3D route (BlenderProc) and diffusion refinement | More viewpoints, more realism | Only if the procedural route plateaus. Same rules as in the original plan: OSI licenses only, label checks after any generative pass |
+| 3D route (BlenderProc) and diffusion refinement | More viewpoints, more realism | Reviewed in [ADR-0010](../adr/0010-real-photos-with-automatic-labels.md): not now. No textured insect models; the usual diffusion checkpoints are not OSI-licensed and are too slow on our CPU |
 | Night, rain on the lens | Out of scope while the camera stops at night | |
 
 ## Libraries

@@ -16,6 +16,8 @@ A model trained on synthetic images will always score well on more synthetic ima
 | `val-syn` | S | Synthetic, generated with a different seed and a held-out subset of assets (cutouts and backgrounds not used in `train`) | Early stopping, threshold tuning, debugging |
 | `val-real` | P (calibration) | `calib` half of [`P-inat-v1`](../../vision/splits/P-inat-v1.tsv): 200 bee, 200 hornet, 200 other-insect photos | Choosing between generator versions and model variants |
 | `test-real` | P (test) | `test` half of `P-inat-v1`, same sizes, SHA-256 per file | Final numbers per milestone, opened once |
+| `val-real-2` | P (calibration) | `calib` split of [`P-inat-v2`](../../vision/splits/P-inat-v2.tsv) (2026 snapshot): 300 bee, 300 hornet, 381 look-alikes | From v0.5: choosing models and the verifier threshold |
+| `test-real-2` | P (test) | `test` split of `P-inat-v2`: 500 bee, 477 hornet, 635 look-alikes in 23 groups | From v0.5: the headline real-photo number, opened once per release |
 | `test-field` | C / F | Team captures and demo hive frames, hand-labeled | Domain gap report and demo |
 
 Holding out assets in `val-syn` matters: if the same bee photo appears in train and validation, even at a different position and lighting, validation overestimates performance. The proposal already warned against nearly identical images and frames from one temporal sequence crossing splits. For public data, split by source video or recording session, never by frame.
@@ -29,7 +31,21 @@ The iNaturalist photos have species labels but no boxes, and the insect can fill
 3. The most confident detection across the three names the photo. No detection at all counts as `none`.
 4. Report accuracy over bee/hornet/other (chance is 33 %), recall per class, how often anything is detected, and the confusion matrix.
 
-This measures whether insects drawn by our renderer teach the model what real bees and hornets look like. It does not measure entrance-camera performance (no boards, no crowding, varied viewpoints). That needs tier C/F images from our own camera. Small hive beetle (2 photos) and Varroa (10 photos, mostly close-ups of mites, not bee crops) cannot be scored with this set.
+This measures whether the training data teaches the model what real bees and hornets look like. It does not measure entrance-camera performance (no boards, no crowding, varied viewpoints). That needs tier C/F images from our own camera. Small hive beetle and Varroa cannot be scored: the snapshots hold 2 and 10 (2021) or 59 and 37 (2026) openly licensed photos.
+
+`--verifier` adds stage 1b: the top detection is mapped back to the original photo, cut out at 160 px and passed through the species verifier with the same `decide()` rule as the node.
+
+### Tier P v2: what changed
+
+`P-inat-v1` shares photographers with the training pools: a few prolific observers took most iNaturalist hornet photos, so the same camera, garden or individual nest can appear on both sides. `P-inat-v2` (from v0.5) fixes this and makes the test harder on purpose:
+
+- Every photographer is hashed into a bucket: 0 is test, 1 is calibration, 2 to 9 is training. No photographer is on two sides. Photographers of any earlier training pool are kept out of test and calibration, so v0.4 and later are compared fairly.
+- At most 3 photos per photographer and class in test and calibration.
+- The other-insect class is made of what gets confused with hornets and bees: *Vespula* (70), *Polistes* (60), *Dolichovespula* (50), other Vespidae (40), *Scoliidae* (40), *Sphecidae* (30), *Siricidae* (20), the hornet moth (15), *Milesia* (20) and *Volucella* (30) hoverflies, *Eristalis* (40), other hoverflies (30), *Bombus* (40), other bees (30), *Xylocopa* (20), stingless bees (20), robber flies (20), house, blow and flesh flies (25), ants (20), sap beetles (10), wax moths (5). The results report how many of each group are called "hornet".
+
+## Automatic labels: how good are they
+
+Automatic boxes are scored against people's boxes: [`vision/labeler.py`](../../vision/labeler.py) `bench` runs the labeler on the Open Images photos kept out of its training (validation and test splits: 265 photos, 302 human bee boxes, every bee boxed) and reports precision and recall at IoU 0.5 for several insect-probability thresholds. Labels for the training pools use the threshold chosen there. A random sample of labeled photos is also looked at after every change, and what it shows is written down.
 
 ## System-level test on synthetic scenes
 
