@@ -1,11 +1,12 @@
 """Real-photo insect cutouts (RGBA) for the hybrid sprite library (ADR-0009, option kept open there).
 
-Source: an iNaturalist asset pool that is disjoint from the frozen tier P split (vision/inat.py
-download --exclude). YOLOE with text prompts finds the insect (the species label comes from
-iNaturalist, not from YOLOE); SAM 2.1 tiny turns the box into a mask; shape checks drop bad masks.
-Photos without a confident insect box are skipped: a wrong cutout labeled "bee" is worse than none.
+Source: an iNaturalist pool disjoint from tier P (vision/inat.py). The box comes from vision/labeler.py
+(prompt-free YOLOE proposals kept by the insectness classifier; ADR-0011), the species from
+iNaturalist; SAM 2.1 tiny turns the box into a mask; shape checks drop bad masks. Photos without a
+confident insect are skipped: a wrong cutout labeled "bee" is worse than none.
+Cutouts v1 and v2 were made with YOLOE text prompts, which load a research-only text encoder.
 
-    python -m simulation.images.cutouts data/raw/inat_pool data/assets/cutouts-v1
+    python -m simulation.images.cutouts data/raw/inat26_photos data/assets/cutouts-v3 --insectness <best.pt>
 """
 import argparse
 import csv
@@ -15,20 +16,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 import torch
-from ultralytics import SAM, YOLOE
+from ultralytics import SAM
+
+from vision.labeler import Labeler
 
 WEIGHTS = Path("data/weights")
 
-
-PROMPTS = ["insect", "honeybee", "bee", "hornet", "wasp", "fly", "ant", "beetle"]
-
-
-def best_box(det, img):
-    r = det.predict(img, conf=0.08, verbose=False, device="cpu")[0]
-    if not len(r.boxes):
-        return 0.0, None
-    i = int(r.boxes.conf.argmax())
-    return float(r.boxes.conf[i]), r.boxes.xyxy[i].tolist()
 
 
 def good(mask):
@@ -46,10 +39,9 @@ def good(mask):
     return border < 0.05 and main > 0.9 and solidity > 0.55
 
 
-def main(pool: Path, out: Path, limit: int | None, min_conf=0.12, threads=2):
+def main(pool: Path, out: Path, insectness: Path, limit: int | None, min_conf=0.8, threads=2):
     torch.set_num_threads(threads)
-    det, sam = YOLOE(str(WEIGHTS / "yoloe-11s-seg.pt")), SAM(str(WEIGHTS / "sam2.1_t.pt"))
-    det.set_classes(PROMPTS, det.get_text_pe(PROMPTS))
+    det, sam = Labeler(insectness, threads=threads), SAM(str(WEIGHTS / "sam2.1_t.pt"))
     rows = list(csv.DictReader(open(pool / "manifest.tsv"), delimiter="\t"))[:limit]
     out.mkdir(parents=True, exist_ok=True)
     kept = []
@@ -57,9 +49,10 @@ def main(pool: Path, out: Path, limit: int | None, min_conf=0.12, threads=2):
         img = cv2.imread(str(pool / r["file"]))
         if img is None:
             continue
-        conf, box = best_box(det, img)
-        if conf < min_conf:
+        found = det(img, min_p=min_conf)
+        if not found:
             continue
+        *box, conf = found[0]
         h, w = img.shape[:2]
         res = sam.predict(img, bboxes=[box], verbose=False, device="cpu")[0]
         if res.masks is None or len(res.masks.data) == 0:
@@ -88,7 +81,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("pool", type=Path)
     ap.add_argument("out", type=Path)
+    ap.add_argument("--insectness", type=Path, required=True)
     ap.add_argument("--limit", type=int)
     ap.add_argument("--threads", type=int, default=2)
     a = ap.parse_args()
-    main(a.pool, a.out, a.limit, threads=a.threads)
+    main(a.pool, a.out, a.insectness, a.limit, threads=a.threads)
