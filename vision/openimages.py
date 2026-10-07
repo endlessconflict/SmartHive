@@ -6,6 +6,7 @@ box) or a drawing ("IsDepiction") is dropped, because its other bees would be un
 (vision/verifier.py) before these boxes are used as "bee".
 
     python -m vision.openimages data/raw/openimages --out data/raw/oi-bees
+    python -m vision.openimages data/raw/oi-bees --verifier <verifier best.pt> --out data/sim/R-oi-bees-v1
 """
 import argparse
 import csv
@@ -91,9 +92,40 @@ def main(box_dir: Path, out: Path, max_side=640):
     print(len(sel), "usable images,", len(rows), "downloaded,", sum(r["bee_boxes"] for r in rows), "bee boxes")
 
 
+def keep_honeybees(src: Path, verifier: Path, out: Path, min_p=0.5):
+    """Training set of Open Images train-split images whose every boxed bee the verifier calls a honeybee."""
+    from ultralytics import YOLO
+    from vision.insectness import gt_boxes
+    from vision.pipeline import crop
+    ver = YOLO(str(verifier), task="classify")
+    bee = next(i for i, n in ver.names.items() if n == "bee")
+    (out / "images/train").mkdir(parents=True, exist_ok=True)
+    (out / "labels/train").mkdir(parents=True, exist_ok=True)
+    kept, rows = 0, list(csv.DictReader(open(src / "manifest.tsv"), delimiter="\t"))
+    with open(out / "manifest.tsv", "w", newline="") as f:
+        w = csv.DictWriter(f, list(rows[0]), delimiter="\t", lineterminator="\n")
+        w.writeheader()
+        for r in rows:
+            if r["split"] != "train":  # validation/test images score the labeler; never trained on
+                continue
+            img = cv2.imread(str(src / "images" / r["file"]))
+            boxes = gt_boxes(src, src / "images" / r["file"], img.shape[1], img.shape[0])
+            ps = [float(x.probs.data[bee]) for x in ver.predict([crop(img, b, size=160) for b in boxes], imgsz=160, verbose=False, device="cpu")]
+            if min(ps) >= min_p:
+                (out / "images/train" / r["file"]).write_bytes((src / "images" / r["file"]).read_bytes())
+                (out / "labels/train" / (Path(r["file"]).stem + ".txt")).write_text((src / "labels" / (Path(r["file"]).stem + ".txt")).read_text())
+                w.writerow(r)
+                kept += 1
+    print(kept, "of", sum(r["split"] == "train" for r in rows), "train images kept as honeybees")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("boxes", type=Path, help="folder with <split>-insect-bbox.csv files")
+    ap.add_argument("boxes", type=Path, help="folder with <split>-insect-bbox.csv files, or the downloaded set with --verifier")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--verifier", type=Path)
     a = ap.parse_args()
-    main(a.boxes, a.out)
+    if a.verifier:
+        keep_honeybees(a.boxes, a.verifier, a.out)
+    else:
+        main(a.boxes, a.out)
