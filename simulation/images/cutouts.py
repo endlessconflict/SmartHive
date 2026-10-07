@@ -43,13 +43,15 @@ def main(pool: Path, out: Path, insectness: Path, limit: int | None, min_conf=0.
     torch.set_num_threads(threads)
     det, sam = Labeler(insectness, threads=threads), SAM(str(WEIGHTS / "sam2.1_t.pt"))
     rows = list(csv.DictReader(open(pool / "manifest.tsv"), delimiter="\t"))[:limit]
+    cache_file = pool / "proposals-yoloe-26l-seg-pf.json"  # written by vision/pseudolabel.py; computed here if missing
+    cache = json.loads(cache_file.read_text()) if cache_file.exists() else {}
     out.mkdir(parents=True, exist_ok=True)
     kept = []
     for r in rows:
         img = cv2.imread(str(pool / r["file"]))
         if img is None:
             continue
-        found = det(img, min_p=min_conf)
+        found = det(img, min_p=min_conf, props=cache.get(Path(r["file"]).name))
         if not found:
             continue
         *box, conf = found[0]

@@ -29,7 +29,7 @@ def yolo_line(cls, box, w, h):
     return f"{cls} {(x0 + x1) / 2 / w:.6f} {(y0 + y1) / 2 / h:.6f} {(x1 - x0) / w:.6f} {(y1 - y0) / h:.6f}"
 
 
-def main(pool: Path, insectness: Path, out: Path, min_p=0.8, max_boxes=8, threads=4):
+def main(pool: Path, insectness: Path, out: Path, min_p=0.7, max_boxes=8, threads=4):
     rows = [r for r in csv.DictReader(open(pool / "manifest.tsv"), delimiter="\t") if r["cls"] in CLASSES]
     lab = Labeler(insectness, threads=threads)
     props = cached_proposals(lab.pf, [pool / r["file"] for r in rows], pool / "proposals-yoloe-26l-seg-pf.json")
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     ap.add_argument("pool", type=Path)
     ap.add_argument("--insectness", type=Path)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--min-p", type=float, default=0.8)
+    ap.add_argument("--min-p", type=float, default=0.7)  # Open Images held-out: precision 0.65, recall 0.65 at IoU 0.5
     ap.add_argument("--mosaics", type=int, help="instead of labeling: build this many 3x3 mosaics from the labeled set in pool")
     a = ap.parse_args()
     if a.mosaics:  # python -m vision.pseudolabel data/sim/R-inat26-pseudo-v2 --mosaics 3000 --out data/sim/R-inat26-mosaic-v2
