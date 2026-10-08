@@ -14,7 +14,7 @@ import ncnn
 import numpy as np
 
 CLASSES = ["bee", "hornet", "shb", "other_insect"]
-DEFAULT_THRESHOLDS = {"bee": 0.35, "hornet": 0.45, "shb": 0.5, "other_insect": 0.5, "varroa": 0.6}
+DEFAULT_THRESHOLDS = {"bee": 0.25, "hornet": 0.30, "shb": 0.35, "other_insect": 0.5, "varroa": 0.6}  # v0.5: tuned on tier S seed 8; the verifier guards hornet precision
 
 
 class Net:
