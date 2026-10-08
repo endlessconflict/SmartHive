@@ -2,13 +2,13 @@
 
 Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Edit the YAML, not this file.
 
-49 stories and tasks, 139 sub-tasks, 267 story points (70 done).
+49 stories and tasks, 141 sub-tasks, 267 story points (78 done).
 
 ## Sprints
 
 | Sprint | Dates | Goal | Points | Done |
 |---|---|---|---|---|
-| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 78 | 70 |
+| SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 78 | 78 |
 | SH Sprint 4 | 2026-10-12 to 2026-10-25 | Contracts frozen, Compose stack up, camera chosen, client interview done | 30 | 0 |
 | SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 41 | 0 |
 | SH Sprint 6 | 2026-11-09 to 2026-11-22 | Vision on the node: detections become events | 27 | 0 |
@@ -600,7 +600,7 @@ Owner: Diego Alejandro Vasquez. Component: `simulation`.
 | [EN-14](#en-14) | Story | Real-photo data v2 (iNaturalist 2026 snapshot, tier P v2, Open Images) | 8 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-15](#en-15) | Story | Automatic labeling with OSI-licensed weights only, scored against human boxes | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-16](#en-16) | Story | Species verifier (stage 1b) for hornet and other-insect detections | 5 | Sprint 3 | Adrien Cubilla | Done |
-| [EN-17](#en-17) | Story | Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5) | 8 | Sprint 3 | Adrien Cubilla | In Progress |
+| [EN-17](#en-17) | Story | Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5) | 8 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-12](#en-12) | Story | Vision iteration v0.6 (real backgrounds, 416 px trial, Varroa threshold) | 8 | Sprint 5 | Adrien Cubilla | To Do |
 
 ### EN-01
@@ -889,8 +889,9 @@ Acceptance criteria:
 
 1. Given real crops of hornets and look-alikes plus synthetic top-down crops, when a 160 px YOLO26n-cls is trained, then top-1 on held-out photographers is reported (result: 0.922)
 2. Given the unchanged v0.4 detector on tier P v2 calibration, when the verifier re-checks hornet and other-insect detections, then hornet precision rises above the 0.70 target (result: 0.566 to 0.903; look-alikes called hornet 133 to 20)
-3. Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())
-4. Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)
+3. Given the v0.5 detector, when the two verifier thresholds are chosen on calibration as the most accurate pair with hornet recall >= 0.90 and precision >= 0.70, then they become the pipeline defaults (result: vth 0.2, flip 0.6)
+4. Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())
+5. Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)
 
 Design: [docs/03-vision/04-model-architecture.md](../../docs/03-vision/04-model-architecture.md)
 
@@ -905,23 +906,29 @@ Evidence: [vision/verifier.py](../../vision/verifier.py), [vision/pipeline.py](.
 
 ### EN-17
 
-**Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5)** (Story, Highest, 8 pts, SH Sprint 3, Adrien Cubilla, In Progress)
+**Vision iteration v0.5 (YOLO26n detector, clean data, release v0.5)** (Story, Highest, 8 pts, SH Sprint 3, Adrien Cubilla, Done)
 
 > As the vision team, we need a detector trained on the larger, cleaner real data and a release that beats v0.4 on the new photographer-disjoint test.
 
 Acceptance criteria:
 
-1. Given synthetic scenes with cutouts v3, auto-labeled photos, real mosaics and verified Open Images bees, when YOLO26n is trained at 320 px, then tier S and tier P v2 calibration are compared with v0.4
-2. Given the chosen detector and verifier, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups
-3. Given the release, when published under models/v0.5, then it has a model card, checksums, attribution and the Pi 3B latency estimate including stage 1b
+1. Given synthetic scenes with cutouts v3, auto-labeled photos, real mosaics and verified Open Images bees, when YOLO26n is trained at 320 px, then tier S and tier P v2 calibration are compared with v0.4 (result: calibration accuracy 0.644 to 0.883 with the verifier)
+2. Given a drop on synthetic entrance scenes, when a second synthetic set is added and the detector fine-tuned (v0.5b), then the choice between v0.5 and v0.5b is made on calibration and tier S only, before the test is opened (result: v0.5b)
+3. Given the verifier, when detector thresholds are lowered on synthetic seed 8, then tier S hornet and beetle recall rise without a hornet precision below 0.95 (result: bee 0.25, hornet 0.30, beetle 0.35)
+4. Given the chosen models, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups (result: 0.886 vs 0.652; hornet P/R 0.899/0.893 vs 0.570/0.748; look-alikes called hornet 34 vs 210; P v1 0.862 vs 0.728)
+5. Given the release, when published under models/v0.5, then it has a model card, checksums, attribution of all 11,392 real photos and the Pi 3B latency estimate including stage 1b (result: 251 ms detector, 46 ms per verifier crop, 33 ms per bee, 173 MB)
 
-Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.5/MODEL_CARD.md](../../models/v0.5/MODEL_CARD.md)
+
+Evidence: [models/v0.5/MODEL_CARD.md](../../models/v0.5/MODEL_CARD.md), [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
 | EN-17.1 Compose v0.5 scenes with cutouts v3 | Adrien Cubilla | 1 | Done |
-| EN-17.2 Train YOLO26n detector and YOLO26n-cls stage 2 | Adrien Cubilla | 3 | In Progress |
-| EN-17.3 Evaluate tiers S, P v1, P v2; latency; release | Adrien Cubilla | 4 | To Do |
+| EN-17.2 Train YOLO26n detector and YOLO26n-cls stage 2 | Adrien Cubilla | 3 | Done |
+| EN-17.3 Second synthetic set and fine-tune (v0.5b); stage 2 choice at realistic prevalence | Adrien Cubilla | 2 | Done |
+| EN-17.4 Detector thresholds on seed 8; verifier thresholds on calibration | Diego Alejandro Vasquez | 2 | Done |
+| EN-17.5 Evaluate tiers S, P v1, P v2; latency; memory; release; results document | Adrien Cubilla | 4 | Done |
 
 ### EN-12
 

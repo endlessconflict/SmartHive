@@ -1,5 +1,7 @@
 # SmartHive vision models v0.4
 
+Superseded by [v0.5](../v0.5/MODEL_CARD.md). Kept for comparison. Its automatic boxes and cutouts were made with YOLOE text prompts, which load Apple's research-only MobileCLIP weights ([ADR-0011](../../docs/adr/0011-osi-clean-automatic-labeling.md)).
+
 Two ncnn models for the entrance camera on the hive node: a detector (stage 1) and a Varroa crop classifier (stage 2). Released 2026-10-07. Full evaluation: [vision results](../../docs/03-vision/07-results.md).
 
 What changed from [v0.2](../v0.2/MODEL_CARD.md): the detector also trains on 2,333 real iNaturalist photos labeled automatically ([ADR-0010](../../docs/adr/0010-real-photos-with-automatic-labels.md)). Stage 2 is the v0.2 classifier, unchanged (same files, same checksums).

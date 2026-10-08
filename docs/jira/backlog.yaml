@@ -1035,6 +1035,7 @@ stories:
     ac:
       - "Given real crops of hornets and look-alikes plus synthetic top-down crops, when a 160 px YOLO26n-cls is trained, then top-1 on held-out photographers is reported (result: 0.922)"
       - "Given the unchanged v0.4 detector on tier P v2 calibration, when the verifier re-checks hornet and other-insect detections, then hornet precision rises above the 0.70 target (result: 0.566 to 0.903; look-alikes called hornet 133 to 20)"
+      - "Given the v0.5 detector, when the two verifier thresholds are chosen on calibration as the most accurate pair with hornet recall >= 0.90 and precision >= 0.70, then they become the pipeline defaults (result: vth 0.2, flip 0.6)"
       - "Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())"
       - "Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)"
     docs: [docs/03-vision/04-model-architecture.md]
@@ -1055,16 +1056,21 @@ stories:
     assignee: adrien
     components: [vision]
     labels: [sim-to-real, evaluation]
-    status: In Progress
+    status: Done
     ac:
-      - "Given synthetic scenes with cutouts v3, auto-labeled photos, real mosaics and verified Open Images bees, when YOLO26n is trained at 320 px, then tier S and tier P v2 calibration are compared with v0.4"
-      - "Given the chosen detector and verifier, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups"
-      - "Given the release, when published under models/v0.5, then it has a model card, checksums, attribution and the Pi 3B latency estimate including stage 1b"
-    docs: [docs/03-vision/07-results.md]
+      - "Given synthetic scenes with cutouts v3, auto-labeled photos, real mosaics and verified Open Images bees, when YOLO26n is trained at 320 px, then tier S and tier P v2 calibration are compared with v0.4 (result: calibration accuracy 0.644 to 0.883 with the verifier)"
+      - "Given a drop on synthetic entrance scenes, when a second synthetic set is added and the detector fine-tuned (v0.5b), then the choice between v0.5 and v0.5b is made on calibration and tier S only, before the test is opened (result: v0.5b)"
+      - "Given the verifier, when detector thresholds are lowered on synthetic seed 8, then tier S hornet and beetle recall rise without a hornet precision below 0.95 (result: bee 0.25, hornet 0.30, beetle 0.35)"
+      - "Given the chosen models, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups (result: 0.886 vs 0.652; hornet P/R 0.899/0.893 vs 0.570/0.748; look-alikes called hornet 34 vs 210; P v1 0.862 vs 0.728)"
+      - "Given the release, when published under models/v0.5, then it has a model card, checksums, attribution of all 11,392 real photos and the Pi 3B latency estimate including stage 1b (result: 251 ms detector, 46 ms per verifier crop, 33 ms per bee, 173 MB)"
+    docs: [docs/03-vision/07-results.md, models/v0.5/MODEL_CARD.md]
+    evidence: [models/v0.5/MODEL_CARD.md, docs/03-vision/07-results.md]
     subtasks:
       - {summary: "Compose v0.5 scenes with cutouts v3", assignee: adrien, hours: 1, status: Done}
-      - {summary: "Train YOLO26n detector and YOLO26n-cls stage 2", assignee: adrien, hours: 3, status: In Progress}
-      - {summary: "Evaluate tiers S, P v1, P v2; latency; release", assignee: adrien, hours: 4, status: To Do}
+      - {summary: "Train YOLO26n detector and YOLO26n-cls stage 2", assignee: adrien, hours: 3, status: Done}
+      - {summary: "Second synthetic set and fine-tune (v0.5b); stage 2 choice at realistic prevalence", assignee: adrien, hours: 2, status: Done}
+      - {summary: "Detector thresholds on seed 8; verifier thresholds on calibration", assignee: diego, hours: 2, status: Done}
+      - {summary: "Evaluate tiers S, P v1, P v2; latency; memory; release; results document", assignee: adrien, hours: 4, status: Done}
   - id: EN-12
     epic: E5
     type: Story
