@@ -16,11 +16,8 @@ dist/
 .svelte-kit/
 .next/
 
-# Data and models: large files are versioned with DVC, not git. Only the .dvc pointer files are committed.
-/data/**
-!/data/**/
-!/data/**/*.dvc
-!/data/**/.gitignore
+# Data and models: large files are versioned with DVC, not git
+/data/
 *.parquet
 *.h5
 *.hdf5

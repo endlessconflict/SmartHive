@@ -7,8 +7,6 @@ Runs land in runs/<stage>/<name>; weights/best.pt is what export.py converts for
 """
 import argparse
 import json
-import re
-import subprocess
 from pathlib import Path
 
 import yaml
@@ -24,15 +22,6 @@ DEFAULTS = {
 }
 
 
-def provenance(dataset: Path) -> dict:
-    """Dataset ID, the commit and seed its generator recorded in DATASET_CARD.md, and the commit of this training code (EN-06)."""
-    card = dataset / "DATASET_CARD.md"
-    m = re.search(r"@ git (\w+), seed (\d+)", card.read_text()) if card.exists() else None
-    head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
-    return {"dataset_id": dataset.name, "generator_commit": m and m[1], "dataset_seed": m and int(m[2]),
-            "train_seed": 0, "train_commit": head or None}
-
-
 def main(stage, dataset: Path, epochs, name, extra, weights=None):
     cfg = dict(DEFAULTS[stage], **extra)
     start = weights or WEIGHTS / cfg.pop("model")  # weights: fine-tune from a previous run instead of COCO/ImageNet
@@ -42,7 +31,7 @@ def main(stage, dataset: Path, epochs, name, extra, weights=None):
     res = model.train(data=str(data), epochs=epochs, project=str(Path("runs") / stage), name=name, exist_ok=True,
                       device="cpu", workers=4, seed=0, deterministic=True, plots=True, **cfg)
     run = Path(res.save_dir)
-    (run / "smarthive.json").write_text(json.dumps({"stage": stage, "dataset": dataset.name, **provenance(dataset), "epochs": epochs, "start": str(start),
+    (run / "smarthive.json").write_text(json.dumps({"stage": stage, "dataset": dataset.name, "epochs": epochs, "start": str(start),
                                                     "config": cfg, "metrics": res.results_dict}, indent=2, default=str))
     print(run)
 
