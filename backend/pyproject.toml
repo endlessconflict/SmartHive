@@ -1,0 +1,26 @@
+[project]
+name = "smarthive"
+version = "0.1.0"
+description = "SmartHive backend: API, ingestor and worker"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.143.0",
+    "uvicorn==0.34.3",
+    "pydantic==2.14.1",
+    "sqlalchemy==2.0.41",
+    "psycopg[binary]==3.2.9",
+    "alembic==1.16.2",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.1.1", "httpx==0.28.1"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"smarthive.db" = ["migrations/versions/*.sql"]

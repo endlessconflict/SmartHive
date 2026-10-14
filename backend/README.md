@@ -2,7 +2,7 @@
 
 Server-side services: MQTT ingestor, REST/WebSocket API, rules and alerts, scheduled jobs.
 
-Status: Planned. Design is in [docs/05-backend/](../docs/05-backend/README.md).
+Status: Skeleton. `smarthive.api.main` serves `/healthz` and `/readyz`, Alembic has the baseline migration of the data model, and `smarthive.contracts` holds the models generated from `infra/contracts`. Ingest and worker are not written yet. Design is in [docs/05-backend/](../docs/05-backend/README.md).
 
 One Python package (`smarthive`) with several entry points, deployed as separate containers from the same image:
 
