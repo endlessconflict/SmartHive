@@ -235,10 +235,10 @@ def render(rng, sp, px_mm, *, angle=0.0, flying=False, mites=0, pollen=False, de
     lg = sp["legs"]
     legs(cv, rng, th_cx, th_w * s, lg["len"] * L * (0.6 if dead else 1), lg["wid"] * L, lg["rgb"],
          pollen=(_hsv(rng.choice([45, 30, 15, 0, 60]), rng.uniform(0.6, 1), rng.uniform(0.5, 0.95)), 0.07 * L) if pollen else None)
-    ab = body_part(cv, rng, ab_cx, ab_l * s, ab_w * s, ab_c, bands=ab_bands, hair=sp["hair"] * 0.6, hair_rgb=sp["hair_rgb"], gloss=sp["gloss"])
+    body_part(cv, rng, ab_cx, ab_l * s, ab_w * s, ab_c, bands=ab_bands, hair=sp["hair"] * 0.6, hair_rgb=sp["hair_rgb"], gloss=sp["gloss"])
     if sp["waist"]:
         body_part(cv, rng, w_cx, sp["waist"][0] * s * 1.6, sp["waist"][1] * s, th_c, gloss=sp["gloss"])
-    th = body_part(cv, rng, th_cx, th_l * s, th_w * s, th_c, hair=sp["hair"], hair_rgb=sp["hair_rgb"], gloss=sp["gloss"])
+    body_part(cv, rng, th_cx, th_l * s, th_w * s, th_c, hair=sp["hair"], hair_rgb=sp["hair_rgb"], gloss=sp["gloss"])
     body_part(cv, rng, hd_cx, head_l * s, head_w * s, head_c, hair=sp["hair"] * 0.5, hair_rgb=sp["hair_rgb"], gloss=sp["gloss"])
     for side in (1, -1):  # compound eyes
         r, *_ = cv.ellipse_r(hd_cx, side * head_w * s * 0.33, head_l * s * 0.4, head_w * s * 0.18)

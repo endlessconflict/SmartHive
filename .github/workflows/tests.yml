@@ -6,6 +6,31 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff==0.17.0
+      - run: ruff check .
+      # Format is enforced on the new server-side code only; the vision and simulation code predates it.
+      - run: ruff format --check backend infra
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install jsonschema==4.26.0 pydantic==2.14.1 pytest==9.1.1 datamodel-code-generator==0.83.0 ruff==0.17.0
+      - run: python -m pytest -q infra/contracts
+      # Committed models must be what the schemas generate
+      - run: bash infra/contracts/generate-models.sh && git diff --exit-code backend/src/smarthive/contracts
+      - run: PYTHONPATH=backend/src python -m pytest -q backend/tests
+
   simulation:
     runs-on: ubuntu-latest
     steps:

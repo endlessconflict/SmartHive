@@ -160,6 +160,7 @@ def simulate_hive(cfg, hive_id, idx, wx, bloom, rng):
     N, S, P, supers, cap = p["N0"], p["S0_kg"], 0.0, 0, 14.0
     queen, queen_back = "present", -1
     laid = [p["lay_max"] * 0.5] * 21
+    B = 0.0  # brood; first read on day 1, set from laid[] on day 0
     robbing_left, dead = 0, False
     cols = {k: np.zeros(len(idx)) for k in ("weight", "T_target", "RH_target", "traffic", "n_out")}
     daily, events = [], []
@@ -306,7 +307,6 @@ def observe(cfg, true, hive_id, rng, events):
     s, model = cfg["sensor"], SENSORS[cfg["sensor"]["model"]]
     out = pd.DataFrame(index=t.index)
     out["hive_id"] = hive_id
-    q = np.full(n, "ok", dtype=object)
     for ch, key in (("temp_in", "t"), ("rh_in", "rh")):
         lo, hi, res, bias, sd = model[key]
         v = t[ch].values + rng.uniform(-bias, bias) + rng.normal(0, sd, n)

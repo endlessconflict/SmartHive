@@ -111,7 +111,6 @@ def board(rng, W, H):
     elif r0 < DR_FRAC + (1 - DR_FRAC) * 0.55:  # wood grain along a random plank direction
         base = render._hsv(rng.uniform(20, 38), rng.uniform(0.25, 0.6), rng.uniform(0.35, 0.75))
         ang = rng.uniform(-0.2, 0.2) + (np.pi / 2 if rng.random() < 0.3 else 0)
-        u = xx * np.cos(ang) + yy * np.sin(ang)
         v = -xx * np.sin(ang) + yy * np.cos(ang)
         warp = render._noise(rng, H, W, rng.uniform(40, 120)) * rng.uniform(4, 15) + render._noise(rng, H, W, 6) * 1.5
         grain = np.clip(np.sin((v + warp) / rng.uniform(1.2, 3.5)) * 0.5 + 0.5 + 0.3 * render._noise(rng, H, W, 3), 0, 1) ** 2

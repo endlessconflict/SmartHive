@@ -61,6 +61,7 @@ def bench(folder: Path, insectness: Path, thresholds=(0.5, 0.7, 0.8, 0.9, 0.95))
     (validation and test splits). All bees in these images are boxed; other insects are not, so a few
     "false positives" may be real insects."""
     import csv
+
     from vision.insectness import gt_boxes
     held = [r["file"] for r in csv.DictReader(open(folder / "manifest.tsv"), delimiter="\t") if r["split"] != "train"]
     props = json.loads((folder / "proposals-yoloe-26l-seg-pf.json").read_text())
