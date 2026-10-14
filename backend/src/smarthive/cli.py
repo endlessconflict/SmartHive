@@ -38,7 +38,9 @@ def _ingest(settings: Settings) -> None:
         await run(settings, stop)
 
     # aiomqtt needs add_reader/add_writer, which the default Windows (proactor) loop lacks
-    asyncio.run(main(), loop_factory=asyncio.SelectorEventLoop if sys.platform == "win32" else None)
+    factory = asyncio.SelectorEventLoop if sys.platform == "win32" else None
+    with asyncio.Runner(loop_factory=factory) as runner:  # asyncio.run takes loop_factory only from 3.12
+        runner.run(main())
 
 
 def main(argv: list[str] | None = None) -> None:
