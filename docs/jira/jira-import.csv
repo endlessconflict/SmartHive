@@ -230,9 +230,13 @@ h3. Acceptance criteria
 h3. Design documents
 * [docs/04-data/05-dataset-versioning-and-governance.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/04-data/05-dataset-versioning-and-governance.md]
 
+h3. Evidence (done)
+* [.dvc/config|https://github.com/endlessconflict/SmartHive/blob/main/.dvc/config]
+* [vision/train.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/train.py]
+
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,To Do,Maria de los Angeles Agudelo,infra,simulation,mlops,,,3,SH Sprint 4,,Synthetic data platform,14400,,,
-92,18,Sub-task,"[EN-06.1] dvc init, SSH or folder remote on the gateway PC",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,To Do,Maria de los Angeles Agudelo,infra,,mlops,,,,SH Sprint 4,,,7200,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Medium,In Progress,Maria de los Angeles Agudelo,infra,simulation,mlops,,,3,SH Sprint 4,,Synthetic data platform,14400,,,
+92,18,Sub-task,"[EN-06.1] dvc init, SSH or folder remote on the gateway PC",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,In Progress,Maria de los Angeles Agudelo,infra,,mlops,,,,SH Sprint 4,,,7200,,,
 93,18,Sub-task,"[EN-06.2] Track simulation outputs, tier P split files and released weights",Sub-task of EN-06: Dataset versioning with DVC and dataset cards.,Medium,To Do,Adrien Cubilla,infra,,mlops,,,,SH Sprint 4,,,7200,,,
 19,2,Story,[US07] Periodic hive entrance image capture,"h3. User story
 As a beekeeper, I want the system to capture periodic images of the hive entrance so that bee traffic and potential intruders can be analyzed automatically.
@@ -433,10 +437,16 @@ h3. Design documents
 * [docs/05-backend/08-deployment-and-operations.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/05-backend/08-deployment-and-operations.md]
 * [docs/05-backend/04-messaging-contract.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/05-backend/04-messaging-contract.md]
 
+h3. Evidence (done)
+* [infra/pki/make-ca.sh|https://github.com/endlessconflict/SmartHive/blob/main/infra/pki/make-ca.sh]
+* [infra/mosquitto/mosquitto.conf|https://github.com/endlessconflict/SmartHive/blob/main/infra/mosquitto/mosquitto.conf]
+* [infra/mosquitto/acl|https://github.com/endlessconflict/SmartHive/blob/main/infra/mosquitto/acl]
+* [infra/mosquitto/test_broker.sh|https://github.com/endlessconflict/SmartHive/blob/main/infra/mosquitto/test_broker.sh]
+
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Karen Jimenez,infra,,security,mqtt,,5,SH Sprint 4,,Sensor node & IoT connectivity,21600,,,
-123,29,Sub-task,[US04.1] Local CA and certificate scripts,Sub-task of US04: Data encryption and in-transit protection.,High,To Do,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
-124,29,Sub-task,"[US04.2] Mosquitto TLS, password file and pattern ACLs",Sub-task of US04: Data encryption and in-transit protection.,High,To Do,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,Karen Jimenez,infra,,security,mqtt,,5,SH Sprint 4,,Sensor node & IoT connectivity,21600,,,
+123,29,Sub-task,[US04.1] Local CA and certificate scripts,Sub-task of US04: Data encryption and in-transit protection.,High,Done,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
+124,29,Sub-task,"[US04.2] Mosquitto TLS, password file and pattern ACLs",Sub-task of US04: Data encryption and in-transit protection.,High,Done,Karen Jimenez,infra,,security,,,,SH Sprint 4,,,10800,,,
 30,1,Story,[US05] Centralized data synchronization,"h3. User story
 As a system administrator, I want all hive information to arrive at one central place, so that every part of the system uses the same, consistent data.
 
@@ -479,10 +489,14 @@ h3. Acceptance criteria
 h3. Design documents
 * [docs/05-backend/04-messaging-contract.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/05-backend/04-messaging-contract.md]
 
+h3. Evidence (done)
+* [infra/contracts|https://github.com/endlessconflict/SmartHive/blob/main/infra/contracts]
+* [backend/src/smarthive/contracts|https://github.com/endlessconflict/SmartHive/blob/main/backend/src/smarthive/contracts]
+
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Karen Jimenez,infra,,contract,mqtt,,5,SH Sprint 4,,Backend platform & DevOps,28800,14,24,30
-129,32,Sub-task,"[EN-07.1] Schemas: telemetry, event, summary, health, status, config, cmd",Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,To Do,Karen Jimenez,infra,,contract,,,,SH Sprint 4,,,18000,,,
-130,32,Sub-task,[EN-07.2] Generated Pydantic models and CI validation job,Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,To Do,James Tack,infra,,contract,,,,SH Sprint 4,,,10800,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,In Progress,Karen Jimenez,infra,,contract,mqtt,,5,SH Sprint 4,,Backend platform & DevOps,28800,14,24,30
+129,32,Sub-task,"[EN-07.1] Schemas: telemetry, event, summary, health, status, config, cmd",Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,Done,Karen Jimenez,infra,,contract,,,,SH Sprint 4,,,18000,,,
+130,32,Sub-task,[EN-07.2] Generated Pydantic models and CI validation job,Sub-task of EN-07: Freeze messaging contract v1 (JSON Schemas + contract tests).,Highest,Done,James Tack,infra,,contract,,,,SH Sprint 4,,,10800,,,
 33,6,Story,"[EN-08] Docker Compose stack v1 (broker, database, API)","h3. User story
 As developers, we need one command that starts the server side so that everyone runs the same stack.
 
@@ -492,10 +506,14 @@ h3. Acceptance criteria
 h3. Design documents
 * [docs/05-backend/08-deployment-and-operations.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/05-backend/08-deployment-and-operations.md]
 
+h3. Evidence (done)
+* [infra/compose.yaml|https://github.com/endlessconflict/SmartHive/blob/main/infra/compose.yaml]
+* [backend/src/smarthive/db/migrations|https://github.com/endlessconflict/SmartHive/blob/main/backend/src/smarthive/db/migrations]
+
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Maria de los Angeles Agudelo,infra,,devops,,,5,SH Sprint 4,,Backend platform & DevOps,28800,24,30,
-131,33,Sub-task,[EN-08.1] Compose file with profiles and health checks,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,To Do,Maria de los Angeles Agudelo,infra,,devops,,,,SH Sprint 4,,,14400,,,
-132,33,Sub-task,[EN-08.2] Alembic baseline migration from the data model,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,To Do,James Tack,infra,,devops,,,,SH Sprint 4,,,14400,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Maria de los Angeles Agudelo,infra,,devops,,,5,SH Sprint 4,,Backend platform & DevOps,28800,24,30,
+131,33,Sub-task,[EN-08.1] Compose file with profiles and health checks,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,Done,Maria de los Angeles Agudelo,infra,,devops,,,,SH Sprint 4,,,14400,,,
+132,33,Sub-task,[EN-08.2] Alembic baseline migration from the data model,"Sub-task of EN-08: Docker Compose stack v1 (broker, database, API).",Highest,Done,James Tack,infra,,devops,,,,SH Sprint 4,,,14400,,,
 34,6,Task,"[EN-09] CI pipeline (lint, tests, contracts)","h3. User story
 As developers, we need CI on every pull request so that main always works.
 
@@ -510,10 +528,10 @@ h3. Evidence (done)
 * [.github/workflows/tests.yml|https://github.com/endlessconflict/SmartHive/blob/main/.github/workflows/tests.yml]
 
 h3. Definition of done
-See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,In Progress,Maria de los Angeles Agudelo,infra,,ci,,,3,SH Sprint 4,,Backend platform & DevOps,18000,,,
+See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,Maria de los Angeles Agudelo,infra,,ci,,,3,SH Sprint 4,,Backend platform & DevOps,18000,,,
 133,34,Sub-task,"[EN-09.1] GitHub Actions workflow: simulation tests, pipeline self-check, Jira build check (green)","Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,Done,Maria de los Angeles Agudelo,infra,,ci,,,,SH Sprint 4,,,10800,,,
-134,34,Sub-task,[EN-09.2] Add ruff lint and format check,"Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,To Do,Maria de los Angeles Agudelo,infra,,ci,,,,SH Sprint 4,,,3600,,,
-135,34,Sub-task,[EN-09.3] Add contract validation once infra/contracts exists (EN-07),"Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,To Do,Karen Jimenez,infra,,ci,,,,SH Sprint 4,,,3600,,,
+134,34,Sub-task,[EN-09.2] Add ruff lint and format check,"Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,Done,Maria de los Angeles Agudelo,infra,,ci,,,,SH Sprint 4,,,3600,,,
+135,34,Sub-task,[EN-09.3] Add contract validation once infra/contracts exists (EN-07),"Sub-task of EN-09: CI pipeline (lint, tests, contracts).",High,Done,Karen Jimenez,infra,,ci,,,,SH Sprint 4,,,3600,,,
 35,3,Story,[US13] Historical environmental data & trend view,"h3. User story
 As a beekeeper, I want to see how my hive's conditions have changed over time, so that I can understand how the colony is doing and spot problems early.
 
