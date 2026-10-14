@@ -15,4 +15,20 @@ infra/
 └── contracts/            JSON Schemas for every MQTT payload, the single source of truth
 ```
 
+## Generating certificates (pki/)
+
+Run once to create the CA and broker certificates, then once per new ESP32 node:
+
+```bash
+cd infra/pki
+
+# First time only — creates ca.key, ca.crt, broker.key, broker.crt
+./gen_certs.sh hive_01
+
+# Each new node
+./gen_certs.sh hive_02
+```
+
+Generated files are git-ignored. Never commit `.key` or `.crt` files.
+
 Owners: Maria de los Angeles Agudelo (stack), Karen Jimenez (broker and contracts), James Tack (backend services).
