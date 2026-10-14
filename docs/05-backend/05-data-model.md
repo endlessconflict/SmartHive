@@ -35,6 +35,8 @@ erDiagram
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS timescaledb;
+CREATE EXTENSION IF NOT EXISTS citext;      -- users.email
+CREATE EXTENSION IF NOT EXISTS btree_gist;  -- the EXCLUDE constraint on node_assignments (text + range)
 
 CREATE TABLE users (
   id            uuid PRIMARY KEY,

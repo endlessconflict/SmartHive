@@ -12,7 +12,7 @@ This is the plan for the whole project, including the parts that are designed in
 | Hardware Prototype 1 | Ricardo | Done (from the design document) + review notes | Measured power budget; enclosure design |
 | Data strategy and telemetry simulator | Diego, James | **Implemented** (v1.0.0, tested) | Calibration against MSPB; MQTT replay |
 | Synthetic images and vision | Adrien | **Implemented v0.1**: procedural generator, two-stage model trained, ncnn export, Pi estimate | Real backgrounds (tier C), on-device benchmark, public Varroa data |
-| Backend | James | **Designed in detail** | Code |
+| Backend | James | **Designed in detail**; telemetry ingestor and baseline migration implemented | Events, summary, health and status topics; API; worker |
 | Communications | Karen | Contract designed; link study not started | LoRaWAN / NB-IoT feasibility study |
 | Frontend | Maria | API ready to consume; UI not designed | Dashboard design doc |
 | Time-series ML | Diego | Data side designed; models not designed | Anomaly detection design doc |
