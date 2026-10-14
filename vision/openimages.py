@@ -95,7 +95,6 @@ def main(box_dir: Path, out: Path, max_side=640):
 def keep_honeybees(src: Path, verifier: Path, out: Path, min_p=0.5):
     """Training set of Open Images train-split images whose every boxed bee the verifier calls a honeybee."""
     from ultralytics import YOLO
-
     from vision.insectness import gt_boxes
     from vision.pipeline import crop
     ver = YOLO(str(verifier), task="classify")

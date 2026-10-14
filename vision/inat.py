@@ -15,10 +15,10 @@ import hashlib
 import http.client
 import random
 import re
+from concurrent.futures import ThreadPoolExecutor
 import sys
 import tarfile
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 BUCKET = "https://inaturalist-open-data.s3.amazonaws.com"

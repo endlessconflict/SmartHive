@@ -1,7 +1,0 @@
-# EN-09: lint on everything, format check only where the code is new (see .github/workflows/tests.yml).
-line-length = 120
-extend-exclude = ["backend/src/smarthive/contracts"] # generated
-
-[lint]
-select = ["E", "F", "I"]
-ignore = ["E501", "E731", "E741"] # long lines and short names are the existing style
