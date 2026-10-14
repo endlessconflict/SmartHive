@@ -1,0 +1,4 @@
+[core]
+    remote = gateway
+['remote "gateway"']
+    url = ssh://gateway.local/srv/smarthive-dvc

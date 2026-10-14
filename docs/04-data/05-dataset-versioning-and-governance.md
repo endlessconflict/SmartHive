@@ -1,6 +1,6 @@
 # Dataset versioning and governance
 
-Status: Partly implemented. Dataset IDs, cards, seeds and the frozen real split are in use; DVC and MLflow are not set up yet (Jira EN-06)
+Status: Partly implemented. Dataset IDs, cards, seeds and the frozen real split are in use; DVC is initialized with a placeholder remote and training runs log dataset ID, generator commit and seed; MLflow is not set up yet (Jira EN-06)
 
 Owners: Adrien Cubilla (images), Diego Alejandro Vasquez (telemetry), Maria de los Angeles Agudelo (storage and CI)
 
