@@ -37,7 +37,8 @@ def _ingest(settings: Settings) -> None:
                 signal.signal(sig, lambda *_: loop.call_soon_threadsafe(stop.set))
         await run(settings, stop)
 
-    asyncio.run(main())
+    # aiomqtt needs add_reader/add_writer, which the default Windows (proactor) loop lacks
+    asyncio.run(main(), loop_factory=asyncio.SelectorEventLoop if sys.platform == "win32" else None)
 
 
 def main(argv: list[str] | None = None) -> None:
