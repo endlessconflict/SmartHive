@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "smarthive/contracts/cmd.schema.json",
+  "title": "Cmd",
+  "description": "Command for a node (server to node)",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "string",
+      "pattern": "^smarthive\\.cmd/1\\.[0-9]+$"
+    },
+    "cmd_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "name": {
+      "enum": [
+        "capture_now",
+        "reboot",
+        "sync_time",
+        "upload_logs",
+        "ping"
+      ]
+    },
+    "args": {
+      "type": "object"
+    },
+    "expires_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    }
+  },
+  "required": [
+    "schema",
+    "cmd_id",
+    "name",
+    "args",
+    "expires_at"
+  ]
+}

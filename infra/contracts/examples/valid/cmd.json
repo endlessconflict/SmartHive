@@ -1,0 +1,7 @@
+{
+  "schema": "smarthive.cmd/1.0",
+  "cmd_id": "0190f5a2-7c1e-7d43-9a1b-2f6c8e0d4b07",
+  "name": "capture_now",
+  "args": {},
+  "expires_at": "2026-10-06T14:20:00Z"
+}

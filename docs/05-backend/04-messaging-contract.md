@@ -4,7 +4,7 @@ Status: Proposed. Becomes "Accepted" when Karen, James, Ricardo and Adrien have 
 
 Owner: Karen Jimenez. Image upload endpoint: James Tack.
 
-Machine-readable source of truth: JSON Schemas in `infra/contracts/` (planned). This page explains them. If the two disagree, the schemas win and this page gets fixed.
+Machine-readable source of truth: JSON Schemas in [`infra/contracts/`](../../infra/contracts/), with valid and invalid examples next to them. The Pydantic models in `backend/src/smarthive/contracts` are generated from them (`infra/contracts/generate-models.sh`). This page explains them. If the two disagree, the schemas win and this page gets fixed.
 
 ## Principles
 

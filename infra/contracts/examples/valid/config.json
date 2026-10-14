@@ -1,0 +1,14 @@
+{
+  "schema": "smarthive.config/1.0",
+  "config_version": 7,
+  "set": {
+    "sampling": {
+      "dht11_interval_s": 30
+    },
+    "vision": {
+      "thresholds": {
+        "hornet": 0.4
+      }
+    }
+  }
+}
