@@ -1,0 +1,53 @@
+[project]
+name = "smarthive"
+version = "0.1.0"
+description = "SmartHive backend: MQTT ingestor, API and worker"
+requires-python = ">=3.11"
+dependencies = [
+    "aiomqtt>=2.5",
+    "alembic>=1.16",
+    "asyncpg>=0.30",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.10",
+    "sqlalchemy[asyncio]>=2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.15",
+    "pytest>=8",
+    "pytest-asyncio>=0.26",
+    "ruff>=0.11",
+    "testcontainers[postgres]>=4.10",
+]
+
+[project.scripts]
+smarthive = "smarthive.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["integration: needs a Docker daemon (Testcontainers)"]
+
+[tool.ruff]
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["asyncpg.*", "testcontainers.*", "alembic.*"]
+ignore_missing_imports = true
