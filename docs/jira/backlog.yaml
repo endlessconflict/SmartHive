@@ -315,14 +315,13 @@ stories:
     assignee: maria
     components: [infra, simulation]
     labels: [mlops]
-    status: In Progress
+    status: To Do
     ac:
       - "Given a dataset under data/, when dvc push runs, then it is stored in the team's free remote and dvc pull restores it on another machine"
       - "Given a training run, when logged, then the dataset ID, generator commit and seed are recorded next to the metrics"
     docs: [docs/04-data/05-dataset-versioning-and-governance.md]
-    evidence: [.dvc/config, vision/train.py]
     subtasks:
-      - {summary: "dvc init, SSH or folder remote on the gateway PC", assignee: maria, hours: 2, status: In Progress}
+      - {summary: "dvc init, SSH or folder remote on the gateway PC", assignee: maria, hours: 2, status: To Do}
       - {summary: "Track simulation outputs, tier P split files and released weights", assignee: adrien, hours: 2, status: To Do}
 
   # ---------------------------------------------------------------- E2 Pest & threat detection
@@ -544,15 +543,14 @@ stories:
     assignee: karen
     components: [infra]
     labels: [security, mqtt]
-    status: Done
+    status: To Do
     ac:
       - "Given the broker, when a client connects on 1883 from the LAN, then it is refused; 8883 with TLS is the only external port"
       - "Given device credentials, when a node publishes to another node's topic, then the ACL denies it"
     docs: [docs/05-backend/08-deployment-and-operations.md, docs/05-backend/04-messaging-contract.md]
-    evidence: [infra/pki/make-ca.sh, infra/mosquitto/mosquitto.conf, infra/mosquitto/acl, infra/mosquitto/test_broker.sh]
     subtasks:
-      - {summary: "Local CA and certificate scripts", assignee: karen, hours: 3, status: Done}
-      - {summary: "Mosquitto TLS, password file and pattern ACLs", assignee: karen, hours: 3, status: Done}
+      - {summary: "Local CA and certificate scripts", assignee: karen, hours: 3, status: To Do}
+      - {summary: "Mosquitto TLS, password file and pattern ACLs", assignee: karen, hours: 3, status: To Do}
   - id: US05
     epic: E1
     summary: Centralized data synchronization
@@ -603,15 +601,14 @@ stories:
     assignee: karen
     components: [infra]
     labels: [contract, mqtt]
-    status: In Progress
+    status: To Do
     ac:
       - "Given infra/contracts, when CI runs, then every example in the messaging contract doc validates"
       - "Given a schema change, when a PR is opened, then both contract owners must approve"
     docs: [docs/05-backend/04-messaging-contract.md]
-    evidence: [infra/contracts, backend/src/smarthive/contracts]
     subtasks:
-      - {summary: "Schemas: telemetry, event, summary, health, status, config, cmd", assignee: karen, hours: 5, status: Done}
-      - {summary: "Generated Pydantic models and CI validation job", assignee: james, hours: 3, status: Done}
+      - {summary: "Schemas: telemetry, event, summary, health, status, config, cmd", assignee: karen, hours: 5, status: To Do}
+      - {summary: "Generated Pydantic models and CI validation job", assignee: james, hours: 3, status: To Do}
   - id: EN-08
     epic: E6
     type: Story
@@ -623,14 +620,13 @@ stories:
     assignee: maria
     components: [infra]
     labels: [devops]
-    status: Done
+    status: To Do
     ac:
       - "Given infra/compose.yaml, when docker compose --profile dev up runs, then Mosquitto (TLS), PostgreSQL with TimescaleDB (Apache-2.0 build), the API and Mailpit start healthy"
     docs: [docs/05-backend/08-deployment-and-operations.md]
-    evidence: [infra/compose.yaml, backend/src/smarthive/db/migrations]
     subtasks:
-      - {summary: "Compose file with profiles and health checks", assignee: maria, hours: 4, status: Done}
-      - {summary: "Alembic baseline migration from the data model", assignee: james, hours: 4, status: Done}
+      - {summary: "Compose file with profiles and health checks", assignee: maria, hours: 4, status: To Do}
+      - {summary: "Alembic baseline migration from the data model", assignee: james, hours: 4, status: To Do}
   - id: EN-09
     epic: E6
     type: Task
@@ -642,7 +638,7 @@ stories:
     assignee: maria
     components: [infra]
     labels: [ci]
-    status: Done
+    status: In Progress
     ac:
       - "Given a pull request, when CI runs, then ruff, pytest (simulation tests included) and contract validation must pass"
       - "Given backlog.yaml, when it changes, then CI fails unless the generated Jira files were rebuilt"
@@ -650,8 +646,8 @@ stories:
     evidence: [.github/workflows/tests.yml]
     subtasks:
       - {summary: "GitHub Actions workflow: simulation tests, pipeline self-check, Jira build check (green)", assignee: maria, hours: 3, status: Done}
-      - {summary: "Add ruff lint and format check", assignee: maria, hours: 1, status: Done}
-      - {summary: "Add contract validation once infra/contracts exists (EN-07)", assignee: karen, hours: 1, status: Done}
+      - {summary: "Add ruff lint and format check", assignee: maria, hours: 1, status: To Do}
+      - {summary: "Add contract validation once infra/contracts exists (EN-07)", assignee: karen, hours: 1, status: To Do}
 
   # ---------------------------------------------------------------- E3 Colony dashboard
   - id: US13

@@ -2,14 +2,14 @@
 
 Generated from [`backlog.yaml`](backlog.yaml) by `python docs/jira/build.py`. Edit the YAML, not this file.
 
-49 stories and tasks, 141 sub-tasks, 267 story points (91 done).
+49 stories and tasks, 141 sub-tasks, 267 story points (78 done).
 
 ## Sprints
 
 | Sprint | Dates | Goal | Points | Done |
 |---|---|---|---|---|
 | SH Sprint 3 | 2026-09-28 to 2026-10-11 | Foundations: documented architecture, synthetic data generators and a first trained vision model | 78 | 78 |
-| SH Sprint 4 | 2026-10-12 to 2026-10-25 | Contracts frozen, Compose stack up, camera chosen, client interview done | 30 | 13 |
+| SH Sprint 4 | 2026-10-12 to 2026-10-25 | Contracts frozen, Compose stack up, camera chosen, client interview done | 30 | 0 |
 | SH Sprint 5 | 2026-10-26 to 2026-11-08 | First end-to-end slice: a DHT11 reading and a simulated hive both reach the dashboard | 41 | 0 |
 | SH Sprint 6 | 2026-11-09 to 2026-11-22 | Vision on the node: detections become events | 27 | 0 |
 | SH Sprint 7 | 2026-11-23 to 2026-12-06 | Alerts: a hornet in front of the camera becomes an email | 31 | 0 |
@@ -40,7 +40,7 @@ Owner: Ricardo Villarreal. Component: `edge`.
 | [US01](#us01) | Story | Continuous internal temperature and humidity measurement | 5 | Sprint 5 | Ricardo Villarreal | To Do |
 | [US02](#us02) | Story | Continuous hive weight measurement | 8 | Sprint 8 | Ricardo Villarreal | To Do |
 | [US03](#us03) | Story | Local data storage and offline synchronization | 5 | Sprint 5 | Karen Jimenez | To Do |
-| [US04](#us04) | Story | Data encryption and in-transit protection | 5 | Sprint 4 | Karen Jimenez | Done |
+| [US04](#us04) | Story | Data encryption and in-transit protection | 5 | Sprint 4 | Karen Jimenez | To Do |
 | [US05](#us05) | Story | Centralized data synchronization | 5 | Sprint 5 | James Tack | To Do |
 | [US06](#us06) | Story | Device connection loss and power alert | 5 | Sprint 7 | Karen Jimenez | To Do |
 | [HW-02](#hw-02) | Task | Power feed for the demo and measured power budget | 5 | Sprint 5 | Ricardo Villarreal | To Do |
@@ -125,7 +125,7 @@ Design: [docs/05-backend/03-edge-node-software.md](../../docs/05-backend/03-edge
 
 ### US04
 
-**Data encryption and in-transit protection** (Story, High, 5 pts, SH Sprint 4, Karen Jimenez, Done)
+**Data encryption and in-transit protection** (Story, High, 5 pts, SH Sprint 4, Karen Jimenez, To Do)
 
 > As a system administrator, I want hive information to be protected while it travels to the system, so that no one else can see or tamper with it.
 
@@ -136,12 +136,10 @@ Acceptance criteria:
 
 Design: [docs/05-backend/08-deployment-and-operations.md](../../docs/05-backend/08-deployment-and-operations.md), [docs/05-backend/04-messaging-contract.md](../../docs/05-backend/04-messaging-contract.md)
 
-Evidence: [infra/pki/make-ca.sh](../../infra/pki/make-ca.sh), [infra/mosquitto/mosquitto.conf](../../infra/mosquitto/mosquitto.conf), [infra/mosquitto/acl](../../infra/mosquitto/acl), [infra/mosquitto/test_broker.sh](../../infra/mosquitto/test_broker.sh)
-
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| US04.1 Local CA and certificate scripts | Karen Jimenez | 3 | Done |
-| US04.2 Mosquitto TLS, password file and pattern ACLs | Karen Jimenez | 3 | Done |
+| US04.1 Local CA and certificate scripts | Karen Jimenez | 3 | To Do |
+| US04.2 Mosquitto TLS, password file and pattern ACLs | Karen Jimenez | 3 | To Do |
 
 ### US05
 
@@ -595,7 +593,7 @@ Owner: Diego Alejandro Vasquez. Component: `simulation`.
 | [EN-03](#en-03) | Story | Procedural insect renderer (license-free sprites) | 8 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-04](#en-04) | Story | Entrance scene compositor with exact labels | 8 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-05](#en-05) | Story | Real-image check set (tier P) from the iNaturalist Open Dataset | 5 | Sprint 3 | Adrien Cubilla | Done |
-| [EN-06](#en-06) | Task | Dataset versioning with DVC and dataset cards | 3 | Sprint 4 | Maria de los Angeles Agudelo | In Progress |
+| [EN-06](#en-06) | Task | Dataset versioning with DVC and dataset cards | 3 | Sprint 4 | Maria de los Angeles Agudelo | To Do |
 | [EN-10](#en-10) | Story | Hybrid sprite library with real-photo cutouts (vision iteration v0.2) | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-11](#en-11) | Story | Vision iteration v0.3 (distractors), model release v0.2 and per-tier results report | 5 | Sprint 3 | Adrien Cubilla | Done |
 | [EN-13](#en-13) | Story | Vision iteration v0.4 (real photos with automatic labels) and model release v0.4 | 5 | Sprint 3 | Adrien Cubilla | Done |
@@ -744,7 +742,7 @@ Evidence: [vision/inat.py](../../vision/inat.py), [vision/splits/P-inat-v1.tsv](
 
 ### EN-06
 
-**Dataset versioning with DVC and dataset cards** (Task, Medium, 3 pts, SH Sprint 4, Maria de los Angeles Agudelo, In Progress)
+**Dataset versioning with DVC and dataset cards** (Task, Medium, 3 pts, SH Sprint 4, Maria de los Angeles Agudelo, To Do)
 
 > As a team, we need datasets and weights versioned outside git so that any reported number can be reproduced.
 
@@ -755,11 +753,9 @@ Acceptance criteria:
 
 Design: [docs/04-data/05-dataset-versioning-and-governance.md](../../docs/04-data/05-dataset-versioning-and-governance.md)
 
-Evidence: [.dvc/config](../../.dvc/config), [vision/train.py](../../vision/train.py)
-
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| EN-06.1 dvc init, SSH or folder remote on the gateway PC | Maria de los Angeles Agudelo | 2 | In Progress |
+| EN-06.1 dvc init, SSH or folder remote on the gateway PC | Maria de los Angeles Agudelo | 2 | To Do |
 | EN-06.2 Track simulation outputs, tier P split files and released weights | Adrien Cubilla | 2 | To Do |
 
 ### EN-10
@@ -967,13 +963,13 @@ Owner: James Tack. Component: `backend`.
 
 | ID | Type | Summary | Pts | Sprint | Assignee | Status |
 |---|---|---|---|---|---|---|
-| [EN-07](#en-07) | Story | Freeze messaging contract v1 (JSON Schemas + contract tests) | 5 | Sprint 4 | Karen Jimenez | In Progress |
-| [EN-08](#en-08) | Story | Docker Compose stack v1 (broker, database, API) | 5 | Sprint 4 | Maria de los Angeles Agudelo | Done |
-| [EN-09](#en-09) | Task | CI pipeline (lint, tests, contracts) | 3 | Sprint 4 | Maria de los Angeles Agudelo | Done |
+| [EN-07](#en-07) | Story | Freeze messaging contract v1 (JSON Schemas + contract tests) | 5 | Sprint 4 | Karen Jimenez | To Do |
+| [EN-08](#en-08) | Story | Docker Compose stack v1 (broker, database, API) | 5 | Sprint 4 | Maria de los Angeles Agudelo | To Do |
+| [EN-09](#en-09) | Task | CI pipeline (lint, tests, contracts) | 3 | Sprint 4 | Maria de los Angeles Agudelo | In Progress |
 
 ### EN-07
 
-**Freeze messaging contract v1 (JSON Schemas + contract tests)** (Story, Highest, 5 pts, SH Sprint 4, Karen Jimenez, In Progress)
+**Freeze messaging contract v1 (JSON Schemas + contract tests)** (Story, Highest, 5 pts, SH Sprint 4, Karen Jimenez, To Do)
 
 > As every team, we need the MQTT payloads frozen as JSON Schemas so that node, simulator and backend can be built in parallel.
 
@@ -984,16 +980,14 @@ Acceptance criteria:
 
 Design: [docs/05-backend/04-messaging-contract.md](../../docs/05-backend/04-messaging-contract.md)
 
-Evidence: [infra/contracts](../../infra/contracts), [backend/src/smarthive/contracts](../../backend/src/smarthive/contracts)
-
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| EN-07.1 Schemas: telemetry, event, summary, health, status, config, cmd | Karen Jimenez | 5 | Done |
-| EN-07.2 Generated Pydantic models and CI validation job | James Tack | 3 | Done |
+| EN-07.1 Schemas: telemetry, event, summary, health, status, config, cmd | Karen Jimenez | 5 | To Do |
+| EN-07.2 Generated Pydantic models and CI validation job | James Tack | 3 | To Do |
 
 ### EN-08
 
-**Docker Compose stack v1 (broker, database, API)** (Story, Highest, 5 pts, SH Sprint 4, Maria de los Angeles Agudelo, Done)
+**Docker Compose stack v1 (broker, database, API)** (Story, Highest, 5 pts, SH Sprint 4, Maria de los Angeles Agudelo, To Do)
 
 > As developers, we need one command that starts the server side so that everyone runs the same stack.
 
@@ -1003,16 +997,14 @@ Acceptance criteria:
 
 Design: [docs/05-backend/08-deployment-and-operations.md](../../docs/05-backend/08-deployment-and-operations.md)
 
-Evidence: [infra/compose.yaml](../../infra/compose.yaml), [backend/src/smarthive/db/migrations](../../backend/src/smarthive/db/migrations)
-
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
-| EN-08.1 Compose file with profiles and health checks | Maria de los Angeles Agudelo | 4 | Done |
-| EN-08.2 Alembic baseline migration from the data model | James Tack | 4 | Done |
+| EN-08.1 Compose file with profiles and health checks | Maria de los Angeles Agudelo | 4 | To Do |
+| EN-08.2 Alembic baseline migration from the data model | James Tack | 4 | To Do |
 
 ### EN-09
 
-**CI pipeline (lint, tests, contracts)** (Task, High, 3 pts, SH Sprint 4, Maria de los Angeles Agudelo, Done)
+**CI pipeline (lint, tests, contracts)** (Task, High, 3 pts, SH Sprint 4, Maria de los Angeles Agudelo, In Progress)
 
 > As developers, we need CI on every pull request so that main always works.
 
@@ -1028,8 +1020,8 @@ Evidence: [.github/workflows/tests.yml](../../.github/workflows/tests.yml)
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
 | EN-09.1 GitHub Actions workflow: simulation tests, pipeline self-check, Jira build check (green) | Maria de los Angeles Agudelo | 3 | Done |
-| EN-09.2 Add ruff lint and format check | Maria de los Angeles Agudelo | 1 | Done |
-| EN-09.3 Add contract validation once infra/contracts exists (EN-07) | Karen Jimenez | 1 | Done |
+| EN-09.2 Add ruff lint and format check | Maria de los Angeles Agudelo | 1 | To Do |
+| EN-09.3 Add contract validation once infra/contracts exists (EN-07) | Karen Jimenez | 1 | To Do |
 
 ## E7 Project foundations
 
