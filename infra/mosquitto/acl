@@ -1,0 +1,10 @@
+# rules for publishers
+pattern write smarthive/%u/#
+
+# rules backend
+user backend
+topic read smarthive/#
+
+# rules dashboard
+user dashboard
+topic read smarthive/#
