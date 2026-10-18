@@ -2,13 +2,13 @@
 
 Server-side services: MQTT ingestor, REST/WebSocket API, rules and alerts, scheduled jobs.
 
-Status: the telemetry ingestor exists (SCRUM-10, US05). It subscribes to `smarthive/v1/nodes/+/telemetry`, validates each batch and stores it in PostgreSQL/TimescaleDB exactly once. The API, the worker and the other topics (`events`, `summary`, `health`, `status`) are not written yet. Design is in [docs/05-backend/](../docs/05-backend/README.md).
+Status: the ingestor handles all five node topics (`telemetry`, `events`, `summary`, `health`, `status`; SCRUM-10 and SCRUM-83). It validates each message and stores it in PostgreSQL/TimescaleDB exactly once, registers nodes on first contact and sends a NOTIFY after each commit. The API and the worker are not written yet. Design is in [docs/05-backend/](../docs/05-backend/README.md).
 
 One Python package (`smarthive`) with several entry points, deployed as separate containers from the same image:
 
 | Entry point | Job | State |
 |---|---|---|
-| `smarthive ingest` | Subscribe to MQTT, validate payloads, store telemetry idempotently | Telemetry only |
+| `smarthive ingest` | Subscribe to MQTT, validate payloads, store every node topic idempotently | Done |
 | `smarthive api` | FastAPI app: REST, WebSocket live feed, image upload from nodes, exports | Planned |
 | `smarthive worker` | Rules, alert lifecycle, notifications, node-offline detection, ML job scheduling | Planned |
 
@@ -22,20 +22,37 @@ backend/
 ├── src/smarthive/
 │   ├── cli.py                `smarthive ingest`, JSON logs on stdout
 │   ├── config.py             Settings from SMARTHIVE_* environment variables
-│   ├── contracts/telemetry.py   Pydantic model of the telemetry message (hand-written until infra/contracts exists)
-│   ├── db/migrations/        Alembic (async); 0001_baseline is the data model
+│   ├── contracts/            Pydantic models of the messaging contract: common (envelope), telemetry, event,
+│   │                         summary, health, status. Hand-written until infra/contracts exists
+│   ├── db/migrations/        Alembic (async); 0001 is the data model, 0002 the node registry
 │   └── ingest/
-│       ├── handler.py        validate() and insert(): no MQTT, easy to test
+│       ├── base.py           Handler, Stored, Result, Rejected
+│       ├── handlers/         One module per topic suffix: parse() and store(); __init__ lists them
+│       ├── handler.py        validate() and ingest(): topic -> handler, one transaction, NOTIFY. No MQTT
 │       └── service.py        MQTT loop: persistent session, manual ack, reconnect, SIGTERM
 └── tests/{unit,integration,fixtures}
 ```
 
-## How a batch is handled
+To support a new message type, write `ingest/handlers/<name>.py` with `parse` and `store`, add its `HANDLER` to `handlers/__init__.py`, and add a fixture and a test. The MQTT loop subscribes to every registered topic by itself.
 
-1. The payload is rejected as a whole, never partly stored, if any rule fails: UTF-8 JSON object of at most 256 KiB; `schema` is `smarthive.telemetry/1.x`; `msg_id` is a UUID; `node_id` equals the one in the topic; every reading has a timezone-aware `ts`, a known `quality`, a finite `value` (null only for `read_error`) and, for a known quantity, its contract unit. Unknown fields are ignored and unknown quantities are stored.
-2. A rejected message is logged as one WARNING (`event=telemetry_rejected`) and acknowledged, so the broker does not redeliver it. The service keeps running.
-3. A valid batch is inserted in one transaction with `ON CONFLICT DO NOTHING` on `(msg_id, idx, ts)`. `hive_id` comes from `node_assignments` at the time of the reading, and is NULL when the node is not assigned. `mono_ms`, `boot_id` and `unit` are validated but not stored.
-4. The PUBACK is sent after the commit (manual acknowledgement), the session is persistent, and a database or broker outage is retried with backoff instead of dropping the batch.
+## How a message is handled
+
+1. The payload is rejected as a whole, never partly stored, if any rule fails: UTF-8 JSON object of at most 256 KiB; the topic is `smarthive/v1/nodes/{node_id}/{kind}` for a known `kind`; the `schema` is `smarthive.<kind>/1.x`; `msg_id` is a UUID; `node_id` equals the one in the topic (the `status` payload has no envelope, so the topic alone is the identity); and the fields of that kind are valid (for telemetry: aware `ts`, known `quality`, finite `value`, contract unit). Unknown fields are ignored, unknown quantities and event types are stored.
+2. A rejected message is logged as one WARNING (`event=message_rejected`, with the reason) and acknowledged, so the broker does not redeliver it. The service keeps running.
+3. A valid message runs in one transaction: the node is registered or touched, the handler stores its rows with `ON CONFLICT DO NOTHING`, and a `pg_notify` on the `smarthive_ingest` channel is queued. The notification goes out only if the transaction commits, and only if something new was stored.
+4. The PUBACK is sent after the commit (manual acknowledgement), the session is persistent, and a database or broker outage is retried with backoff instead of dropping the message.
+
+What each topic stores:
+
+| Topic | Table | Identity (dedup) | Notes |
+|---|---|---|---|
+| `telemetry` | `readings` | `(msg_id, idx, ts)` | `hive_id` from `node_assignments` at the reading time, NULL if unassigned |
+| `events` | `detection_events` | `msg_id` | A repeated sighting is a new message with the same `episode_id`. An event without an episode is its own episode |
+| `summary` | `vision_summaries` | `msg_id` and `(node_id, window_start)` | A window counts once even if re-sent under a new id |
+| `health` | `node_health` | `(node_id, ts)` | Stored as received. With `clock_synced: false` the arrival time replaces `sent_at` |
+| `status` | `nodes.status` | the state itself | The retained message is redelivered on every reconnect; setting the same state again changes nothing |
+
+Nodes register themselves: `simulated` follows the id prefix `sim-`, never the payload. `last_seen_at` moves on every accepted message. Only `health` sets a node online (it is QoS 0, so it is never a queued leftover); a `status` message is applied as is; telemetry, events and summaries only update `last_seen_at`.
 
 ## Run it locally
 
