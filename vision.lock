@@ -1,0 +1,8 @@
+# The SmartHive-Vision release this repository uses. Change it in a pull request, then run
+# `python scripts/fetch_vision.py` to download and verify it. Checksums come from the release's SHA256SUMS.
+repo = "endlessconflict/SmartHive-Vision"
+version = "0.5.0"
+
+[sha256]
+"smarthive_vision-0.5.0-py3-none-any.whl" = "ab6619647b7bddecfd8934f2a40c301203e4bd9071d555fbfd396083491b8b41"
+"smarthive-models-0.5.0.tar.gz" = "ec843117b4823e59f71ef3b15d7f9308258f1bea2063bb4ca25e8ba51f455bb7"

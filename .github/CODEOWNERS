@@ -1,0 +1,17 @@
+# Review requests go to the owners of the area. See docs/00-project/team-and-roles.md.
+# The last matching pattern wins.
+*                                           @endlessconflict
+/backend/                                   @endlessconflict
+/edge/                                      @ricardo964 @JCKaren @leohatvani
+/frontend/                                  @MariAgudelo2
+/ml/                                        @dialva98
+/simulation/                                @dialva98 @endlessconflict
+/infra/                                     @MariAgudelo2 @endlessconflict
+/infra/mosquitto/                           @JCKaren
+/infra/pki/                                 @JCKaren
+/docs/02-hardware/                          @ricardo964
+/docs/05-backend/04-messaging-contract.md   @JCKaren @endlessconflict
+/docs/05-backend/05-data-model.md           @endlessconflict @dialva98
+/docs/05-backend/06-api-design.md           @endlessconflict @MariAgudelo2
+/vision.lock                                @leohatvani @ricardo964
+/.github/                                   @MariAgudelo2 @endlessconflict

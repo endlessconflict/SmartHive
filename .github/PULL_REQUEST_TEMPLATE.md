@@ -10,17 +10,22 @@
 
 - [ ] edge
 - [ ] backend
-- [ ] vision
+- [ ] vision (a `vision.lock` bump; the model code is in SmartHive-Vision)
 - [ ] simulation
 - [ ] ml
 - [ ] frontend
 - [ ] infra
 - [ ] docs / hardware
+- [ ] repository / CI
 
 ## Does it touch a contract?
 
 - [ ] No
 - [ ] Yes: MQTT topic or payload / database schema / public API / dataset format (the owner of the other side must review)
+
+## Jira
+
+<!-- SCRUM-123 -->
 
 ## How was it tested?
 
