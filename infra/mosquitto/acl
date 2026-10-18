@@ -1,10 +1,23 @@
-# rules for publishers
-pattern write smarthive/%u/#
+# Topic rules for the SmartHive broker (messaging contract: docs/05-backend/04-messaging-contract.md).
+# The MQTT user is the CN of the client certificate (use_identity_as_username true in mosquitto.conf).
+# backend/tests/integration/test_broker_contract.py runs these rules against a real broker.
 
-# rules backend
+# Nodes. %u is the node id, so a node can only touch its own topics.
+pattern write smarthive/v1/nodes/%u/telemetry
+pattern write smarthive/v1/nodes/%u/events
+pattern write smarthive/v1/nodes/%u/summary
+pattern write smarthive/v1/nodes/%u/health
+pattern write smarthive/v1/nodes/%u/status
+pattern write smarthive/v1/nodes/%u/cmd/ack
+pattern read  smarthive/v1/nodes/%u/config
+pattern read  smarthive/v1/nodes/%u/cmd
+
+# Backend services (ingest and worker): read everything the nodes send, send config and commands.
 user backend
-topic read smarthive/#
+topic read  smarthive/v1/nodes/+/#
+topic write smarthive/v1/nodes/+/config
+topic write smarthive/v1/nodes/+/cmd
 
-# rules dashboard
+# Dashboard: read only.
 user dashboard
-topic read smarthive/#
+topic read smarthive/v1/#

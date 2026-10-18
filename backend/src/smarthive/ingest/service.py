@@ -17,6 +17,17 @@ MAX_BACKOFF_S = 30.0
 TRANSIENT = (OSError, OperationalError, InterfaceError)
 
 
+def tls_parameters(settings: Settings) -> aiomqtt.TLSParameters | None:
+    """TLS only when a CA is configured; a client certificate needs its key and the other way round."""
+    if not settings.mqtt_tls_ca:
+        return None
+    if bool(settings.mqtt_tls_cert) != bool(settings.mqtt_tls_key):
+        raise ValueError("SMARTHIVE_MQTT_TLS_CERT and SMARTHIVE_MQTT_TLS_KEY must be set together")
+    return aiomqtt.TLSParameters(
+        ca_certs=settings.mqtt_tls_ca, certfile=settings.mqtt_tls_cert, keyfile=settings.mqtt_tls_key
+    )
+
+
 async def process(engine: AsyncEngine, topic: str, payload: bytes, sleep: float = 1.0) -> None:
     """Handle one message to completion. Never raises, so nothing in here can end the message loop."""
     delay = sleep
@@ -38,7 +49,7 @@ async def process(engine: AsyncEngine, topic: str, payload: bytes, sleep: float 
 
 
 async def _consume(settings: Settings, engine: AsyncEngine, busy: asyncio.Lock) -> None:
-    tls = aiomqtt.TLSParameters(ca_certs=settings.mqtt_tls_ca) if settings.mqtt_tls_ca else None
+    tls = tls_parameters(settings)
     backoff = 1.0
     while True:
         client = aiomqtt.Client(
