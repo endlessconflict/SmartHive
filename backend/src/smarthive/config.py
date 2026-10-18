@@ -17,3 +17,12 @@ class Settings(BaseSettings):
     mqtt_tls_key: str | None = None
     mqtt_client_id: str = "smarthive-ingest"
     log_level: str = "INFO"
+
+    # API. There is no default secret on purpose: `smarthive api` refuses to start without one.
+    jwt_secret: str = ""
+    access_token_minutes: int = 15
+    refresh_token_days: int = 14
+    cookie_secure: bool = True  # the refresh cookie is Secure; browsers still accept it on http://localhost
+    login_max_failures: int = 5  # per client address, within login_window_s
+    login_window_s: int = 900
+    forwarded_allow_ips: str = "127.0.0.1"  # proxies whose X-Forwarded-For is believed (Caddy's address)

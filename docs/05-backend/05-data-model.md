@@ -49,6 +49,16 @@ CREATE TABLE users (
   created_at    timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE refresh_tokens (                  -- migration 0003: sessions of the API
+  id          uuid PRIMARY KEY,
+  user_id     uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash  text NOT NULL UNIQUE,            -- SHA-256 of the cookie value; the token itself is never stored
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  expires_at  timestamptz NOT NULL,
+  revoked_at  timestamptz,
+  replaced_by uuid                             -- the token that took over when this one was rotated
+);
+
 CREATE TABLE apiaries (
   id        uuid PRIMARY KEY,
   owner_id  uuid NOT NULL REFERENCES users(id),
