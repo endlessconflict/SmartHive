@@ -108,3 +108,35 @@ async def require_admin(user: CurrentUser) -> User:
 
 
 Admin = Annotated[User, Depends(require_admin)]
+
+
+async def visible_apiary(conn: Conn, user: CurrentUser, apiary_id: UUID) -> UUID:
+    """404 (not 403) for an apiary the caller does not own, so ids of other people's apiaries stay hidden."""
+    row = (
+        await conn.execute(
+            text("SELECT id FROM apiaries WHERE id = :id AND (:admin OR owner_id = :me)"),
+            {"id": apiary_id, "admin": user.role == "admin", "me": user.id},
+        )
+    ).first()
+    if row is None:
+        raise Problem(404, "Apiary not found")
+    return apiary_id
+
+
+async def visible_hive(conn: Conn, user: CurrentUser, hive_id: UUID) -> UUID:
+    row = (
+        await conn.execute(
+            text(
+                "SELECT h.id FROM hives h JOIN apiaries a ON a.id = h.apiary_id "
+                "WHERE h.id = :id AND (:admin OR a.owner_id = :me)"
+            ),
+            {"id": hive_id, "admin": user.role == "admin", "me": user.id},
+        )
+    ).first()
+    if row is None:
+        raise Problem(404, "Hive not found")
+    return hive_id
+
+
+ApiaryId = Annotated[UUID, Depends(visible_apiary)]
+HiveId = Annotated[UUID, Depends(visible_hive)]
