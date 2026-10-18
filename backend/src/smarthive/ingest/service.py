@@ -8,7 +8,8 @@ from sqlalchemy.exc import InterfaceError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from smarthive.config import Settings
-from smarthive.ingest.handler import TOPIC_FILTER, ingest
+from smarthive.ingest.handler import ingest
+from smarthive.ingest.handlers import TOPIC_FILTERS
 
 log = logging.getLogger("smarthive.ingest")
 
@@ -44,7 +45,7 @@ async def process(engine: AsyncEngine, topic: str, payload: bytes, sleep: float 
             delay = min(delay * 2, MAX_BACKOFF_S)
         except Exception:
             # a valid batch the database refuses will be refused again; log it loudly and move on
-            log.exception("telemetry_insert_failed", extra={"fields": {"topic": topic}})
+            log.exception("message_insert_failed", extra={"fields": {"topic": topic}})
             return
 
 
@@ -68,7 +69,8 @@ async def _consume(settings: Settings, engine: AsyncEngine, busy: asyncio.Lock) 
         try:
             async with client:
                 backoff = 1.0
-                await client.subscribe(TOPIC_FILTER, qos=1)
+                for topic_filter in TOPIC_FILTERS:
+                    await client.subscribe(topic_filter, qos=1)
                 log.info("mqtt_connected", extra={"fields": {"host": settings.mqtt_host}})
                 async for message in client.messages:
                     async with busy:

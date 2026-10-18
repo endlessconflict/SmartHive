@@ -5,7 +5,6 @@ Hand-written for now; it is replaced by models generated from infra/contracts on
 
 import math
 from typing import Annotated, Literal, Self
-from uuid import UUID
 
 from pydantic import (
     AwareDatetime,
@@ -19,6 +18,8 @@ from pydantic import (
     model_validator,
 )
 
+from smarthive.contracts.common import Envelope, NonEmpty, schema_field
+
 # The server never converts units, so a known quantity must arrive in its contract unit.
 UNITS = {
     "temp_in": "degC",
@@ -30,8 +31,6 @@ UNITS = {
     "battery_i": "mA",
 }
 MAX_READINGS = 5000  # readings.idx is a smallint
-
-NonEmpty = Annotated[str, Field(min_length=1)]
 
 
 class Reading(BaseModel):
@@ -69,12 +68,6 @@ class Reading(BaseModel):
         return self
 
 
-class Telemetry(BaseModel):
-    model_config = ConfigDict(extra="ignore", populate_by_name=True)
-
-    schema_: Annotated[str, Field(alias="schema", pattern=r"^smarthive\.telemetry/1\.\d+$")]
-    msg_id: UUID
-    node_id: NonEmpty
-    boot_id: NonEmpty  # validated, not stored
-    sent_at: AwareDatetime
+class Telemetry(Envelope):
+    schema_: Annotated[str, schema_field("telemetry")]
     readings: Annotated[list[Reading], Field(min_length=1, max_length=MAX_READINGS)]

@@ -42,7 +42,9 @@ async def engine(db_url: str) -> AsyncIterator[AsyncEngine]:
     async with engine.begin() as conn:
         await conn.execute(
             text(
-                "TRUNCATE readings, node_assignments, nodes, hives, apiaries, users RESTART IDENTITY CASCADE"
+                "TRUNCATE readings, node_health, vision_summaries, detection_events, "
+                "node_assignments, nodes, "
+                "hives, apiaries, users RESTART IDENTITY CASCADE"
             )
         )
     yield engine
