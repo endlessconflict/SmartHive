@@ -4,7 +4,7 @@ Software that runs on the Raspberry Pi 3B node.
 
 Status: Planned, except the vision runtime. Design is in [docs/05-backend/03-edge-node-software.md](../docs/05-backend/03-edge-node-software.md).
 
-The detection logic `visiond` will run already exists and is tested: [`vision/pipeline.py`](../vision/pipeline.py) (ncnn only, no torch). Dependencies for the Pi are pinned in [`requirements.txt`](requirements.txt).
+The detection logic `visiond` will run already exists and is tested in the [SmartHive-Vision](https://github.com/endlessconflict/SmartHive-Vision) repository (`smarthive_vision.pipeline`, ncnn only, no torch). The node installs the release pinned in [`vision.lock`](../vision.lock); `python scripts/fetch_vision.py --install` downloads, verifies and installs it. The other dependencies for the Pi are pinned in [`requirements.txt`](requirements.txt).
 
 | Service | Job | Owner |
 |---|---|---|

@@ -48,7 +48,7 @@ epics:
     owner: adrien
     component: vision
     description: "EPIC 2. The entrance camera and a two-stage model on the node detect hornets, small hive beetles and Varroa-carrying bees, and turn them into events and alerts."
-    docs: [docs/03-vision/README.md]
+    docs: [vision:docs/README.md]
   - id: E3
     name: Colony dashboard
     owner: maria
@@ -251,8 +251,8 @@ stories:
       - "Given a species and px/mm, when a sprite is rendered, then its size follows real body lengths (bee 12-15 mm, hornet 20-30 mm, SHB 5-7 mm, Varroa 1.6 x 1.1 mm)"
       - "Given a bee with mites, when rendered, then each mite sits on the dorsal thorax or abdomen and its pixel footprint matches 1.6 mm at that scale (test)"
       - "Given the renderer, when reviewed, then no external image or 3D model is used"
-    docs: [docs/03-vision/03-synthetic-image-pipeline.md]
-    evidence: [simulation/images/render.py, simulation/images/test_images.py]
+    docs: [vision:docs/03-synthetic-image-pipeline.md]
+    evidence: [vision:src/smarthive_vision/synth/render.py, vision:tests/test_synth.py]
     subtasks:
       - {summary: "Generic segmented-insect renderer (shading, bands, hair, wings, legs, antennae)", assignee: adrien, hours: 8, status: Done}
       - {summary: "Species samplers: bee (incl. Africanized), hornet (velutina, crabro), SHB, fly, ant, wasp, bumblebee", assignee: adrien, hours: 4, status: Done}
@@ -274,8 +274,8 @@ stories:
       - "Given a scene, when labels are written, then every box lies inside the image and comes from the visible (not occluded) part of the insect"
       - "Given a bee crop, when it is labeled varroa, then at least one mite of that bee is visible in the scene"
       - "Given the dataset, when generated, then train and val use different sprite libraries and a dataset card is written"
-    docs: [docs/03-vision/03-synthetic-image-pipeline.md, docs/04-data/05-dataset-versioning-and-governance.md]
-    evidence: [simulation/images/compose.py]
+    docs: [vision:docs/03-synthetic-image-pipeline.md, docs/04-data/05-dataset-versioning-and-governance.md]
+    evidence: [vision:src/smarthive_vision/synth/compose.py]
     subtasks:
       - {summary: "Procedural boards: wood, paint, chips, stains, debris, entrance slot", assignee: adrien, hours: 4, status: Done}
       - {summary: "Behavioral placement, shadows, lighting, camera model", assignee: adrien, hours: 5, status: Done}
@@ -298,7 +298,7 @@ stories:
       - "Given the photos, when the split is frozen, then each file has class, split (calib/test), SHA-256, license, source URL and observer"
       - "Given the test split, when any training config is reviewed, then no test file is used for training or tuning"
     docs: [docs/04-data/01-data-problem-and-strategy.md]
-    evidence: [vision/inat.py, vision/splits/P-inat-v1.tsv]
+    evidence: [vision:src/smarthive_vision/inat.py, vision:src/smarthive_vision/splits/P-inat-v1.tsv]
     subtasks:
       - {summary: "Streaming filter over the 4.8 GB metadata archive", assignee: adrien, hours: 3, status: Done}
       - {summary: "Download capped photos per class with manifest", assignee: adrien, hours: 1, status: Done}
@@ -341,10 +341,10 @@ stories:
       - "Given the node by day, when camd runs, then a low-res stream is analyzed for motion and a full-res still is taken on motion"
       - "Given night mode hours, when the clock enters them, then the camera stops and the sensors keep running"
       - "Given a configurable interval, when no motion happens for an hour, then one periodic image is still kept for the dashboard"
-    docs: [docs/03-vision/06-edge-deployment.md, docs/03-vision/02-camera-and-optics.md]
+    docs: [vision:docs/06-edge-deployment.md, vision:docs/02-camera-and-optics.md]
     subtasks:
       - {summary: "picamera2 dual stream (or V4L2) capture service", assignee: ricardo, hours: 5, status: To Do}
-      - {summary: "Motion gate (vision/pipeline.py MotionGate) wired to capture", assignee: adrien, hours: 2, status: To Do}
+      - {summary: "Motion gate (smarthive_vision.pipeline.MotionGate) wired to capture", assignee: adrien, hours: 2, status: To Do}
       - {summary: "Night mode and periodic sample", assignee: ricardo, hours: 2, status: To Do}
   - id: US08
     epic: E2
@@ -381,8 +381,8 @@ stories:
       - "Given synthetic validation crops (held-out sprites), when evaluated, then recall and precision for varroa are reported (tier S)"
       - "Given the public Varroa datasets, when available, then recall >= 0.75 and precision >= 0.70 on their test split (tier P target)"
       - "Given a rolling window, when bees are classified, then the Varroa index is reported with its count and 95 % Wilson interval"
-    docs: [docs/03-vision/04-model-architecture.md, docs/03-vision/05-training-and-evaluation.md]
-    evidence: [vision/pipeline.py, docs/03-vision/07-results.md]
+    docs: [vision:docs/04-model-architecture.md, vision:docs/05-training-and-evaluation.md]
+    evidence: [vision:src/smarthive_vision/pipeline.py, vision:docs/07-results.md]
     subtasks:
       - {summary: "Train stage 2 classifier on hybrid synthetic crops (v0.2)", assignee: adrien, hours: 3, status: Done}
       - {summary: "Varroa index with Wilson interval in the aggregator", assignee: adrien, hours: 2, status: Done}
@@ -403,8 +403,8 @@ stories:
       - "Given a frame, when stage 1 runs, then bee, hornet, shb and other_insect are detected with per-class thresholds"
       - "Given the tier P iNaturalist test split, when evaluated, then hornet recall and bee/hornet/other accuracy are reported against chance"
       - "Given k-of-n aggregation, when a hornet appears in 3 of 10 analyzed frames, then exactly one threat_detected event is raised per episode"
-    docs: [docs/03-vision/04-model-architecture.md, docs/03-vision/07-results.md]
-    evidence: [vision/train.py, vision/eval_real.py, vision/pipeline.py]
+    docs: [vision:docs/04-model-architecture.md, vision:docs/07-results.md]
+    evidence: [vision:src/smarthive_vision/train.py, vision:src/smarthive_vision/eval_real.py, vision:src/smarthive_vision/pipeline.py]
     subtasks:
       - {summary: "Train stage 1 detector on synthetic scenes (iterations v0.1 to v0.3)", assignee: adrien, hours: 6, status: Done}
       - {summary: "Tier P evaluation script and report", assignee: adrien, hours: 3, status: Done}
@@ -426,12 +426,12 @@ stories:
       - "Given trained weights, when exported, then ncnn param/bin files load with the ncnn Python bindings and no torch"
       - "Given the Pi 3B, when the benchmark runs with the node software active, then stage 1 p95 <= 1.0 s and a frame with 15 bees p95 <= 2.0 s"
       - "Given the vision service, when running, then its RSS stays under its 250 MB systemd limit"
-    docs: [docs/03-vision/06-edge-deployment.md]
-    evidence: [vision/export.py, vision/bench.py, vision/pipeline.py]
+    docs: [vision:docs/06-edge-deployment.md]
+    evidence: [vision:src/smarthive_vision/export.py, vision:src/smarthive_vision/bench.py, vision:src/smarthive_vision/pipeline.py]
     subtasks:
       - {summary: "Export to ncnn and torch-free two-stage pipeline", assignee: adrien, hours: 4, status: Done}
       - {summary: "Pi latency estimate anchored to ncnn's published Pi 3B+ benchmarks", assignee: adrien, hours: 2, status: Done}
-      - {summary: "Run vision/bench.py on the real Pi 3B and replace the estimate", assignee: ricardo, hours: 2, status: To Do}
+      - {summary: "Run smarthive_vision.bench on the real Pi 3B and replace the estimate", assignee: ricardo, hours: 2, status: To Do}
       - {summary: "visiond systemd unit with MemoryMax", assignee: ricardo, hours: 2, status: To Do}
   - id: US12
     epic: E2
@@ -472,7 +472,7 @@ stories:
       - "Given the mounting distance, when a ruler is photographed on the board, then the measured px/mm is >= 8 and recorded in the generator config"
       - "Given the camera, when 200+ empty-board frames across a day are captured, then they are stored as tier C backgrounds"
       - "Given a gray card at several light levels, when captured, then the noise profile is fitted for the generator"
-    docs: [docs/03-vision/02-camera-and-optics.md]
+    docs: [vision:docs/02-camera-and-optics.md]
     subtasks:
       - {summary: "Select camera (CSI preferred) and lens focus for 10-25 cm", assignee: ricardo, hours: 3, status: To Do}
       - {summary: "Mount with shade hood; ruler frame; px/mm", assignee: ricardo, hours: 3, status: To Do}
@@ -643,7 +643,7 @@ stories:
       - "Given a pull request, when CI runs, then ruff, pytest (simulation tests included) and contract validation must pass"
       - "Given backlog.yaml, when it changes, then CI fails unless the generated Jira files were rebuilt"
     docs: [docs/05-backend/08-deployment-and-operations.md]
-    evidence: [.github/workflows/tests.yml]
+    evidence: [.github/workflows/backend.yml]
     subtasks:
       - {summary: "GitHub Actions workflow: simulation tests, pipeline self-check, Jira build check (green)", assignee: maria, hours: 3, status: Done}
       - {summary: "Add ruff lint and format check", assignee: maria, hours: 1, status: To Do}
@@ -839,8 +839,8 @@ stories:
       - "Given an iNaturalist asset pool disjoint from the tier P split (checked: zero overlap), when cutouts are extracted, then each has a mask from SAM 2.1 tiny, a YOLOE text-prompted box and its license and source"
       - "Given real bee cutouts, when used in scenes, then 45 % carry procedural mites so stage 2 cannot learn 'real-looking bee means clean'"
       - "Given generator v0.2 and model v0.2, when evaluated on the tier P calibration split, then accuracy is compared with v0.1 in the results document"
-    docs: [docs/03-vision/07-results.md, docs/03-vision/03-synthetic-image-pipeline.md]
-    evidence: [simulation/images/cutouts.py, simulation/images/compose.py]
+    docs: [vision:docs/07-results.md, vision:docs/03-synthetic-image-pipeline.md]
+    evidence: [vision:src/smarthive_vision/synth/cutouts.py, vision:src/smarthive_vision/synth/compose.py]
     subtasks:
       - {summary: "Disjoint asset pool download (600 per class)", assignee: adrien, hours: 1, status: Done}
       - {summary: "YOLOE + SAM 2.1 cutout extraction with shape filters", assignee: adrien, hours: 4, status: Done}
@@ -917,7 +917,7 @@ stories:
     ac:
       - "Given the report, when read, then every metric names its tier (S, P, C, F) and the domain gap is stated"
       - "Given the demo, when run, then node (or simulator) to server to dashboard to alert works live"
-    docs: [docs/03-vision/07-results.md]
+    docs: [vision:docs/07-results.md]
     subtasks:
       - {summary: "Demo script and demo_day scenario rehearsal", assignee: maria, hours: 4, status: To Do}
       - {summary: "Evaluation report (vision, telemetry models)", assignee: adrien, hours: 6, status: To Do}
@@ -939,8 +939,8 @@ stories:
       - "Given v0.3 data, when stage 1 is fine-tuned from v0.2, then tier P calibration accuracy and the hornet false-positive count on real 'other' photos are compared with v0.2 (result: no gain, hornet false positives rose, v0.3 recorded as a negative result)"
       - "Given the chosen model (v0.2), when the frozen tier P test split is opened once, then its numbers are reported in the results document next to tier S, the system-level test and the latency estimate"
       - "Given the release, when published under models/v0.2, then it has a model card, checksums and the attribution list of the real photos"
-    docs: [docs/03-vision/07-results.md, models/v0.2/MODEL_CARD.md]
-    evidence: [docs/03-vision/07-results.md, models/v0.2/MODEL_CARD.md]
+    docs: [vision:docs/07-results.md, vision:models/v0.2/MODEL_CARD.md]
+    evidence: [vision:docs/07-results.md, vision:models/v0.2/MODEL_CARD.md]
     subtasks:
       - {summary: "Second disjoint pool (2,100 photos) and cutouts v2", assignee: adrien, hours: 2, status: Done}
       - {summary: "Generator v0.3: more distractors per scene, several cutout folders", assignee: adrien, hours: 1, status: Done}
@@ -965,8 +965,8 @@ stories:
       - "Given a visual check of 15 random auto-labeled photos, when reviewed, then the label noise is reported in the results document (2 wrong, 1 partial, 2 photos with unboxed insects)"
       - "Given v0.4 trained with the v0.2 recipe on v0.2 scenes plus the photos, when evaluated, then tier S does not drop against v0.2 and tier P is reported on calib, then on the test split once (result: test accuracy 0.728 against 0.433, hornet P/R 0.68/0.83)"
       - "Given the release, when published under models/v0.4, then it has a model card, checksums and the attribution list of every real photo used"
-    docs: [docs/adr/0010-real-photos-with-automatic-labels.md, docs/03-vision/07-results.md, models/v0.4/MODEL_CARD.md]
-    evidence: [vision/pseudolabel.py, docs/03-vision/07-results.md, models/v0.4/MODEL_CARD.md]
+    docs: [vision:docs/adr/0010-real-photos-with-automatic-labels.md, vision:docs/07-results.md, vision:models/v0.4/MODEL_CARD.md]
+    evidence: [vision:src/smarthive_vision/pseudolabel.py, vision:docs/07-results.md, vision:models/v0.4/MODEL_CARD.md]
     subtasks:
       - {summary: "ADR-0010: review the 3D rendering and diffusion proposal", assignee: adrien, hours: 2, status: Done}
       - {summary: "pseudolabel.py: YOLOE boxes, iNaturalist classes, observation-level exclusion of tier P", assignee: adrien, hours: 2, status: Done}
@@ -990,8 +990,8 @@ stories:
       - "Given the 2026-09-27 iNaturalist snapshot (36 GB), when streamed and filtered without storing it, then research-grade CC0/CC BY first photos of 27 taxon groups are indexed with observer, date and position (result: 743,462 photos)"
       - "Given that index, when tier P v2 is built, then photographers are hashed into test, calibration and training buckets, no photographer is on two sides, and test holds at least 450 hornets and 600 look-alike insects in named groups (result: 500 bee, 477 hornet, 635 look-alikes in 23 groups)"
       - "Given Open Images V7, when bee boxes are filtered, then only photos whose bees are boxed one by one are kept, with author and license per photo (result: 2,896 photos, 5,267 boxes)"
-    docs: [docs/04-data/01-data-problem-and-strategy.md, docs/03-vision/05-training-and-evaluation.md]
-    evidence: [vision/inat.py, vision/openimages.py, vision/splits/P-inat-v2.tsv]
+    docs: [docs/04-data/01-data-problem-and-strategy.md, vision:docs/05-training-and-evaluation.md]
+    evidence: [vision:src/smarthive_vision/inat.py, vision:src/smarthive_vision/openimages.py, vision:src/smarthive_vision/splits/P-inat-v2.tsv]
     subtasks:
       - {summary: "Probe reachable hosts; choose snapshot and Open Images", assignee: adrien, hours: 1, status: Done}
       - {summary: "inat.py: header-based streaming filter, 27 groups, most specific ancestor", assignee: adrien, hours: 3, status: Done}
@@ -1013,8 +1013,8 @@ stories:
       - "Given that YOLOE text prompts load Apple's research-only MobileCLIP weights, when the labeling pipeline is reviewed, then ADR-0011 records the finding and no code calls text prompts"
       - "Given prompt-free YOLOE proposals and an insectness classifier trained on Open Images human boxes, when scored on held-out Open Images photos, then precision and recall at IoU 0.5 are reported per threshold (result: 0.65 / 0.65 at insect probability 0.7)"
       - "Given the 13,090-photo training pool, when labeled and tidied, then a visual audit is recorded (result: 10,783 photos, 12,732 boxes; 6,497 SAM 2.1 cutouts)"
-    docs: [docs/adr/0011-osi-clean-automatic-labeling.md, docs/03-vision/03-synthetic-image-pipeline.md]
-    evidence: [vision/labeler.py, vision/insectness.py, vision/pseudolabel.py, simulation/images/cutouts.py]
+    docs: [vision:docs/adr/0011-osi-clean-automatic-labeling.md, vision:docs/03-synthetic-image-pipeline.md]
+    evidence: [vision:src/smarthive_vision/labeler.py, vision:src/smarthive_vision/insectness.py, vision:src/smarthive_vision/pseudolabel.py, vision:src/smarthive_vision/synth/cutouts.py]
     subtasks:
       - {summary: "Check MobileCLIP license; ADR-0011; delete the weights", assignee: adrien, hours: 1, status: Done}
       - {summary: "Benchmark prompt-free YOLOE sizes against Open Images boxes", assignee: adrien, hours: 2, status: Done}
@@ -1038,8 +1038,8 @@ stories:
       - "Given the v0.5 detector, when the two verifier thresholds are chosen on calibration as the most accurate pair with hornet recall >= 0.90 and precision >= 0.70, then they become the pipeline defaults (result: vth 0.2, flip 0.6)"
       - "Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())"
       - "Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)"
-    docs: [docs/03-vision/04-model-architecture.md]
-    evidence: [vision/verifier.py, vision/pipeline.py]
+    docs: [vision:docs/04-model-architecture.md]
+    evidence: [vision:src/smarthive_vision/verifier.py, vision:src/smarthive_vision/pipeline.py]
     subtasks:
       - {summary: "Verifier dataset: real crops by photographer bucket, synthetic crops", assignee: adrien, hours: 2, status: Done}
       - {summary: "Train, export to ncnn, compare with PyTorch", assignee: adrien, hours: 2, status: Done}
@@ -1063,8 +1063,8 @@ stories:
       - "Given the verifier, when detector thresholds are lowered on synthetic seed 8, then tier S hornet and beetle recall rise without a hornet precision below 0.95 (result: bee 0.25, hornet 0.30, beetle 0.35)"
       - "Given the chosen models, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups (result: 0.886 vs 0.652; hornet P/R 0.899/0.893 vs 0.570/0.748; look-alikes called hornet 34 vs 210; P v1 0.862 vs 0.728)"
       - "Given the release, when published under models/v0.5, then it has a model card, checksums, attribution of all 11,392 real photos and the Pi 3B latency estimate including stage 1b (result: 251 ms detector, 46 ms per verifier crop, 33 ms per bee, 173 MB)"
-    docs: [docs/03-vision/07-results.md, models/v0.5/MODEL_CARD.md]
-    evidence: [models/v0.5/MODEL_CARD.md, docs/03-vision/07-results.md]
+    docs: [vision:docs/07-results.md, vision:models/v0.5/MODEL_CARD.md]
+    evidence: [vision:models/v0.5/MODEL_CARD.md, vision:docs/07-results.md]
     subtasks:
       - {summary: "Compose v0.5 scenes with cutouts v3", assignee: adrien, hours: 1, status: Done}
       - {summary: "Train YOLO26n detector and YOLO26n-cls stage 2", assignee: adrien, hours: 3, status: Done}
@@ -1089,7 +1089,7 @@ stories:
       - "Given stage 1 at 416 px, when compared with 320 px, then beetle recall (tier S) and the estimated Pi 3B latency are both reported, and 416 px is kept only if stage 1 stays under 1.0 s"
       - "Given stage 2, when its threshold is re-tuned on crops at 2 to 5 % Varroa prevalence, then precision and recall at that prevalence are reported"
       - "Given team captures of real bees at the entrance (tier C), when labeled, then the detector and verifier are scored on them"
-    docs: [docs/03-vision/07-results.md, docs/03-vision/05-training-and-evaluation.md]
+    docs: [vision:docs/07-results.md, vision:docs/05-training-and-evaluation.md]
     subtasks:
       - {summary: "Capture empty-board backgrounds with the mounted camera", assignee: ricardo, hours: 2, status: To Do}
       - {summary: "Generator: tier C backgrounds", assignee: adrien, hours: 4, status: To Do}
