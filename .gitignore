@@ -25,11 +25,12 @@ dist/
 *.pt
 *.pth
 *.tflite
-*.ncnn.bin
-*.ncnn.param
 runs/
 mlruns/
 !docs/assets/**
+
+# Pinned vision release downloaded by scripts/fetch_vision.py
+vendor/
 
 # Secrets and local config
 .env
@@ -47,7 +48,3 @@ mlruns/
 .DS_Store
 Thumbs.db
 
-# Model weights downloaded by tools (YOLOE text encoder, SAM, ...)
-mobileclip*.ts
-!models/**/*.ncnn.bin
-!models/**/*.ncnn.param
