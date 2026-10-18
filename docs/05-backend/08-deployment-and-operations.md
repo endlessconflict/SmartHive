@@ -85,6 +85,19 @@ US04 (data protected in transit) is covered by TLS on both MQTT and HTTPS. EL-28
 | Node SD card | Full image after a known-good setup | After each node software milestone |
 | Restore test | Restore last night's dump into a scratch database and run a row count check | Once per sprint |
 
+### How the nightly job works
+
+The worker runs once a day after `SMARTHIVE_MAINTENANCE_HOUR_UTC` (default 3). It first drops `node_health` chunks older than 90 days and images past `expires_at` (the files too, unless another image row still uses the same file), then, if `SMARTHIVE_BACKUP_DIR` is set, writes `smarthive-YYYYMMDD-HHMMSS.dump` there and keeps the newest `SMARTHIVE_BACKUP_KEEP` (default 14). Next to each dump it saves a `.json` file with the row counts taken just before the dump. The backend image carries `pg_dump` and `pg_restore` 16, matching the database image.
+
+Run the same steps by hand:
+
+```bash
+docker compose exec worker smarthive backup                          # prints the dump path
+docker compose exec worker smarthive restore-check /backups/<file>.dump
+```
+
+`restore-check` restores into a scratch database, compares the row counts with the saved ones, drops the scratch database, and exits non-zero if any table came back short. Run it before every sprint review. The image volume still needs its own nightly `rsync`; the worker does not copy images.
+
 ## CI
 
 GitHub Actions, free for public repositories:
@@ -116,4 +129,6 @@ Enough to answer "is it working?" during a demo, without a monitoring project:
 | Data arrives with odd timestamps | `clock_synced` flags; chrony status on the node and gateway |
 | No email notifications | Mailpit in dev; worker logs; `notifications` rows with `failed` status |
 | Charts have gaps | Normal if the node was offline; check `outbox_pending` in health after reconnection |
+| Disk filling up | `du -sh` on the backup and image volumes; `docker compose logs worker \| grep -E "purged|backup_written|nightly_failed"` shows what the last night did |
+| No backup file this morning | `docker compose logs worker \| grep nightly_failed`; run `smarthive backup` by hand and read the error (`pg_dump failed: ...`) |
 | Duplicate-looking data | Should be impossible (primary key on `msg_id`); if seen, check the node's `msg_id` generation |
