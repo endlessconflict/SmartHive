@@ -9,7 +9,9 @@ One Python package (`smarthive`) with several entry points, deployed as separate
 | Entry point | Job | State |
 |---|---|---|
 | `smarthive ingest` | Subscribe to MQTT, validate payloads, store every node topic idempotently | Done |
-| `smarthive api` | FastAPI app: REST, WebSocket live feed, image upload from nodes, exports | Planned |
+| `smarthive api` | FastAPI app: REST, WebSocket live feed, image upload from nodes, exports | Login, refresh, logout, `/me`, apiaries list, health checks |
+| `smarthive migrate` | Apply the database migrations (what the Compose stack runs before the other services) | Done |
+| `smarthive create-user` | Create the first administrator without SQL; the password is prompted for or read from stdin | Done |
 | `smarthive worker` | Rules, alert lifecycle, notifications, node-offline detection, ML job scheduling | Planned |
 
 ## Layout
@@ -83,6 +85,20 @@ docker exec sh-pg psql -U smarthive -c \
 ```
 
 This ran on a synthetic fixture modelled on the messaging contract, not on hardware or the simulator. The second batch logs `inserted: 0, duplicates: 3`.
+
+## Docker image
+
+One image runs every process; the command picks which.
+
+```bash
+docker build -t smarthive-backend backend
+docker run --rm --env-file backend/.env smarthive-backend migrate
+echo "a-long-password" | docker run --rm -i --env-file backend/.env smarthive-backend create-user --email you@example.com --name "You" --password-stdin
+docker run -d -p 8000:8000 --env-file backend/.env smarthive-backend api --host 0.0.0.0     # then GET /api/v1/docs
+docker run -d --env-file backend/.env smarthive-backend ingest
+```
+
+It runs as a non-root user (uid 10001). `SMARTHIVE_JWT_SECRET` is mandatory for `api`; there is no default.
 
 ## Tests
 

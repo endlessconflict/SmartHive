@@ -23,6 +23,15 @@ FastAPI generates the OpenAPI document at `/api/v1/openapi.json`; the dashboard 
 | Nodes | `Authorization: Bearer <device token>` on `/device/v1/*`, token hash stored in `nodes` |
 | WebSocket | Access token sent in the first message after connecting, not in the URL |
 
+Details as built (SCRUM-84):
+
+- The refresh token is an opaque random value in the cookie `refresh_token` (HttpOnly, Secure, SameSite=Strict, path `/api/v1/auth`, 14 days). The database keeps its SHA-256 only.
+- Every `refresh` rotates it. A token that was already rotated and is presented again means it leaked, so all sessions of that user are closed.
+- Five failed logins per client address in 15 minutes return `429` with `Retry-After`. Behind Caddy the address comes from `X-Forwarded-For`, trusted only from `SMARTHIVE_FORWARDED_ALLOW_IPS`.
+- Wrong password and unknown email return the same `401` after the same hashing work.
+- `GET /healthz` is liveness, `GET /readyz` is readiness (database), both outside `/api/v1`. Errors are `application/problem+json`; validation errors add an `errors` list with the field paths.
+- Lists return `{"items": [...], "next_cursor": "..."}`; pass `limit` (1 to 200) and `cursor`.
+
 Authorization: a `beekeeper` sees apiaries they own; an `admin` sees everything and manages nodes and users (EL-01 working assumption).
 
 ## Endpoints
