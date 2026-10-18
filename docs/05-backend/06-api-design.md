@@ -117,6 +117,8 @@ Example response for `readings`:
 
 Exports include the `quality` and `clock_synced` columns, and a header comment with the hive, the node, and whether the data is simulated.
 
+`hive_id` is required, `quantity` is optional (readings only), and `start` and `end` default to the last 30 days. `format` is `csv` (comment lines start with `# `) or `jsonl` (the first line is `{"meta": {...}}`). Simulated nodes are left out unless `include_simulated=true`; the header then says `simulated: yes` or `mixed`. Weather is fetched from Open-Meteo by the worker once a day for every apiary with coordinates, and served at `GET /hives/{id}/weather`.
+
 ### Device endpoints
 
 | Method and path | Purpose |
