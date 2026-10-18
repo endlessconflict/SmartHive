@@ -294,6 +294,16 @@ CREATE TABLE commands (
 
 `management_events` matters more than it looks. When the beekeeper logs "inspection 10:00 to 10:20", the anomaly job and the rules ignore the weight and temperature disturbance in that window, and the yield model can subtract harvests. Without it, every inspection looks like an anomaly.
 
+### Who writes what
+
+| Table | Written by | Read by |
+|---|---|---|
+| `management_events` | The beekeeper, through `POST /hives/{id}/management-events` | Alert rules, ML features, the dashboard |
+| `anomalies` | ML jobs, with `smarthive.jobs.write_anomaly` | `GET /hives/{id}/anomalies` |
+| `predictions` | ML jobs, with `smarthive.jobs.write_prediction` | `GET /hives/{id}/predictions` |
+
+A job reads its input with `smarthive.jobs.read_features`, which returns bucketed readings of quality `ok` and leaves out everything taken during a logged event or in the 30 minutes after it. Every row a job writes carries the model name; the functions refuse an empty one. Units: weights in kilograms, temperatures in degrees Celsius, `horizon` as an interval, `p10 <= p50 <= p90`. The columns are the ones above; Diego should confirm them before the first model writes (SCRUM-88, criterion 4).
+
 ## Retention
 
 Run by the worker every night:

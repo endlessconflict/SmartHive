@@ -1,5 +1,6 @@
 """The FastAPI application. `create_app()` is a factory, so tests pass their own settings and database."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -7,8 +8,22 @@ from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from smarthive.api import errors
+from smarthive.api.live import Hub, keep_listening
 from smarthive.api.ratelimit import FailureLimiter
-from smarthive.api.routes import alerts, apiaries, auth, exports, health, hives, images, me, nodes, readings
+from smarthive.api.routes import (
+    alerts,
+    apiaries,
+    auth,
+    exports,
+    health,
+    hives,
+    images,
+    management,
+    me,
+    nodes,
+    readings,
+    ws,
+)
 from smarthive.config import Settings
 
 
@@ -22,9 +37,12 @@ def create_app(settings: Settings | None = None, engine: AsyncEngine | None = No
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if not hasattr(app.state, "engine"):
             app.state.engine = create_async_engine(settings.db_url, pool_pre_ping=True)
+        listener = asyncio.create_task(keep_listening(settings.db_url, app.state.hub))
         try:
             yield
         finally:
+            listener.cancel()
+            await asyncio.gather(listener, return_exceptions=True)
             if owns_engine:
                 await app.state.engine.dispose()
 
@@ -37,10 +55,24 @@ def create_app(settings: Settings | None = None, engine: AsyncEngine | None = No
         lifespan=lifespan,
     )
     app.state.settings = settings
+    app.state.hub = Hub()
     if engine is not None:
         app.state.engine = engine
     app.state.login_limiter = FailureLimiter(settings.login_max_failures, settings.login_window_s)
     errors.install(app)
-    for module in (health, auth, me, apiaries, hives, images, nodes, readings, alerts, exports):
+    for module in (
+        health,
+        auth,
+        me,
+        apiaries,
+        hives,
+        images,
+        management,
+        nodes,
+        readings,
+        alerts,
+        ws,
+        exports,
+    ):
         app.include_router(module.router)
     return app

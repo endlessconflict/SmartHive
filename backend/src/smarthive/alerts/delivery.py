@@ -10,16 +10,22 @@ import smtplib
 import urllib.request
 from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
+from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+from jinja2 import Environment, PackageLoader, select_autoescape
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from smarthive.api.deps import Db
 from smarthive.config import Settings
+from smarthive.thumbnails import thumbnail
 
 log = logging.getLogger("smarthive.delivery")
+_templates = Environment(
+    loader=PackageLoader("smarthive", "templates"), autoescape=select_autoescape(["html"])
+)
 
 _DUE = text(
     "SELECT n.id FROM notifications n WHERE n.status = 'pending' AND n.channel = ANY(:channels) "
@@ -27,7 +33,9 @@ _DUE = text(
 )
 _CLAIM = text(
     "SELECT n.id, n.channel, n.attempts, n.user_id, u.email, u.ntfy_topic, "
-    "a.title, a.severity, a.rule_id, a.details, a.opened_at, h.name AS hive_name "
+    "a.title, a.severity, a.rule_id, a.details, a.opened_at, h.name AS hive_name, "
+    "(SELECT i.path FROM images i WHERE i.hive_id = a.hive_id AND i.captured_at <= a.opened_at + interval '5 minutes' "
+    "AND i.captured_at >= a.opened_at - interval '1 hour' ORDER BY i.captured_at DESC LIMIT 1) AS image_path "
     "FROM notifications n JOIN users u ON u.id = n.user_id JOIN alerts a ON a.id = n.alert_id "
     "LEFT JOIN hives h ON h.id = a.hive_id "
     "WHERE n.id = :id AND n.status = 'pending' FOR UPDATE OF n SKIP LOCKED"
@@ -43,10 +51,34 @@ def _body(row: Any) -> str:
     return f"{row.title}{where}\nSeverity: {row.severity}\nRule: {row.rule_id}\nOpened: {row.opened_at:%Y-%m-%d %H:%M UTC}"
 
 
+def _alert_thumbnail(settings: Settings, row: Any) -> bytes | None:
+    """The hive's picture around the time of the alert, 320 px wide; None if there is none or it is gone."""
+    if not row.image_path:
+        return None
+    try:
+        return thumbnail(Path(settings.image_dir), row.image_path, 320).read_bytes()
+    except OSError:
+        return None
+
+
 def _send_email(settings: Settings, row: Any) -> None:
+    image = _alert_thumbnail(settings, row)
+    ctx = {
+        "title": row.title,
+        "severity": row.severity,
+        "rule_id": row.rule_id,
+        "hive_name": row.hive_name,
+        "opened_at": f"{row.opened_at:%Y-%m-%d %H:%M UTC}",
+        "has_image": image is not None,
+    }
     msg = EmailMessage()
     msg["From"], msg["To"], msg["Subject"] = settings.mail_from, row.email, f"[SmartHive] {row.title}"
-    msg.set_content(_body(row))
+    msg.set_content(_templates.get_template("alert_email.txt").render(ctx))
+    msg.add_alternative(_templates.get_template("alert_email.html").render(ctx), subtype="html")
+    if image:
+        html = msg.get_body(("html",))
+        assert html is not None
+        html.add_related(image, "image", "jpeg", cid="<alert-image>")
     assert settings.smtp_host
     with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
         if settings.smtp_starttls:

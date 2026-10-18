@@ -15,6 +15,8 @@ Everything needed to set up the SmartHive project in Jira and keep it in sync wi
 python docs/jira/build.py     # after every edit to backlog.yaml
 ```
 
+> **Note on the live project.** The real Jira key is `SCRUM`, not `SH`, and the sprints are S1 to S8 (S4 is Oct 19 to Nov 1, S8 is Dec 14 to 20). `backlog.yaml` still uses the names SH Sprint 3 to SH Sprint 10. From US07 on, Jira story numbers run one behind the repository IDs. The backend epic (SCRUM-81) exists only in Jira; its plan is in [`docs/05-backend/09-backend-plan.md`](../05-backend/09-backend-plan.md).
+
 ## Project setup (once)
 
 1. Create a **Scrum** project, key `SH`, name SmartHive. A company-managed project gives the most control over fields; a team-managed one also works (see notes below).

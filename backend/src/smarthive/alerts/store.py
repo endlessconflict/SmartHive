@@ -11,6 +11,7 @@ from sqlalchemy import text
 from smarthive.api.deps import Db
 from smarthive.ingest.handler import CHANNEL  # noqa: F401  (re-exported for the worker)
 
+ALERT_CHANNEL = "smarthive_alerts"  # the WebSocket feed; the worker listens to CHANNEL only, so no loop
 _RANK = {"info": 0, "warning": 1, "critical": 2}
 COOLDOWN_HOURS = 6  # a condition a user resolved by hand does not reopen right away
 # ponytail: one cooldown for every rule, per-rule setting if beekeepers want different quiet periods
@@ -53,6 +54,7 @@ async def raise_alert(
                 conn, open_alert.id, "escalated", None, {"from": open_alert.severity, "to": f.severity}
             )
             await _notify(conn, open_alert.id, f.severity, f.hive_id, f.node_id, now)
+            await _announce(conn, open_alert.id)
         return None
     blocked = (
         await conn.execute(
@@ -92,7 +94,19 @@ async def raise_alert(
         return None
     await _log(conn, alert_id, "opened", None, {"severity": severity})
     await _notify(conn, alert_id, severity, f.hive_id, f.node_id, now)
+    await _announce(conn, alert_id)
     return alert_id
+
+
+async def _announce(conn: Db, alert_id: UUID) -> None:
+    """Tell the WebSocket feed about an alert's new state; delivered when the transaction commits."""
+    await conn.execute(
+        text(
+            "SELECT pg_notify(:ch, json_build_object('alert_id', a.id, 'state', a.state, 'severity', a.severity, "
+            "'title', a.title, 'hive_id', a.hive_id)::text) FROM alerts a WHERE a.id = :id"
+        ),
+        {"ch": ALERT_CHANNEL, "id": alert_id},
+    )
 
 
 async def _log(conn: Db, alert_id: UUID, kind: str, actor: UUID | None, data: dict[str, Any]) -> None:
@@ -157,6 +171,7 @@ async def resolve_stale(conn: Db, rule_id: str, live_keys: set[str], now: dateti
     ).all()
     for r in rows:
         await _log(conn, r.id, "auto_resolved", None, {})
+        await _announce(conn, r.id)
     return len(rows)
 
 
@@ -179,4 +194,5 @@ async def transition(conn: Db, alert_id: UUID, to: str, actor: UUID, note: str |
     ).first()
     if done:
         await _log(conn, alert_id, to, actor, {"note": note} if note else {})
+        await _announce(conn, alert_id)
     return done is not None
