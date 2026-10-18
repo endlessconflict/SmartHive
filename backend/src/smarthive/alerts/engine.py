@@ -8,7 +8,7 @@ import asyncpg
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from smarthive.alerts import store
+from smarthive.alerts import delivery, store
 from smarthive.alerts.rules import RULES
 from smarthive.api.deps import Db
 from smarthive.config import Settings
@@ -54,6 +54,7 @@ async def run(settings: Settings, stop: asyncio.Event) -> None:
             try:
                 opened = await evaluate_all(engine)
                 log.info("alerts_evaluated", extra={"fields": {"opened": opened}})
+                await delivery.deliver_pending(engine, settings)
             except Exception:
                 log.exception("evaluation_failed")
             wake.clear()
