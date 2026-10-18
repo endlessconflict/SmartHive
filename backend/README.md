@@ -53,7 +53,7 @@ alembic upgrade head
 smarthive ingest                  # JSON logs; Ctrl+C finishes the batch in flight, then exits
 ```
 
-The broker above has no TLS and no authentication: it is for a laptop only. For TLS set `SMARTHIVE_MQTT_PORT=8883`, `SMARTHIVE_MQTT_TLS_CA=/path/to/ca.crt` and the username and password.
+The broker above has no TLS and no authentication: it is for a laptop only. The broker in `infra/` requires mutual TLS: set `SMARTHIVE_MQTT_PORT=8883`, `SMARTHIVE_MQTT_TLS_CA`, `SMARTHIVE_MQTT_TLS_CERT` and `SMARTHIVE_MQTT_TLS_KEY` to the files from `infra/pki/gen_certs.sh backend`. The MQTT user is the certificate's CN, so no username or password is needed.
 
 Demo, from another terminal: publish the fixture twice, then count.
 
@@ -72,6 +72,7 @@ This ran on a synthetic fixture modelled on the messaging contract, not on hardw
 ```bash
 pytest tests/unit                 # no Docker
 pytest                            # everything; the integration tests start TimescaleDB and Mosquitto with Testcontainers
+                                  # (needs Docker, bash and openssl: test_broker_contract.py issues certificates with infra/pki/gen_certs.sh)
 ruff check . && ruff format --check . && mypy
 ```
 
