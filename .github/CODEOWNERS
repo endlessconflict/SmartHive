@@ -2,7 +2,7 @@
 # The last matching pattern wins.
 *                                           @endlessconflict
 /backend/                                   @endlessconflict
-/edge/                                      @ricardo964 @JCKaren @leohatvani
+/edge/                                      @ricardo964 @JCKaren @acubilla18
 /frontend/                                  @MariAgudelo2
 /ml/                                        @dialva98
 /simulation/                                @dialva98 @endlessconflict
@@ -13,5 +13,5 @@
 /docs/05-backend/04-messaging-contract.md   @JCKaren @endlessconflict
 /docs/05-backend/05-data-model.md           @endlessconflict @dialva98
 /docs/05-backend/06-api-design.md           @endlessconflict @MariAgudelo2
-/vision.lock                                @leohatvani @ricardo964
+/vision.lock                                @acubilla18 @ricardo964
 /.github/                                   @MariAgudelo2 @endlessconflict

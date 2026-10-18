@@ -78,7 +78,7 @@ Example response for `readings`:
 |---|---|---|
 | `GET /hives/{id}/images/latest` | Most recent image with its detected objects | US15 |
 | `GET /hives/{id}/images?reason=threat&from=&to=` | Image gallery | |
-| `GET /images/{id}` | Metadata; `GET /images/{id}/file` returns the JPEG (supports `?w=` thumbnails) | |
+| `GET /images/{id}` | Metadata; `GET /images/{id}/file` returns the JPEG (`?w=160`, `320` or `640` returns a smaller copy, cached under `thumbs/` in the image volume) | |
 | `GET /hives/{id}/detections?from=&to=&cls=` | Detection events | US09, US10 |
 | `GET /hives/{id}/varroa?from=&to=&bucket=1d` | Varroa index over time, with counts and confidence interval | US09 |
 | `GET /hives/{id}/traffic?from=&to=&bucket=1h` | Bee counts from summaries | |
@@ -143,6 +143,10 @@ The server pushes:
 {"type": "alert", "alert_id": "...", "state": "open", "severity": "critical", "title": "Hornet at the entrance"}
 {"type": "node_status", "node_id": "node-0001", "status": "offline"}
 ```
+
+The server answers `auth` with `{"type": "ready"}` and `subscribe` with `{"type": "subscribed", "hives": [...]}`, which lists only the hives the user may see; the others are dropped without an error. A first message that is not a valid `auth` within 10 seconds closes the socket with code 4401. A client that falls 100 messages behind is closed with 4408 and should reconnect and refetch.
+
+Two more messages tell the client to refetch: `{"type": "backfill", "hive_id": "..."}` when readings older than five minutes arrive, and `{"type": "resync"}` when the API lost its database connection and may have missed notifications. Administrators also receive alerts that belong to no hive.
 
 The source is PostgreSQL `LISTEN/NOTIFY`: the ingestor and the worker notify after committing, and the API process forwards to subscribed sockets. Late-arriving backlog data is not pushed as "live"; the dashboard refetches the chart range when it sees a `backfill` message for a hive.
 

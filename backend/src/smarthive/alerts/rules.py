@@ -17,6 +17,11 @@ from smarthive.api.deps import Db
 Evaluate = Callable[[Db, dict[str, Any], datetime], Awaitable[list[Finding]]]
 
 
+MASK_MARGIN = (
+    "30 minutes"  # readings this long after a logged management event are left out of rules and ML features
+)
+
+
 @dataclass(frozen=True)
 class Rule:
     id: str
@@ -155,7 +160,7 @@ def _out_of_range(rule_id: str, label: str) -> Evaluate:
                     "SELECT hive_id, avg(value) AS mean FROM readings WHERE hive_id IS NOT NULL "
                     "AND quantity = :q AND quality = 'ok' AND ts > CAST(:now AS timestamptz) - make_interval(hours => :h) AND ts <= CAST(:now AS timestamptz) "
                     "AND NOT EXISTS (SELECT 1 FROM management_events m WHERE m.hive_id = readings.hive_id "
-                    "AND m.started_at <= CAST(:now AS timestamptz) AND coalesce(m.ended_at, CAST(:now AS timestamptz)) > CAST(:now AS timestamptz) - interval '30 minutes') "
+                    f"AND m.started_at <= CAST(:now AS timestamptz) AND coalesce(m.ended_at, CAST(:now AS timestamptz)) > CAST(:now AS timestamptz) - interval '{MASK_MARGIN}') "
                     "GROUP BY hive_id HAVING bool_and(value < :lo OR value > :hi) "
                     "AND min(ts) <= CAST(:now AS timestamptz) - make_interval(hours => :h) * 0.9"
                 ),
