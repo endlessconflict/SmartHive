@@ -11,6 +11,7 @@ from sqlalchemy import text
 from smarthive.api.deps import Db
 from smarthive.ingest.handler import CHANNEL  # noqa: F401  (re-exported for the worker)
 
+_RANK = {"info": 0, "warning": 1, "critical": 2}
 COOLDOWN_HOURS = 6  # a condition a user resolved by hand does not reopen right away
 # ponytail: one cooldown for every rule, per-rule setting if beekeepers want different quiet periods
 
@@ -25,6 +26,7 @@ class Finding:
     details: dict[str, Any] = field(default_factory=dict)
     hive_id: UUID | None = None
     node_id: str | None = None
+    severity: str | None = None  # overrides the rule's stored severity, e.g. an escalated node_offline
 
 
 async def raise_alert(
@@ -37,11 +39,20 @@ async def raise_alert(
     touched = await conn.execute(
         text(
             "UPDATE alerts SET last_seen_at = CAST(:now AS timestamptz), details = CAST(:d AS jsonb) "
-            "WHERE dedup_key = :k AND state <> 'resolved' RETURNING id"
+            "WHERE dedup_key = :k AND state <> 'resolved' RETURNING id, severity"
         ),
         {"now": now, "d": json.dumps(f.details), "k": f.dedup_key},
     )
-    if touched.first():
+    open_alert = touched.first()
+    if open_alert:
+        if f.severity and _RANK[f.severity] > _RANK[open_alert.severity]:
+            await conn.execute(
+                text("UPDATE alerts SET severity = :s WHERE id = :id"), {"s": f.severity, "id": open_alert.id}
+            )
+            await _log(
+                conn, open_alert.id, "escalated", None, {"from": open_alert.severity, "to": f.severity}
+            )
+            await _notify(conn, open_alert.id, f.severity, f.hive_id, f.node_id, now)
         return None
     blocked = (
         await conn.execute(
@@ -54,6 +65,7 @@ async def raise_alert(
     ).first()
     if blocked:
         return None
+    severity = f.severity or severity
     alert_id = uuid4()
     row = (
         await conn.execute(

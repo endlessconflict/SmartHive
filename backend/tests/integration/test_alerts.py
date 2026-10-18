@@ -255,3 +255,77 @@ async def test_the_worker_wakes_on_notify(engine: AsyncEngine) -> None:
     finally:
         stop.set()
         await asyncio.wait_for(worker, 5)
+
+
+async def test_node_offline_escalates_to_critical_after_a_day(engine: AsyncEngine) -> None:
+    _, hive, node = await setup_hive(engine)
+    async with engine.begin() as c:
+        await c.execute(
+            text("UPDATE nodes SET last_seen_at = now() - interval '2 hours' WHERE id = :n"), {"n": node}
+        )
+    await evaluate_all(engine)
+    (alert,) = await alerts_of(engine, hive)
+    assert alert.severity == "warning"
+    async with engine.begin() as c:
+        await c.execute(
+            text("UPDATE nodes SET last_seen_at = now() - interval '25 hours' WHERE id = :n"), {"n": node}
+        )
+    await evaluate_all(engine)
+    await evaluate_all(engine)  # a second pass changes nothing more
+    (alert,) = await alerts_of(engine, hive)
+    assert alert.severity == "critical" and alert.state == "open"
+    async with engine.connect() as c:
+        kinds = [
+            r.kind
+            for r in await c.execute(
+                text("SELECT kind FROM alert_events WHERE alert_id = :a ORDER BY id"), {"a": alert.id}
+            )
+        ]
+        email = (
+            await c.execute(
+                text("SELECT count(*) FROM notifications WHERE alert_id = :a AND channel = 'email'"),
+                {"a": alert.id},
+            )
+        ).scalar()
+    assert kinds == ["opened", "escalated"] and email == 1
+
+
+async def test_a_last_will_opens_node_offline(engine: AsyncEngine) -> None:
+    _, hive, node = await setup_hive(engine)
+    async with engine.begin() as c:  # what the status handler writes on `status: offline`
+        await c.execute(text("UPDATE nodes SET status = 'offline' WHERE id = :n"), {"n": node})
+    await evaluate_all(engine)
+    (alert,) = await alerts_of(engine, hive)
+    assert alert.rule_id == "node_offline" and alert.state == "open"
+
+
+async def test_power_low_from_battery_or_the_undervoltage_flag(engine: AsyncEngine) -> None:
+    _, hive, node = await setup_hive(engine, simulated=True)  # simulated nodes are included
+    _, hive2, node2 = await setup_hive(engine)
+    now = datetime.now(UTC)
+    async with engine.begin() as c:
+        for m in (1, 4, 8):
+            await c.execute(
+                text(
+                    "INSERT INTO readings (ts, node_id, hive_id, quantity, value, quality, sensor, clock_synced, msg_id, idx) "
+                    "VALUES (:t, :n, :h, 'battery_v', 9.8, 'ok', 'ina219', true, :m, 0)"
+                ),
+                {"t": now - timedelta(minutes=m), "n": node, "h": hive, "m": uuid4()},
+            )
+            await c.execute(
+                text("INSERT INTO node_health (ts, node_id, data) VALUES (:t, :n, CAST(:d AS jsonb))"),
+                {"t": now - timedelta(minutes=m), "n": node2, "d": '{"throttled": {"under_voltage": true}}'},
+            )
+    await evaluate_all(engine, now)
+    (a1,) = await alerts_of(engine, hive)
+    (a2,) = await alerts_of(engine, hive2)
+    assert a1.rule_id == a2.rule_id == "node_power_low"
+    assert a1.details["reason"] == "battery_v" and a2.details["reason"] == "under_voltage"
+    await evaluate_all(engine, now + timedelta(minutes=30))  # nothing recent any more: both close
+    # (the nodes also look silent by then, so node_offline opens; only the power alerts are checked)
+    power = [
+        a
+        for a in await alerts_of(engine, hive) + await alerts_of(engine, hive2)
+        if a.rule_id == "node_power_low"
+    ]
+    assert [a.state for a in power] == ["resolved", "resolved"]
