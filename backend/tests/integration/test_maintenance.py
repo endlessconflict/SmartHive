@@ -41,6 +41,8 @@ async def test_purge_drops_old_health_and_expired_images_but_keeps_shared_files(
     for rel in ("aa/old.jpg", "bb/shared.jpg", "cc/fresh.jpg"):
         (tmp_path / rel).parent.mkdir(parents=True)
         (tmp_path / rel).write_bytes(b"x")
+    (tmp_path / "thumbs" / "320").mkdir(parents=True)
+    (tmp_path / "thumbs" / "320" / "old.jpg").write_bytes(b"x")
     await add_image(engine, node, "aa/old.jpg", now - timedelta(days=1))
     await add_image(engine, node, "bb/shared.jpg", now - timedelta(days=1))
     await add_image(engine, node, "bb/shared.jpg", now + timedelta(days=5))
@@ -51,7 +53,7 @@ async def test_purge_drops_old_health_and_expired_images_but_keeps_shared_files(
     async with engine.connect() as c:
         assert (await c.execute(text("SELECT count(*) FROM node_health"))).scalar_one() == 1
         assert (await c.execute(text("SELECT count(*) FROM images"))).scalar_one() == 2
-    assert not (tmp_path / "aa/old.jpg").exists()
+    assert not (tmp_path / "aa/old.jpg").exists() and not (tmp_path / "thumbs/320/old.jpg").exists()
     assert (tmp_path / "bb/shared.jpg").exists() and (tmp_path / "cc/fresh.jpg").exists()
     assert await maintenance.purge(engine, tmp_path, now) == {"health_chunks": 0, "images": 0, "files": 0}
 
