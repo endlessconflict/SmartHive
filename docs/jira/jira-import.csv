@@ -7,7 +7,7 @@ h3. Design documents
 2,,Epic,Pest & threat detection,"EPIC 2. The entrance camera and a two-stage model on the node detect hornets, small hive beetles and Varroa-carrying bees, and turn them into events and alerts.
 
 h3. Design documents
-* [docs/03-vision/README.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/README.md]",High,In Progress,Adrien Cubilla,vision,,smarthive,,,,,Pest & threat detection,,,,,
+* [vision:docs/README.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/README.md]",High,In Progress,Adrien Cubilla,vision,,smarthive,,,,,Pest & threat detection,,,,,
 3,,Epic,Colony dashboard,"EPIC 3. History, latest image, alert log and anomaly warnings for each colony.
 
 h3. Design documents
@@ -166,11 +166,11 @@ h3. Acceptance criteria
 # Given the renderer, when reviewed, then no external image or 3D model is used
 
 h3. Design documents
-* [docs/03-vision/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/03-synthetic-image-pipeline.md]
+* [vision:docs/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md]
 
 h3. Evidence (done)
-* [simulation/images/render.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/render.py]
-* [simulation/images/test_images.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/test_images.py]
+* [vision:src/smarthive_vision/synth/render.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/render.py]
+* [vision:tests/test_synth.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/tests/test_synth.py]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,simulation,vision,synthetic-data,vision,,8,SH Sprint 3,,Synthetic data platform,54000,,,
@@ -187,11 +187,11 @@ h3. Acceptance criteria
 # Given the dataset, when generated, then train and val use different sprite libraries and a dataset card is written
 
 h3. Design documents
-* [docs/03-vision/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/03-synthetic-image-pipeline.md]
+* [vision:docs/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md]
 * [docs/04-data/05-dataset-versioning-and-governance.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/04-data/05-dataset-versioning-and-governance.md]
 
 h3. Evidence (done)
-* [simulation/images/compose.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/compose.py]
+* [vision:src/smarthive_vision/synth/compose.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/compose.py]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,simulation,vision,synthetic-data,vision,,8,SH Sprint 3,,Synthetic data platform,57600,,,
@@ -211,8 +211,8 @@ h3. Design documents
 * [docs/04-data/01-data-problem-and-strategy.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/04-data/01-data-problem-and-strategy.md]
 
 h3. Evidence (done)
-* [vision/inat.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/inat.py]
-* [vision/splits/P-inat-v1.tsv|https://github.com/endlessconflict/SmartHive/blob/main/vision/splits/P-inat-v1.tsv]
+* [vision:src/smarthive_vision/inat.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/inat.py]
+* [vision:src/smarthive_vision/splits/P-inat-v1.tsv|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/splits/P-inat-v1.tsv]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,Adrien Cubilla,vision,,real-data,evaluation,,5,SH Sprint 3,,Synthetic data platform,28800,,,
@@ -243,8 +243,8 @@ h3. Acceptance criteria
 # Given a configurable interval, when no motion happens for an hour, then one periodic image is still kept for the dashboard
 
 h3. Design documents
-* [docs/03-vision/06-edge-deployment.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/06-edge-deployment.md]
-* [docs/03-vision/02-camera-and-optics.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/02-camera-and-optics.md]
+* [vision:docs/06-edge-deployment.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/06-edge-deployment.md]
+* [vision:docs/02-camera-and-optics.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/02-camera-and-optics.md]
 
 h3. Blocked by
 HW-01
@@ -252,7 +252,7 @@ HW-01
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,To Do,Ricardo Villarreal,edge,hardware,camera,,,5,SH Sprint 6,,Pest & threat detection,32400,,,
 94,19,Sub-task,[US07.1] picamera2 dual stream (or V4L2) capture service,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Ricardo Villarreal,edge,,camera,,,,SH Sprint 6,,,18000,,,
-95,19,Sub-task,[US07.2] Motion gate (vision/pipeline.py MotionGate) wired to capture,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Adrien Cubilla,edge,,camera,,,,SH Sprint 6,,,7200,,,
+95,19,Sub-task,[US07.2] Motion gate (smarthive_vision.pipeline.MotionGate) wired to capture,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Adrien Cubilla,edge,,camera,,,,SH Sprint 6,,,7200,,,
 96,19,Sub-task,[US07.3] Night mode and periodic sample,Sub-task of US07: Periodic hive entrance image capture.,High,To Do,Ricardo Villarreal,edge,,camera,,,,SH Sprint 6,,,7200,,,
 20,2,Story,[US08] Storage optimization based on relevance,"h3. User story
 As a beekeeper, I want the system to store only images where something relevant is detected so that storage is used efficiently.
@@ -281,12 +281,12 @@ h3. Acceptance criteria
 # Given a rolling window, when bees are classified, then the Varroa index is reported with its count and 95 % Wilson interval
 
 h3. Design documents
-* [docs/03-vision/04-model-architecture.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/04-model-architecture.md]
-* [docs/03-vision/05-training-and-evaluation.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/05-training-and-evaluation.md]
+* [vision:docs/04-model-architecture.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md]
+* [vision:docs/05-training-and-evaluation.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md]
 
 h3. Evidence (done)
-* [vision/pipeline.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/pipeline.py]
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
+* [vision:src/smarthive_vision/pipeline.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,In Progress,Adrien Cubilla,vision,edge,varroa,model,,13,SH Sprint 7,,Pest & threat detection,57600,,,
@@ -303,13 +303,13 @@ h3. Acceptance criteria
 # Given k-of-n aggregation, when a hornet appears in 3 of 10 analyzed frames, then exactly one threat_detected event is raised per episode
 
 h3. Design documents
-* [docs/03-vision/04-model-architecture.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/04-model-architecture.md]
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
+* [vision:docs/04-model-architecture.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
 
 h3. Evidence (done)
-* [vision/train.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/train.py]
-* [vision/eval_real.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/eval_real.py]
-* [vision/pipeline.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/pipeline.py]
+* [vision:src/smarthive_vision/train.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/train.py]
+* [vision:src/smarthive_vision/eval_real.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/eval_real.py]
+* [vision:src/smarthive_vision/pipeline.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,In Progress,Adrien Cubilla,vision,,hornet,shb,model,8,SH Sprint 6,,Pest & threat detection,54000,,,
@@ -326,12 +326,12 @@ h3. Acceptance criteria
 # Given the vision service, when running, then its RSS stays under its 250 MB systemd limit
 
 h3. Design documents
-* [docs/03-vision/06-edge-deployment.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/06-edge-deployment.md]
+* [vision:docs/06-edge-deployment.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/06-edge-deployment.md]
 
 h3. Evidence (done)
-* [vision/export.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/export.py]
-* [vision/bench.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/bench.py]
-* [vision/pipeline.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/pipeline.py]
+* [vision:src/smarthive_vision/export.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/export.py]
+* [vision:src/smarthive_vision/bench.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/bench.py]
+* [vision:src/smarthive_vision/pipeline.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py]
 
 h3. Blocked by
 HW-01
@@ -340,7 +340,7 @@ h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,In Progress,Ricardo Villarreal,vision,edge,edge-ai,ncnn,,8,SH Sprint 6,,Pest & threat detection,36000,20,,
 107,23,Sub-task,[US11.1] Export to ncnn and torch-free two-stage pipeline,Sub-task of US11: Edge AI detection model execution.,High,Done,Adrien Cubilla,vision,,edge-ai,,,,SH Sprint 6,,,14400,,,
 108,23,Sub-task,[US11.2] Pi latency estimate anchored to ncnn's published Pi 3B+ benchmarks,Sub-task of US11: Edge AI detection model execution.,High,Done,Adrien Cubilla,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
-109,23,Sub-task,[US11.3] Run vision/bench.py on the real Pi 3B and replace the estimate,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
+109,23,Sub-task,[US11.3] Run smarthive_vision.bench on the real Pi 3B and replace the estimate,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
 110,23,Sub-task,[US11.4] visiond systemd unit with MemoryMax,Sub-task of US11: Edge AI detection model execution.,High,To Do,Ricardo Villarreal,vision,,edge-ai,,,,SH Sprint 6,,,7200,,,
 24,2,Story,[US12] Multi-channel threat & pest notifications,"h3. User story
 As a beekeeper, I want to receive an in-app and email alert when a pest or intruder is detected so that I can act quickly without constantly checking the dashboard.
@@ -370,7 +370,7 @@ h3. Acceptance criteria
 # Given a gray card at several light levels, when captured, then the noise profile is fitted for the generator
 
 h3. Design documents
-* [docs/03-vision/02-camera-and-optics.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/02-camera-and-optics.md]
+* [vision:docs/02-camera-and-optics.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/02-camera-and-optics.md]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Ricardo Villarreal,hardware,,camera,,,5,SH Sprint 4,,Sensor node & IoT connectivity,32400,19,23,56
@@ -507,7 +507,7 @@ h3. Design documents
 * [docs/05-backend/08-deployment-and-operations.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/05-backend/08-deployment-and-operations.md]
 
 h3. Evidence (done)
-* [.github/workflows/tests.yml|https://github.com/endlessconflict/SmartHive/blob/main/.github/workflows/tests.yml]
+* [.github/workflows/backend.yml|https://github.com/endlessconflict/SmartHive/blob/main/.github/workflows/backend.yml]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,In Progress,Maria de los Angeles Agudelo,infra,,ci,,,3,SH Sprint 4,,Backend platform & DevOps,18000,,,
@@ -652,12 +652,12 @@ h3. Acceptance criteria
 # Given generator v0.2 and model v0.2, when evaluated on the tier P calibration split, then accuracy is compared with v0.1 in the results document
 
 h3. Design documents
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [docs/03-vision/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/03-synthetic-image-pipeline.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:docs/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md]
 
 h3. Evidence (done)
-* [simulation/images/cutouts.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/cutouts.py]
-* [simulation/images/compose.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/compose.py]
+* [vision:src/smarthive_vision/synth/cutouts.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/cutouts.py]
+* [vision:src/smarthive_vision/synth/compose.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/compose.py]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,simulation,vision,synthetic-data,sim-to-real,,5,SH Sprint 3,,Synthetic data platform,39600,,,
@@ -712,7 +712,7 @@ h3. Acceptance criteria
 # Given the demo, when run, then node (or simulator) to server to dashboard to alert works live
 
 h3. Design documents
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,To Do,Adrien Cubilla,docs,,demo,report,,8,SH Sprint 10,,Project foundations,46800,,,
@@ -729,12 +729,12 @@ h3. Acceptance criteria
 # Given the release, when published under models/v0.2, then it has a model card, checksums and the attribution list of the real photos
 
 h3. Design documents
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [models/v0.2/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive/blob/main/models/v0.2/MODEL_CARD.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:models/v0.2/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.2/MODEL_CARD.md]
 
 h3. Evidence (done)
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [models/v0.2/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive/blob/main/models/v0.2/MODEL_CARD.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:models/v0.2/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.2/MODEL_CARD.md]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",High,Done,Adrien Cubilla,simulation,vision,sim-to-real,evaluation,,5,SH Sprint 3,,Synthetic data platform,32400,,,
@@ -754,14 +754,14 @@ h3. Acceptance criteria
 # Given the release, when published under models/v0.4, then it has a model card, checksums and the attribution list of every real photo used
 
 h3. Design documents
-* [docs/adr/0010-real-photos-with-automatic-labels.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/adr/0010-real-photos-with-automatic-labels.md]
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [models/v0.4/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive/blob/main/models/v0.4/MODEL_CARD.md]
+* [vision:docs/adr/0010-real-photos-with-automatic-labels.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0010-real-photos-with-automatic-labels.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:models/v0.4/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.4/MODEL_CARD.md]
 
 h3. Evidence (done)
-* [vision/pseudolabel.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/pseudolabel.py]
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [models/v0.4/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive/blob/main/models/v0.4/MODEL_CARD.md]
+* [vision:src/smarthive_vision/pseudolabel.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pseudolabel.py]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:models/v0.4/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.4/MODEL_CARD.md]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,vision,,sim-to-real,evaluation,,5,SH Sprint 3,,Synthetic data platform,43200,,,
@@ -781,12 +781,12 @@ h3. Acceptance criteria
 
 h3. Design documents
 * [docs/04-data/01-data-problem-and-strategy.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/04-data/01-data-problem-and-strategy.md]
-* [docs/03-vision/05-training-and-evaluation.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/05-training-and-evaluation.md]
+* [vision:docs/05-training-and-evaluation.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md]
 
 h3. Evidence (done)
-* [vision/inat.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/inat.py]
-* [vision/openimages.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/openimages.py]
-* [vision/splits/P-inat-v2.tsv|https://github.com/endlessconflict/SmartHive/blob/main/vision/splits/P-inat-v2.tsv]
+* [vision:src/smarthive_vision/inat.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/inat.py]
+* [vision:src/smarthive_vision/openimages.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/openimages.py]
+* [vision:src/smarthive_vision/splits/P-inat-v2.tsv|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/splits/P-inat-v2.tsv]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,vision,,real-data,evaluation,,8,SH Sprint 3,,Synthetic data platform,32400,,,
@@ -803,14 +803,14 @@ h3. Acceptance criteria
 # Given the 13,090-photo training pool, when labeled and tidied, then a visual audit is recorded (result: 10,783 photos, 12,732 boxes; 6,497 SAM 2.1 cutouts)
 
 h3. Design documents
-* [docs/adr/0011-osi-clean-automatic-labeling.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/adr/0011-osi-clean-automatic-labeling.md]
-* [docs/03-vision/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/03-synthetic-image-pipeline.md]
+* [vision:docs/adr/0011-osi-clean-automatic-labeling.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0011-osi-clean-automatic-labeling.md]
+* [vision:docs/03-synthetic-image-pipeline.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md]
 
 h3. Evidence (done)
-* [vision/labeler.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/labeler.py]
-* [vision/insectness.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/insectness.py]
-* [vision/pseudolabel.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/pseudolabel.py]
-* [simulation/images/cutouts.py|https://github.com/endlessconflict/SmartHive/blob/main/simulation/images/cutouts.py]
+* [vision:src/smarthive_vision/labeler.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/labeler.py]
+* [vision:src/smarthive_vision/insectness.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/insectness.py]
+* [vision:src/smarthive_vision/pseudolabel.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pseudolabel.py]
+* [vision:src/smarthive_vision/synth/cutouts.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/cutouts.py]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,vision,,real-data,licensing,,5,SH Sprint 3,,Synthetic data platform,36000,,,
@@ -829,11 +829,11 @@ h3. Acceptance criteria
 # Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)
 
 h3. Design documents
-* [docs/03-vision/04-model-architecture.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/04-model-architecture.md]
+* [vision:docs/04-model-architecture.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md]
 
 h3. Evidence (done)
-* [vision/verifier.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/verifier.py]
-* [vision/pipeline.py|https://github.com/endlessconflict/SmartHive/blob/main/vision/pipeline.py]
+* [vision:src/smarthive_vision/verifier.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/verifier.py]
+* [vision:src/smarthive_vision/pipeline.py|https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,vision,edge,hornet,false-alarms,,5,SH Sprint 3,,Synthetic data platform,25200,,,
@@ -852,12 +852,12 @@ h3. Acceptance criteria
 # Given the release, when published under models/v0.5, then it has a model card, checksums, attribution of all 11,392 real photos and the Pi 3B latency estimate including stage 1b (result: 251 ms detector, 46 ms per verifier crop, 33 ms per bee, 173 MB)
 
 h3. Design documents
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [models/v0.5/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive/blob/main/models/v0.5/MODEL_CARD.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:models/v0.5/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.5/MODEL_CARD.md]
 
 h3. Evidence (done)
-* [models/v0.5/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive/blob/main/models/v0.5/MODEL_CARD.md]
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
+* [vision:models/v0.5/MODEL_CARD.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.5/MODEL_CARD.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
 
 h3. Definition of done
 See [CONTRIBUTING.md|https://github.com/endlessconflict/SmartHive/blob/main/CONTRIBUTING.md] (merged, tested, documented, demoed, data tier named).",Highest,Done,Adrien Cubilla,vision,,sim-to-real,evaluation,,8,SH Sprint 3,,Synthetic data platform,43200,,,
@@ -876,8 +876,8 @@ h3. Acceptance criteria
 # Given team captures of real bees at the entrance (tier C), when labeled, then the detector and verifier are scored on them
 
 h3. Design documents
-* [docs/03-vision/07-results.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/07-results.md]
-* [docs/03-vision/05-training-and-evaluation.md|https://github.com/endlessconflict/SmartHive/blob/main/docs/03-vision/05-training-and-evaluation.md]
+* [vision:docs/07-results.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md]
+* [vision:docs/05-training-and-evaluation.md|https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md]
 
 h3. Blocked by
 HW-01
