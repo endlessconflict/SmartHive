@@ -26,3 +26,6 @@ class Settings(BaseSettings):
     login_max_failures: int = 5  # per client address, within login_window_s
     login_window_s: int = 900
     forwarded_allow_ips: str = "127.0.0.1"  # proxies whose X-Forwarded-For is believed (Caddy's address)
+
+    # worker
+    alert_interval_s: int = 60

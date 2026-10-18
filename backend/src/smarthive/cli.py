@@ -46,6 +46,25 @@ def _ingest(settings: Settings) -> None:
         runner.run(main())
 
 
+def _worker(settings: Settings) -> None:
+    from smarthive.alerts.engine import run
+
+    async def main() -> None:
+        stop = asyncio.Event()
+        loop = asyncio.get_running_loop()
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            try:
+                loop.add_signal_handler(sig, stop.set)
+            except NotImplementedError:  # Windows event loops have no signal handlers
+                signal.signal(sig, lambda *_: loop.call_soon_threadsafe(stop.set))
+        await run(settings, stop)
+
+    # asyncpg's LISTEN callback needs no special loop, but keep the same loop as `ingest` on Windows
+    factory = asyncio.SelectorEventLoop if sys.platform == "win32" else None
+    with asyncio.Runner(loop_factory=factory) as runner:
+        runner.run(main())
+
+
 def _migrate(settings: Settings) -> None:
     from alembic import command
     from alembic.config import Config
@@ -111,6 +130,7 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="smarthive")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("ingest", help="subscribe to node topics and store them")
+    sub.add_parser("worker", help="evaluate alert rules and open alerts")
     sub.add_parser("migrate", help="apply database migrations up to the latest")
     api = sub.add_parser("api", help="serve the REST API")
     api.add_argument("--host", default="127.0.0.1")
@@ -128,6 +148,8 @@ def main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=settings.log_level.upper(), handlers=[handler])
     if args.command == "ingest":
         _ingest(settings)
+    elif args.command == "worker":
+        _worker(settings)
     elif args.command == "migrate":
         _migrate(settings)
     elif args.command == "api":
