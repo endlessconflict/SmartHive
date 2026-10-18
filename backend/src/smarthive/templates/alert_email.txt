@@ -1,0 +1,4 @@
+{{ title }}{% if hive_name %} on hive {{ hive_name }}{% endif %}
+Severity: {{ severity }}
+Rule: {{ rule_id }}
+Opened: {{ opened_at }}
