@@ -25,7 +25,7 @@ Consequences for the software:
 - No Docker on the node. Services run as plain systemd units with Python virtual environments.
 - No PyTorch on the node. Models are exported to NCNN or ONNX and run with a small runtime.
 - Each service gets a memory limit (`MemoryMax=` in systemd), so the vision service cannot starve the sensor service.
-- The detector input is 320 to 416 px, not 640 px. See [model architecture](../03-vision/04-model-architecture.md).
+- The detector input is 320 to 416 px, not 640 px. See [model architecture](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md).
 
 If a Pi 4 (2 GB or more) becomes available at no cost, the same software runs on it unchanged and roughly twice as fast. Nothing should depend on that.
 
@@ -86,7 +86,7 @@ Flash cards die from constant small writes and get corrupted by sudden power los
 
 ## 9. Camera requirements
 
-The camera is still "to be defined". Varroa decides the requirements: a 1.1 mm by 1.6 mm mite has to cover enough pixels to be recognizable. The [camera and optics document](../03-vision/02-camera-and-optics.md) works out the numbers. The short version: at least about 8 pixels per millimeter on the landing board, a focus distance that matches the mounting, and a CSI camera if possible because it takes less CPU than USB.
+The camera is still "to be defined". Varroa decides the requirements: a 1.1 mm by 1.6 mm mite has to cover enough pixels to be recognizable. The [camera and optics document](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/02-camera-and-optics.md) works out the numbers. The short version: at least about 8 pixels per millimeter on the landing board, a focus distance that matches the mounting, and a CSI camera if possible because it takes less CPU than USB.
 
 ## 10. Load cell is in the stories, not in the schematic
 

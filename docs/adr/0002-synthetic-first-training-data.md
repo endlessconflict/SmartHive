@@ -1,6 +1,6 @@
 # ADR-0002: Synthetic-first training data
 
-Status: Accepted (implemented). How images are made is refined by [ADR-0009](0009-procedural-insect-rendering.md)
+Status: Accepted (implemented). How images are made is refined by [ADR-0009](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0009-procedural-insect-rendering.md)
 Date: 2026-10-06
 Deciders: Adrien Cubilla (PO), Diego Alejandro Vasquez, James Tack
 
@@ -15,7 +15,7 @@ The client will not provide historical hive data, labeled audio or images, and n
 3. Every reported metric names its data tier: synthetic (S), public real (P), team capture (C), field (F).
 4. Generators are versioned, seeded and deterministic; datasets carry a card and an asset license manifest.
 
-Details: [data strategy](../04-data/01-data-problem-and-strategy.md), [synthetic image pipeline](../03-vision/03-synthetic-image-pipeline.md).
+Details: [data strategy](../04-data/01-data-problem-and-strategy.md), [synthetic image pipeline](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md).
 
 ## Alternatives considered
 

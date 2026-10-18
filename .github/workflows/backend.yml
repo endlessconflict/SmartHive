@@ -1,25 +1,13 @@
-name: tests
+name: backend
 
 on:
   push:
     branches: [main]
+    paths: ["backend/**", "infra/mosquitto/**", "infra/pki/**", ".github/workflows/backend.yml"]
   pull_request:
+    paths: ["backend/**", "infra/mosquitto/**", "infra/pki/**", ".github/workflows/backend.yml"]
 
 jobs:
-  simulation:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-          cache: pip
-      # The generators and the node pipeline need no torch; keep CI light.
-      - run: pip install numpy pandas pyarrow scipy pyyaml opencv-python-headless ncnn pytest tabulate
-      - run: python -m pytest -q simulation
-      - run: python -m vision.pipeline
-      - run: python docs/jira/build.py && git diff --exit-code docs/jira
-
   backend:
     runs-on: ubuntu-latest # ships with Docker, which the Testcontainers tests need
     defaults:
