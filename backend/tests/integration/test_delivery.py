@@ -89,7 +89,7 @@ async def test_email_and_ntfy_are_delivered(
     assert await deliver_pending(engine, settings) >= 2
     rows = await statuses(engine, alert)
     assert rows["email"].status == "sent" and rows["ntfy"].status == "sent" and rows["app"].status == "sent"
-    assert any(""[SmartHive]" in m["Subject"] for m in inbox(mailpit))
+    assert any("[SmartHive]" in m["Subject"] for m in inbox(mailpit))
     path, priority, body = ntfy[1][-1]
     assert path == "/hive%20alerts" and priority == "urgent" and "critical" in body
     assert await deliver_pending(engine, settings) == 0  # nothing left to send
