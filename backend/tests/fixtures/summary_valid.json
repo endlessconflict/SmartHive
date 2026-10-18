@@ -1,0 +1,12 @@
+{
+  "schema": "smarthive.summary/1.0",
+  "msg_id": "0190f5a4-2c3d-7e5f-9061-b2c3d4e5f607",
+  "node_id": "node-0001",
+  "boot_id": "6c1f0b0e-3a52-4d0b-9f4c-1a2b3c4d5e6f",
+  "sent_at": "2026-10-06T14:10:05.000Z",
+  "window": {"start": "2026-10-06T14:00:00Z", "end": "2026-10-06T14:10:00Z", "clock_synced": true},
+  "frames_analyzed": 312,
+  "counts": {"bee": 2950, "hornet": 4, "shb": 0, "other_insect": 37},
+  "varroa": {"bees_classified": 1840, "positive": 41},
+  "latency_ms_p95": {"stage1": 610, "total": 1450}
+}

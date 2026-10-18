@@ -72,7 +72,7 @@ CREATE TABLE hives (
 CREATE TABLE nodes (
   id            text PRIMARY KEY,              -- node-0001, sim-0042
   is_simulated  boolean NOT NULL,              -- true for sim- nodes; never mixed in reports
-  device_token_hash text NOT NULL,
+  device_token_hash text,                      -- only nodes that upload images over HTTP have one; NULL until issued
   hardware      jsonb NOT NULL DEFAULT '{}',   -- board, sensors, camera
   registered_at timestamptz NOT NULL DEFAULT now(),
   last_seen_at  timestamptz,
@@ -128,6 +128,8 @@ CREATE TABLE weather (
 **Why a narrow (long) table** for readings, one row per value, instead of one column per sensor: Prototype 1 has two quantities, the backlog has at least five more (weight, outside temperature and humidity, battery voltage and current), and the simulator has a few others. A narrow table takes new quantities without migrations. The cost is more rows, which is irrelevant at our volume: one hive with five quantities at one reading per minute is about 2.6 million rows a year.
 
 **Deduplication** is the primary key: `INSERT ... ON CONFLICT DO NOTHING`. A batch delivered twice inserts nothing the second time.
+
+**Nodes register themselves.** The first accepted message from a node creates its `nodes` row (`is_simulated` from the `sim-` prefix of the id). The device token is issued later through the API. `status` is `unknown` until a `status` or `health` message arrives; `last_seen_at` is the arrival time of the latest message.
 
 **Unknown hive:** if a node sends data while not assigned to any hive, `hive_id` is NULL. The rows are kept and backfilled when the node gets assigned, so setting up a node in the field before registering it in the dashboard loses nothing.
 

@@ -3,14 +3,15 @@ from pathlib import Path
 
 import pytest
 
-from smarthive.ingest.handler import MAX_PAYLOAD_BYTES, Rejected, validate
+from smarthive.ingest.base import Rejected
+from smarthive.ingest.handler import MAX_PAYLOAD_BYTES, validate
 
 FIXTURE = (Path(__file__).parents[1] / "fixtures/telemetry_valid.json").read_bytes()
 TOPIC = "smarthive/v1/nodes/node-0001/telemetry"
 
 
 def test_valid_payload_passes() -> None:
-    assert len(validate(TOPIC, FIXTURE).readings) == 3
+    assert len(validate(TOPIC, FIXTURE).message.readings) == 3
 
 
 @pytest.mark.parametrize(
@@ -21,7 +22,13 @@ def test_valid_payload_passes() -> None:
         pytest.param(TOPIC, b"[1, 2, 3]", "not_a_json_object", id="json_array"),
         pytest.param(TOPIC, b"x" * (MAX_PAYLOAD_BYTES + 1), "payload_too_large", id="too_large"),
         pytest.param(TOPIC, b"[" * 100_000, "not_json", id="nesting_too_deep"),
-        pytest.param("smarthive/v1/nodes/node-0001/events", FIXTURE, "unexpected_topic", id="other_topic"),
+        pytest.param(
+            "smarthive/v1/nodes/node-0001/config", FIXTURE, "unexpected_topic", id="not_a_node_topic"
+        ),
+        pytest.param(
+            "smarthive/v1/nodes/node-0001/events", FIXTURE, "schema_violation", id="wrong_schema_for_topic"
+        ),
+        pytest.param("smarthive/v1/nodes/bad node/telemetry", FIXTURE, "unexpected_topic", id="odd_node_id"),
         pytest.param(
             "smarthive/v1/nodes/node-0002/telemetry", FIXTURE, "node_id_mismatch", id="node_mismatch"
         ),

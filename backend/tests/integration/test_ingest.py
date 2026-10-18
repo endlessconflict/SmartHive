@@ -38,8 +38,8 @@ async def count(engine: AsyncEngine, where: str = "true") -> int:
 async def test_same_batch_twice_is_stored_once(engine: AsyncEngine) -> None:  # AC1
     first = await ingest(engine, TOPIC, payload())
     second = await ingest(engine, TOPIC, payload())
-    assert first is not None and first.inserted == 3
-    assert second is not None and second.inserted == 0 and second.duplicates == 3
+    assert first is not None and first.stored.inserted == 3
+    assert second is not None and second.stored.inserted == 0 and second.stored.duplicates == 3
     assert await count(engine) == 3
 
 
@@ -55,7 +55,7 @@ async def test_invalid_payload_is_logged_and_the_next_batch_is_stored(  # AC2
 
     assert (await ingest(engine, TOPIC, payload())) is not None
     assert await count(engine) == 3
-    rejected = [r for r in caplog.records if r.getMessage() == "telemetry_rejected"]
+    rejected = [r for r in caplog.records if r.getMessage() == "message_rejected"]
     assert [r.fields["reason"] for r in rejected] == ["not_json", "schema_violation"]  # type: ignore[attr-defined]
 
 

@@ -193,3 +193,47 @@ async def test_the_ingestor_stores_telemetry_over_mutual_tls(
     finally:
         stop.set()
         await asyncio.wait_for(runner, timeout=10)
+
+
+async def test_the_ingestor_handles_every_node_topic_through_the_broker(
+    broker: tuple[str, int], pki: Pki, engine: AsyncEngine, db_url: str
+) -> None:
+    host, port = broker
+    fixtures = Path(__file__).parents[1] / "fixtures"
+    settings = Settings(
+        db_url=db_url,
+        mqtt_host=host,
+        mqtt_port=port,
+        mqtt_tls_ca=str(pki.dir / "ca.crt"),
+        mqtt_tls_cert=str(pki.dir / "backend.crt"),
+        mqtt_tls_key=str(pki.dir / "backend.key"),
+        mqtt_client_id=f"test-{uuid.uuid4().hex[:8]}",
+    )
+    sent = {
+        "events": ("event_threat.json", 1, "SELECT count(*) FROM detection_events"),
+        "summary": ("summary_valid.json", 1, "SELECT count(*) FROM vision_summaries"),
+        "health": ("health_valid.json", 0, "SELECT count(*) FROM node_health"),  # QoS 0, like the node
+    }
+    stop = asyncio.Event()
+    runner = asyncio.create_task(service.run(settings, stop))
+    try:
+        async with connect(broker, pki, NODES[0]) as node:
+            for _ in range(50):
+                for suffix, (name, qos, _sql) in sent.items():
+                    await node.publish(topic(NODES[0], suffix), (fixtures / name).read_bytes(), qos=qos)
+                await node.publish(topic(NODES[0], "status"), b'{"state": "online", "boot_id": "b1"}', qos=1)
+                await asyncio.sleep(0.4)
+                async with engine.connect() as conn:
+                    counts = [(await conn.execute(text(sql))).scalar_one() for _n, _q, sql in sent.values()]
+                if counts == [1, 1, 1]:
+                    break
+        assert counts == [1, 1, 1]  # re-sent copies were deduplicated on the way
+        async with engine.connect() as conn:
+            status = (
+                await conn.execute(text("SELECT status FROM nodes WHERE id = :n"), {"n": NODES[0]})
+            ).scalar_one()
+        assert status == "online"
+        assert not runner.done()
+    finally:
+        stop.set()
+        await asyncio.wait_for(runner, timeout=10)
