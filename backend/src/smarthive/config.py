@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     login_window_s: int = 900
     forwarded_allow_ips: str = "127.0.0.1"  # proxies whose X-Forwarded-For is believed (Caddy's address)
 
+    # images from the nodes
+    image_dir: str = "./data/images"
+    image_max_bytes: int = 5_000_000
+
     # worker
     alert_interval_s: int = 60
 
