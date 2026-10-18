@@ -1,5 +1,6 @@
 """Real TimescaleDB (Apache-2.0 "-oss" image) in a container, migrated with Alembic. Needs Docker."""
 
+import importlib
 import os
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
@@ -12,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from testcontainers.postgres import PostgresContainer
 
 BACKEND = Path(__file__).parents[2]
+RULES = importlib.import_module("smarthive.db.migrations.versions.0004_alert_rules").RULES
 TIMESCALE_IMAGE = "timescale/timescaledb:2.17.2-pg16-oss"
 
 
@@ -47,5 +49,11 @@ async def engine(db_url: str) -> AsyncIterator[AsyncEngine]:
                 "hives, apiaries, users RESTART IDENTITY CASCADE"
             )
         )
+        # the cascade also emptied alert_rules, which the migration seeded
+        for rule_id, severity, params in RULES:
+            await conn.execute(
+                text("INSERT INTO alert_rules (id, severity, params) VALUES (:i, :s, CAST(:p AS jsonb))"),
+                {"i": rule_id, "s": severity, "p": params},
+            )
     yield engine
     await engine.dispose()

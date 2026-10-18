@@ -74,3 +74,17 @@ The worker evaluates two kinds of rules:
 - Window rules look at a time range (temperature out of range for 2 h, weight drop in 30 min, offline for N heartbeats). They run every minute over the latest data per hive, using SQL with `time_bucket`.
 
 Rules are Python functions registered with an ID, a severity and a parameter schema. Parameters live in `alert_rules` so users can adjust thresholds (EL-19 working assumption) without new rule types. Each rule has unit tests against simulator scenarios with known events (see [scenarios](../04-data/03-scenarios-and-events.md#for-the-backend-and-the-dashboard)).
+
+## Implementation status
+
+`smarthive worker` runs the engine (`backend/src/smarthive/alerts/`). It evaluates every enabled rule once at start, again on each `NOTIFY` from the ingestor, and at least every `SMARTHIVE_ALERT_INTERVAL_S` seconds (default 60).
+
+Built: `hornet_detected`, `shb_detected`, `varroa_high`, `node_offline`, `temp_out_of_range`, `rh_out_of_range`, the lifecycle with its event log, in-app notification rows, and the API (`/alerts`, `/alert-rules`). Default thresholds are seeded by migration 0004.
+
+Differences from the design above:
+
+- A condition a user resolved by hand does not reopen for 6 hours, so a standing window condition does not alert again a minute later.
+- Detection alerts are one per episode and never reopen. Window alerts are one per hive (or node).
+- Email and ntfy notifications are written as `pending` rows. Nothing sends them yet.
+- `node_offline` stays `warning`; the escalation to `critical` after 24 hours is not built.
+- Not built yet: `varroa_rising`, `node_power_low`, `weight_sudden_drop`, `sensor_fault`, `clock_unsynced`, `anomaly_detected`, the recommendation rules, and the late-data suppression after a reconnect. Weight and temperature rules do skip hives with a running management event.
