@@ -29,3 +29,14 @@ class Settings(BaseSettings):
 
     # worker
     alert_interval_s: int = 60
+
+    # notification delivery. A channel without its server stays disabled and its rows stay `pending`.
+    smtp_host: str | None = None
+    smtp_port: int = 1025  # Mailpit's default in development
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_starttls: bool = False
+    mail_from: str = "SmartHive <alerts@smarthive.local>"
+    ntfy_url: str | None = None  # base URL of the ntfy server; the topic is per user
+    notify_max_attempts: int = 5
+    notify_per_user_per_hour: int = 10  # per channel; the rest is marked `suppressed`
