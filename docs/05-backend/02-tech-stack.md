@@ -68,12 +68,12 @@ Rules for every choice: an OSI-approved open-source license, no paid tier needed
 | Numerics | NumPy, SciPy, pandas or Polars | BSD-3 / MIT |
 | Columnar files | Apache Arrow / Parquet (pyarrow) | Apache-2.0 |
 | Training | PyTorch, torchvision | BSD-3 |
-| Detector and classifier training | Ultralytics YOLO11 (AGPL-3.0), chosen in [ADR-0008](../adr/0008-detector-licensing.md) | AGPL-3.0 |
+| Detector and classifier training | Ultralytics YOLO11 (AGPL-3.0), chosen in [ADR-0008](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0008-detector-licensing.md) | AGPL-3.0 |
 | Model export | pnnx and ncnn (through Ultralytics' ncnn export) | BSD-3 |
 | Segmentation for cutouts (only if real cutouts are added later) | SAM 2 | Apache-2.0 |
 | Dataset browsing (planned) | FiftyOne | Apache-2.0 |
 | Annotation of real images | Label Studio or CVAT | Apache-2.0 / MIT |
-| Synthetic images | Own procedural renderer: NumPy + OpenCV ([ADR-0009](../adr/0009-procedural-insect-rendering.md)) | Apache-2.0 / BSD |
+| Synthetic images | Own procedural renderer: NumPy + OpenCV ([ADR-0009](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0009-procedural-insect-rendering.md)) | Apache-2.0 / BSD |
 | Real-image check set | iNaturalist Open Dataset on AWS, CC0/CC-BY photos only | per photo |
 | 3D rendering (optional) | Blender, BlenderProc | GPL |
 | Classical ML, anomaly baselines | scikit-learn | BSD-3 |
