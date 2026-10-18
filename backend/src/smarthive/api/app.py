@@ -8,7 +8,18 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from smarthive.api import errors
 from smarthive.api.ratelimit import FailureLimiter
-from smarthive.api.routes import alerts, apiaries, auth, health, hives, images, me, nodes, readings
+from smarthive.api.routes import (
+    alerts,
+    apiaries,
+    auth,
+    health,
+    hives,
+    images,
+    management,
+    me,
+    nodes,
+    readings,
+)
 from smarthive.config import Settings
 
 
@@ -41,6 +52,6 @@ def create_app(settings: Settings | None = None, engine: AsyncEngine | None = No
         app.state.engine = engine
     app.state.login_limiter = FailureLimiter(settings.login_max_failures, settings.login_window_s)
     errors.install(app)
-    for module in (health, auth, me, apiaries, hives, images, nodes, readings, alerts):
+    for module in (health, auth, me, apiaries, hives, images, management, nodes, readings, alerts):
         app.include_router(module.router)
     return app
