@@ -11,7 +11,9 @@ from smarthive.ingest.base import Handler, Stored
 # The broker redelivers the retained message whenever the ingestor reconnects. Setting the state a node
 # already has changes nothing, so `inserted` counts real changes only.
 _APPLY = text(
-    "UPDATE nodes SET status = :state WHERE id = :node_id AND status IS DISTINCT FROM :state RETURNING 1"
+    "UPDATE nodes SET status = :state WHERE id = :node_id AND status IS DISTINCT FROM :state "
+    "RETURNING (SELECT a.hive_id FROM node_assignments a "
+    "WHERE a.node_id = nodes.id AND a.valid @> now() LIMIT 1) AS hive_id"
 )
 
 
@@ -27,11 +29,18 @@ def parse(node_id: str, doc: dict[str, Any]) -> ParsedStatus:
 
 
 async def store(conn: AsyncConnection, p: ParsedStatus) -> Stored:
-    changed = (
-        await conn.execute(_APPLY, {"state": p.status.state, "node_id": p.node_id})
-    ).first() is not None
-    notify = {"kind": "node_status", "node_id": p.node_id, "status": p.status.state} if changed else None
-    return Stored(None, 1, 1 if changed else 0, notify)
+    row = (await conn.execute(_APPLY, {"state": p.status.state, "node_id": p.node_id})).first()
+    notify = (
+        {
+            "kind": "node_status",
+            "node_id": p.node_id,
+            "status": p.status.state,
+            "hive_id": str(row.hive_id) if row.hive_id else None,
+        }
+        if row
+        else None
+    )
+    return Stored(None, 1, 1 if row else 0, notify)
 
 
 HANDLER = Handler("status", parse, store, liveness="none")

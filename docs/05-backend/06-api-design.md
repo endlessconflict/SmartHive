@@ -142,6 +142,10 @@ The server pushes:
 {"type": "node_status", "node_id": "node-0001", "status": "offline"}
 ```
 
+The server answers `auth` with `{"type": "ready"}` and `subscribe` with `{"type": "subscribed", "hives": [...]}`, which lists only the hives the user may see; the others are dropped without an error. A first message that is not a valid `auth` within 10 seconds closes the socket with code 4401. A client that falls 100 messages behind is closed with 4408 and should reconnect and refetch.
+
+Two more messages tell the client to refetch: `{"type": "backfill", "hive_id": "..."}` when readings older than five minutes arrive, and `{"type": "resync"}` when the API lost its database connection and may have missed notifications. Administrators also receive alerts that belong to no hive.
+
 The source is PostgreSQL `LISTEN/NOTIFY`: the ingestor and the worker notify after committing, and the API process forwards to subscribed sockets. Late-arriving backlog data is not pushed as "live"; the dashboard refetches the chart range when it sees a `backfill` message for a hive.
 
 ## Health and metrics
