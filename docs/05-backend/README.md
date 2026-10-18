@@ -22,6 +22,8 @@ The same MQTT contract is spoken by the real node and by the hive simulator, so 
 | 6 | [API design](06-api-design.md) | REST and WebSocket endpoints |
 | 7 | [Alerts and rules](07-alerts-and-rules.md) | Catalog, lifecycle, channels |
 | 8 | [Deployment and operations](08-deployment-and-operations.md) | Compose, environments, security, backups, CI |
+| 9 | [Backend plan](09-backend-plan.md) | Story order, rules for pull requests, what is left |
+| 10 | [Backend handoff](10-handoff.md) | State, layout, pitfalls, assumptions to confirm |
 
 ## Decisions
 
