@@ -19,6 +19,7 @@ from smarthive.api.errors import Problem
 from smarthive.api.pagination import Cursor, Limit, decode_cursor, encode_cursor
 from smarthive.api.security import hash_refresh_token
 from smarthive.contracts.image import ImageMeta
+from smarthive.thumbnails import WIDTHS, thumbnail
 
 router = APIRouter(tags=["images"])
 _bearer = HTTPBearer(auto_error=False)
@@ -230,9 +231,23 @@ async def get_image(image_id: UUID, conn: Conn, user: CurrentUser) -> Image:
 
 
 @router.get("/api/v1/images/{image_id}/file", summary="The JPEG")
-async def image_file(image_id: UUID, conn: Conn, user: CurrentUser, settings: Config) -> FileResponse:
+async def image_file(
+    image_id: UUID,
+    conn: Conn,
+    user: CurrentUser,
+    settings: Config,
+    w: Annotated[int | None, Query(description=f"Width of a smaller copy: one of {WIDTHS}")] = None,
+) -> FileResponse:
+    if w is not None and w not in WIDTHS:
+        raise Problem(422, "Unsupported width", f"w must be one of {', '.join(map(str, WIDTHS))}")
     row = await _visible_image(conn, user, image_id)
-    path = Path(settings.image_dir) / row.path
+    root = Path(settings.image_dir)
+    path = root / row.path
     if not path.is_file():
         raise Problem(404, "The file is gone")  # purged or the volume was not restored
+    if w is not None:
+        try:
+            path = await asyncio.to_thread(thumbnail, root, row.path, w)
+        except OSError:
+            raise Problem(422, "The stored file cannot be resized") from None
     return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=86400"})

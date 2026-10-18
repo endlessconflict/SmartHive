@@ -1,6 +1,7 @@
 """Device upload (token, hash, idempotency, limits) and the gallery with its ownership scoping."""
 
 import hashlib
+import io
 import json
 from collections.abc import AsyncIterator, Awaitable
 from datetime import UTC, datetime, timedelta
@@ -9,6 +10,7 @@ from uuid import UUID, uuid4
 
 import httpx
 import pytest
+from PIL import Image
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
@@ -192,3 +194,33 @@ async def test_a_file_removed_from_the_volume_is_a_404(
     for f in tmp_path.rglob("*.jpg"):
         f.unlink()
     assert (await client.get(f"/api/v1/images/{image_id}/file", headers=user_auth(owner))).status_code == 404
+
+
+def real_jpeg(width: int = 1000, height: int = 500) -> bytes:
+    buf = io.BytesIO()
+    Image.new("RGB", (width, height), (200, 120, 20)).save(buf, "JPEG")
+    return buf.getvalue()
+
+
+async def test_thumbnail_is_resized_cached_and_validated(
+    client: httpx.AsyncClient, engine: AsyncEngine, tmp_path: Path
+) -> None:
+    owner, _, node = await setup_hive(engine)
+    headers = await give_token(engine, node)
+    image_id = uuid4()
+    assert (await upload(client, headers, node, data=real_jpeg(), image_id=image_id)).status_code == 201
+
+    r = await client.get(f"/api/v1/images/{image_id}/file?w=320", headers=user_auth(owner))
+    assert r.status_code == 200 and r.headers["content-type"] == "image/jpeg"
+    assert Image.open(io.BytesIO(r.content)).size == (320, 160)
+    assert len(list((tmp_path / "thumbs" / "320").glob("*.jpg"))) == 1
+
+    again = await client.get(f"/api/v1/images/{image_id}/file?w=320", headers=user_auth(owner))
+    assert again.content == r.content
+    assert (
+        await client.get(f"/api/v1/images/{image_id}/file?w=123", headers=user_auth(owner))
+    ).status_code == 422
+    # not a decodable JPEG (the fake bytes pass the upload check) -> 422, not 500
+    bad = uuid4()
+    await upload(client, headers, node, image_id=bad)
+    assert (await client.get(f"/api/v1/images/{bad}/file?w=160", headers=user_auth(owner))).status_code == 422

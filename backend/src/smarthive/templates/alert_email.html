@@ -1,0 +1,11 @@
+<!doctype html>
+<html>
+<body style="font-family: sans-serif; color: #222; max-width: 560px;">
+  <h2 style="margin: 0 0 8px;">{{ title }}</h2>
+  <p style="margin: 0 0 12px;">
+    {% if hive_name %}Hive <b>{{ hive_name }}</b> &middot; {% endif %}Severity: <b>{{ severity }}</b>
+  </p>
+  {% if has_image %}<p><img src="cid:alert-image" alt="Latest image of the hive" style="max-width: 100%; border-radius: 4px;"></p>{% endif %}
+  <p style="color: #555; font-size: 13px;">Rule {{ rule_id }}, opened {{ opened_at }}.</p>
+</body>
+</html>

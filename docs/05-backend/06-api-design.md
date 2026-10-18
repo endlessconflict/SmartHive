@@ -78,7 +78,7 @@ Example response for `readings`:
 |---|---|---|
 | `GET /hives/{id}/images/latest` | Most recent image with its detected objects | US15 |
 | `GET /hives/{id}/images?reason=threat&from=&to=` | Image gallery | |
-| `GET /images/{id}` | Metadata; `GET /images/{id}/file` returns the JPEG (supports `?w=` thumbnails) | |
+| `GET /images/{id}` | Metadata; `GET /images/{id}/file` returns the JPEG (`?w=160`, `320` or `640` returns a smaller copy, cached under `thumbs/` in the image volume) | |
 | `GET /hives/{id}/detections?from=&to=&cls=` | Detection events | US09, US10 |
 | `GET /hives/{id}/varroa?from=&to=&bucket=1d` | Varroa index over time, with counts and confidence interval | US09 |
 | `GET /hives/{id}/traffic?from=&to=&bucket=1h` | Bee counts from summaries | |

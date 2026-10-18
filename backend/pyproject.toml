@@ -9,6 +9,8 @@ dependencies = [
     "argon2-cffi>=23.1",
     "asyncpg>=0.30",
     "fastapi>=0.115",
+    "jinja2>=3.1",
+    "pillow>=11",
     "pyjwt>=2.9",
     "python-multipart>=0.0.20",
     "pydantic>=2.11",
@@ -39,7 +41,7 @@ where = ["src"]
 
 # The migrations are not a Python package; the wheel has to carry them for `smarthive migrate`
 [tool.setuptools.package-data]
-smarthive = ["db/migrations/*.py", "db/migrations/*.mako", "db/migrations/versions/*.py"]
+smarthive = ["templates/*", "db/migrations/*.py", "db/migrations/*.mako", "db/migrations/versions/*.py"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
