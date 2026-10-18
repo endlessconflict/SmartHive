@@ -4,13 +4,17 @@ This file is for the six of us, and for anyone who picks the project up later. I
 
 ## Language
 
-Everything in the repository is written in English: code, comments, commit messages, issues, pull requests and documentation. Meetings can be in Spanish; what gets written down is in English.
+Everything in the repositories is written in English: code, comments, commit messages, issues, pull requests and documentation. Meetings can be in Spanish; what gets written down is in English.
+
+## Repositories
+
+There are two: SmartHive (this one) and [SmartHive-Vision](https://github.com/endlessconflict/SmartHive-Vision) for the pest detector, the synthetic image generator and the released models. Work on the detector happens there. This repository uses a pinned release of it; see [repositories](docs/00-project/repositories.md).
 
 ## Branches
 
 - `main` is always in a state we could demo. Nobody pushes to it directly.
-- Work happens on short-lived branches named `<area>/<short-description>`, for example `backend/mqtt-ingestor`, `vision/synthetic-compositor`, `docs/power-budget`.
-- Areas: `edge`, `backend`, `vision`, `simulation`, `ml`, `frontend`, `infra`, `docs`, `hardware`.
+- Work happens on short-lived branches named `<area>/<short-description>`, for example `backend/mqtt-ingestor`, `infra/compose-stack`, `docs/power-budget`.
+- Areas: `edge`, `backend`, `simulation`, `ml`, `frontend`, `infra`, `docs`, `hardware`, `repo` (CI, tooling, repository layout). A vision release bump is `edge/vision-X.Y.Z`.
 - Rebase or merge `main` into your branch before asking for review, whichever you prefer. Do not rewrite history on a branch someone else is also working on.
 
 ## Commits
@@ -24,12 +28,12 @@ docs(vision): add camera resolution calculation
 chore(infra): pin mosquitto to 2.0.x
 ```
 
-Types we use: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`. The scope is the area name.
+Types we use: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `ci`. The scope is the area name. Put the Jira key in the body or the PR title, for example `(SCRUM-62)`.
 
 ## Pull requests
 
 - One topic per pull request. A 2,000-line PR that touches five areas will sit unreviewed.
-- Fill in the template. Link the user story (`US07`) or issue it belongs to.
+- Fill in the template. Link the Jira issue (`SCRUM-62`) and the user story (`US13`) it belongs to.
 - At least one teammate approves before merge. For changes to a contract (MQTT topics, payload schemas, database schema, public API), the owner of the other side must approve too. Contracts are listed in [docs/05-backend/04-messaging-contract.md](docs/05-backend/04-messaging-contract.md).
 - Squash-merge, so `main` gets one commit per PR with a Conventional Commit title.
 
@@ -62,7 +66,7 @@ A user story is done when:
 ## Data and models
 
 - Never commit datasets, images in bulk or model weights to git. They go through DVC (see [docs/04-data/05-dataset-versioning-and-governance.md](docs/04-data/05-dataset-versioning-and-governance.md)).
-- One exception until DVC is set up (Jira EN-06): released ncnn models (`models/<version>/`, a few MB each) are committed with a model card, `SHA256SUMS` and the attribution list. Training checkpoints (`.pt`) and exports that are not releases stay out.
+- Models are released from SmartHive-Vision. This repository does not hold weights; `vision.lock` pins the release and `scripts/fetch_vision.py` fetches it.
 - Every external asset (a photo, a texture, a 3D model, a dataset) gets an entry in the asset manifest with its source URL and license. If we cannot name the license, we do not use it.
 - Generators take a seed. A dataset that cannot be regenerated from a config file and a seed is not finished.
 
