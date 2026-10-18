@@ -61,5 +61,5 @@ The deliverable is a working demonstrator with an honest evaluation.
 At the start of the project we expected the client to provide historical hive data (weights, harvests, labeled audio, images). That data does not exist in a usable form and will not be provided. Every model in this project has to be trained on data we generate. This changes the plan in three ways:
 
 - Data generation becomes a first-class engineering component, with its own code, tests and documentation ([docs/04-data](../04-data/README.md)).
-- Evaluation must separate "works on our synthetic data" from "works on real images" ([vision evaluation](../03-vision/05-training-and-evaluation.md)).
+- Evaluation must separate "works on our synthetic data" from "works on real images" ([vision evaluation](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md)).
 - The same generator drives a hive simulator that lets the backend and frontend teams work before the hardware exists.

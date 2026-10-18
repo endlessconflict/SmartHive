@@ -13,7 +13,7 @@ Process: copy [0000-template.md](0000-template.md), take the next number, open a
 | [0005](0005-postgresql-timescaledb-apache.md) | PostgreSQL with TimescaleDB, Apache-2.0 features only | Proposed | 2026-10-06 |
 | [0006](0006-python-modular-monolith.md) | Python modular monolith with FastAPI | Proposed | 2026-10-06 |
 | [0007](0007-filesystem-image-storage.md) | Images on the filesystem, metadata in the database | Proposed | 2026-10-06 |
-| [0008](0008-detector-licensing.md) | Detector framework and repository license | Accepted | 2026-10-06 |
-| [0009](0009-procedural-insect-rendering.md) | Procedural insect rendering instead of photo cutouts | Accepted | 2026-10-06 |
-| [0010](0010-real-photos-with-automatic-labels.md) | Real photos with automatic labels before 3D rendering or diffusion | Accepted | 2026-10-06 |
-| [0011](0011-osi-clean-automatic-labeling.md) | Automatic labeling with OSI-licensed weights only | Accepted | 2026-10-07 |
+| [0008](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0008-detector-licensing.md) | Detector framework and repository license | Accepted | 2026-10-06 |
+| [0009](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0009-procedural-insect-rendering.md) | Procedural insect rendering instead of photo cutouts | Accepted | 2026-10-06 |
+| [0010](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0010-real-photos-with-automatic-labels.md) | Real photos with automatic labels before 3D rendering or diffusion | Accepted | 2026-10-06 |
+| [0011](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0011-osi-clean-automatic-labeling.md) | Automatic labeling with OSI-licensed weights only | Accepted | 2026-10-07 |

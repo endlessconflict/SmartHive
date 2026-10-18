@@ -15,8 +15,20 @@ EPIC = {e["id"]: e for e in B["epics"]}
 STORY = {s["id"]: s for s in B["stories"]}
 
 
+VISION = "https://github.com/endlessconflict/SmartHive-Vision/blob/main"  # files that moved with the vision split
+
+
+def url(path):
+    """`vision:docs/x.md` lives in the SmartHive-Vision repository, anything else in this one."""
+    return f"{VISION}/{path[7:]}" if path.startswith("vision:") else f"{REPO}/{path}"
+
+
+def md_link(path):
+    return f"[{path}]({url(path)})" if path.startswith("vision:") else f"[{path}](../../{path})"
+
+
 def link(path):
-    return f"[{path}|{REPO}/{path}]"
+    return f"[{path}|{url(path)}]"
 
 
 def wiki(s):
@@ -111,9 +123,9 @@ def write_md():
             if s.get("blocked_by"):
                 L += ["", "Blocked by: " + ", ".join(f"[{b}](#{b.lower()})" for b in s["blocked_by"])]
             if s.get("docs"):
-                L += ["", "Design: " + ", ".join(f"[{d}](../../{d})" for d in s["docs"])]
+                L += ["", "Design: " + ", ".join(md_link(d) for d in s["docs"])]
             if s.get("evidence"):
-                L += ["", "Evidence: " + ", ".join(f"[{d}](../../{d})" for d in s["evidence"])]
+                L += ["", "Evidence: " + ", ".join(md_link(d) for d in s["evidence"])]
             if s.get("subtasks"):
                 L += ["", "| Sub-task | Assignee | Hours | Status |", "|---|---|---|---|"]
                 L += [f"| {s['id']}.{k} {t['summary']} | {PEOPLE[t['assignee']]} | {t['hours']} | {t['status']} |"

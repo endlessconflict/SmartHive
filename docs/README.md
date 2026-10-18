@@ -23,6 +23,7 @@ Every document starts with a status line:
 |---|---|
 | [overview.md](00-project/overview.md) | Problem, users, expected impact, scope and out of scope |
 | [team-and-roles.md](00-project/team-and-roles.md) | Who owns what, Scrum roles, contract owners |
+| [repositories.md](00-project/repositories.md) | The two repositories, who owns what, and how the vision release is pinned |
 | [way-of-working.md](00-project/way-of-working.md) | Sprints, ceremonies, board, definition of done |
 | [risks.md](00-project/risks.md) | Risk register with mitigations, updated after the data decision |
 | [glossary.md](00-project/glossary.md) | Beekeeping and technical terms used across the docs |
@@ -45,18 +46,9 @@ Every document starts with a status line:
 | [power-budget.md](02-hardware/power-budget.md) | Estimated consumption and battery autonomy |
 | [hardware-review-notes.md](02-hardware/hardware-review-notes.md) | Issues found while designing the software on top of this hardware |
 
-### 03 Vision
+### 03 Vision (separate repository)
 
-| Document | What it covers |
-|---|---|
-| [README.md](03-vision/README.md) | Summary and reading order |
-| [01-problem-framing.md](03-vision/01-problem-framing.md) | Classes, scale of the problem, what "detected" means |
-| [02-camera-and-optics.md](03-vision/02-camera-and-optics.md) | Resolution math: why Varroa drives every camera decision |
-| [03-synthetic-image-pipeline.md](03-vision/03-synthetic-image-pipeline.md) | How we generate labeled entrance images |
-| [04-model-architecture.md](03-vision/04-model-architecture.md) | Two-stage detector for a Raspberry Pi 3B |
-| [05-training-and-evaluation.md](03-vision/05-training-and-evaluation.md) | Splits, metrics, sim-to-real evaluation, acceptance criteria |
-| [06-edge-deployment.md](03-vision/06-edge-deployment.md) | Runtime pipeline on the node |
-| [07-results.md](03-vision/07-results.md) | What the models achieve, per data tier, iteration by iteration |
+Pest detection moved to [SmartHive-Vision](https://github.com/endlessconflict/SmartHive-Vision) so the model work can move at its own pace. This repository uses it as a pinned release, see [repositories](00-project/repositories.md). Start at its [documentation index](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/README.md): problem framing, camera and optics, the synthetic image pipeline, model architecture, evaluation and [results](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md).
 
 ### 04 Data
 

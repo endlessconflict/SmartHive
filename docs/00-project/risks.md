@@ -6,12 +6,12 @@ The first five rows come from the project plan presentation. The rest were added
 
 | ID | Risk | Impact | Likelihood | Mitigation | Owner |
 |---|---|---|---|---|---|
-| R1 | No historical data for training | High | **Happened** | Done: telemetry simulator and procedural image generator in the repo; real iNaturalist photos kept for validation only ([04-data](../04-data/01-data-problem-and-strategy.md), [ADR-0009](../adr/0009-procedural-insect-rendering.md)) | Adrien, Diego |
+| R1 | No historical data for training | High | **Happened** | Done: telemetry simulator and procedural image generator in the repo; real iNaturalist photos kept for validation only ([04-data](../04-data/01-data-problem-and-strategy.md), [ADR-0009](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0009-procedural-insect-rendering.md)) | Adrien, Diego |
 | R2 | Hardware delivery delays block node development | High | Medium | Hive simulator that publishes on the real MQTT contract; node software developed on any Linux machine with mocked sensors | Ricardo, James |
 | R3 | No reliable cellular coverage at the apiary | Medium | Unknown | Prototype 1 uses Ethernet. Message format kept small enough for LoRaWAN later | Karen |
 | R4 | Scope too broad for one semester (three ML systems) | High | High | Pest detection end to end; yield and acoustics as proofs of concept | Adrien (PO) |
 | R5 | Integration failures found late | High | Medium | Contracts frozen in docs, contract tests in CI, end-to-end demo every sprint | James, Maria |
-| R6 | Model works on synthetic images and fails on real ones (sim-to-real gap) | High | High | Measured every iteration on the frozen iNaturalist test ([results](../03-vision/07-results.md)); real board backgrounds next; results always reported per data tier | Adrien |
+| R6 | Model works on synthetic images and fails on real ones (sim-to-real gap) | High | High | Measured every iteration on the frozen iNaturalist test ([results](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md)); real board backgrounds next; results always reported per data tier | Adrien |
 | R7 | Varroa too small to see at the chosen camera resolution | High | Medium | Resolution calculation before choosing the camera; two-stage model that crops bees from the full-resolution frame | Adrien, Ricardo |
 | R8 | Raspberry Pi 3B too slow or short of memory (1 GB) for the detector | Medium | Medium | Motion gating, 320 px detector input, INT8 models, NCNN runtime; benchmark spike before committing | Adrien |
 | R9 | Battery autonomy of about one day with a Pi always on | Medium | High | Measure real consumption; decide autonomy target with the client; options are solar, power gating or mains for the demo. Backend tolerant to daily gaps | Ricardo |
