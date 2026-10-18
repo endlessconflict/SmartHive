@@ -59,7 +59,7 @@ Acceptance criteria:
 2. Given the camera, when 200+ empty-board frames across a day are captured, then they are stored as tier C backgrounds
 3. Given a gray card at several light levels, when captured, then the noise profile is fitted for the generator
 
-Design: [docs/03-vision/02-camera-and-optics.md](../../docs/03-vision/02-camera-and-optics.md)
+Design: [vision:docs/02-camera-and-optics.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/02-camera-and-optics.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -260,12 +260,12 @@ Acceptance criteria:
 
 Blocked by: [HW-01](#hw-01)
 
-Design: [docs/03-vision/06-edge-deployment.md](../../docs/03-vision/06-edge-deployment.md), [docs/03-vision/02-camera-and-optics.md](../../docs/03-vision/02-camera-and-optics.md)
+Design: [vision:docs/06-edge-deployment.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/06-edge-deployment.md), [vision:docs/02-camera-and-optics.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/02-camera-and-optics.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
 | US07.1 picamera2 dual stream (or V4L2) capture service | Ricardo Villarreal | 5 | To Do |
-| US07.2 Motion gate (vision/pipeline.py MotionGate) wired to capture | Adrien Cubilla | 2 | To Do |
+| US07.2 Motion gate (smarthive_vision.pipeline.MotionGate) wired to capture | Adrien Cubilla | 2 | To Do |
 | US07.3 Night mode and periodic sample | Ricardo Villarreal | 2 | To Do |
 
 ### US08
@@ -301,9 +301,9 @@ Acceptance criteria:
 3. Given the public Varroa datasets, when available, then recall >= 0.75 and precision >= 0.70 on their test split (tier P target)
 4. Given a rolling window, when bees are classified, then the Varroa index is reported with its count and 95 % Wilson interval
 
-Design: [docs/03-vision/04-model-architecture.md](../../docs/03-vision/04-model-architecture.md), [docs/03-vision/05-training-and-evaluation.md](../../docs/03-vision/05-training-and-evaluation.md)
+Design: [vision:docs/04-model-architecture.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md), [vision:docs/05-training-and-evaluation.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md)
 
-Evidence: [vision/pipeline.py](../../vision/pipeline.py), [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+Evidence: [vision:src/smarthive_vision/pipeline.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py), [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -324,9 +324,9 @@ Acceptance criteria:
 2. Given the tier P iNaturalist test split, when evaluated, then hornet recall and bee/hornet/other accuracy are reported against chance
 3. Given k-of-n aggregation, when a hornet appears in 3 of 10 analyzed frames, then exactly one threat_detected event is raised per episode
 
-Design: [docs/03-vision/04-model-architecture.md](../../docs/03-vision/04-model-architecture.md), [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+Design: [vision:docs/04-model-architecture.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md), [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md)
 
-Evidence: [vision/train.py](../../vision/train.py), [vision/eval_real.py](../../vision/eval_real.py), [vision/pipeline.py](../../vision/pipeline.py)
+Evidence: [vision:src/smarthive_vision/train.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/train.py), [vision:src/smarthive_vision/eval_real.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/eval_real.py), [vision:src/smarthive_vision/pipeline.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -349,15 +349,15 @@ Acceptance criteria:
 
 Blocked by: [HW-01](#hw-01)
 
-Design: [docs/03-vision/06-edge-deployment.md](../../docs/03-vision/06-edge-deployment.md)
+Design: [vision:docs/06-edge-deployment.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/06-edge-deployment.md)
 
-Evidence: [vision/export.py](../../vision/export.py), [vision/bench.py](../../vision/bench.py), [vision/pipeline.py](../../vision/pipeline.py)
+Evidence: [vision:src/smarthive_vision/export.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/export.py), [vision:src/smarthive_vision/bench.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/bench.py), [vision:src/smarthive_vision/pipeline.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
 | US11.1 Export to ncnn and torch-free two-stage pipeline | Adrien Cubilla | 4 | Done |
 | US11.2 Pi latency estimate anchored to ncnn's published Pi 3B+ benchmarks | Adrien Cubilla | 2 | Done |
-| US11.3 Run vision/bench.py on the real Pi 3B and replace the estimate | Ricardo Villarreal | 2 | To Do |
+| US11.3 Run smarthive_vision.bench on the real Pi 3B and replace the estimate | Ricardo Villarreal | 2 | To Do |
 | US11.4 visiond systemd unit with MemoryMax | Ricardo Villarreal | 2 | To Do |
 
 ### US12
@@ -683,9 +683,9 @@ Acceptance criteria:
 2. Given a bee with mites, when rendered, then each mite sits on the dorsal thorax or abdomen and its pixel footprint matches 1.6 mm at that scale (test)
 3. Given the renderer, when reviewed, then no external image or 3D model is used
 
-Design: [docs/03-vision/03-synthetic-image-pipeline.md](../../docs/03-vision/03-synthetic-image-pipeline.md)
+Design: [vision:docs/03-synthetic-image-pipeline.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md)
 
-Evidence: [simulation/images/render.py](../../simulation/images/render.py), [simulation/images/test_images.py](../../simulation/images/test_images.py)
+Evidence: [vision:src/smarthive_vision/synth/render.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/render.py), [vision:tests/test_synth.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/tests/test_synth.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -706,9 +706,9 @@ Acceptance criteria:
 3. Given a bee crop, when it is labeled varroa, then at least one mite of that bee is visible in the scene
 4. Given the dataset, when generated, then train and val use different sprite libraries and a dataset card is written
 
-Design: [docs/03-vision/03-synthetic-image-pipeline.md](../../docs/03-vision/03-synthetic-image-pipeline.md), [docs/04-data/05-dataset-versioning-and-governance.md](../../docs/04-data/05-dataset-versioning-and-governance.md)
+Design: [vision:docs/03-synthetic-image-pipeline.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md), [docs/04-data/05-dataset-versioning-and-governance.md](../../docs/04-data/05-dataset-versioning-and-governance.md)
 
-Evidence: [simulation/images/compose.py](../../simulation/images/compose.py)
+Evidence: [vision:src/smarthive_vision/synth/compose.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/compose.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -731,7 +731,7 @@ Acceptance criteria:
 
 Design: [docs/04-data/01-data-problem-and-strategy.md](../../docs/04-data/01-data-problem-and-strategy.md)
 
-Evidence: [vision/inat.py](../../vision/inat.py), [vision/splits/P-inat-v1.tsv](../../vision/splits/P-inat-v1.tsv)
+Evidence: [vision:src/smarthive_vision/inat.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/inat.py), [vision:src/smarthive_vision/splits/P-inat-v1.tsv](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/splits/P-inat-v1.tsv)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -770,9 +770,9 @@ Acceptance criteria:
 2. Given real bee cutouts, when used in scenes, then 45 % carry procedural mites so stage 2 cannot learn 'real-looking bee means clean'
 3. Given generator v0.2 and model v0.2, when evaluated on the tier P calibration split, then accuracy is compared with v0.1 in the results document
 
-Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [docs/03-vision/03-synthetic-image-pipeline.md](../../docs/03-vision/03-synthetic-image-pipeline.md)
+Design: [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:docs/03-synthetic-image-pipeline.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md)
 
-Evidence: [simulation/images/cutouts.py](../../simulation/images/cutouts.py), [simulation/images/compose.py](../../simulation/images/compose.py)
+Evidence: [vision:src/smarthive_vision/synth/cutouts.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/cutouts.py), [vision:src/smarthive_vision/synth/compose.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/compose.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -794,9 +794,9 @@ Acceptance criteria:
 3. Given the chosen model (v0.2), when the frozen tier P test split is opened once, then its numbers are reported in the results document next to tier S, the system-level test and the latency estimate
 4. Given the release, when published under models/v0.2, then it has a model card, checksums and the attribution list of the real photos
 
-Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.2/MODEL_CARD.md](../../models/v0.2/MODEL_CARD.md)
+Design: [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:models/v0.2/MODEL_CARD.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.2/MODEL_CARD.md)
 
-Evidence: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.2/MODEL_CARD.md](../../models/v0.2/MODEL_CARD.md)
+Evidence: [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:models/v0.2/MODEL_CARD.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.2/MODEL_CARD.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -820,9 +820,9 @@ Acceptance criteria:
 4. Given v0.4 trained with the v0.2 recipe on v0.2 scenes plus the photos, when evaluated, then tier S does not drop against v0.2 and tier P is reported on calib, then on the test split once (result: test accuracy 0.728 against 0.433, hornet P/R 0.68/0.83)
 5. Given the release, when published under models/v0.4, then it has a model card, checksums and the attribution list of every real photo used
 
-Design: [docs/adr/0010-real-photos-with-automatic-labels.md](../../docs/adr/0010-real-photos-with-automatic-labels.md), [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.4/MODEL_CARD.md](../../models/v0.4/MODEL_CARD.md)
+Design: [vision:docs/adr/0010-real-photos-with-automatic-labels.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0010-real-photos-with-automatic-labels.md), [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:models/v0.4/MODEL_CARD.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.4/MODEL_CARD.md)
 
-Evidence: [vision/pseudolabel.py](../../vision/pseudolabel.py), [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.4/MODEL_CARD.md](../../models/v0.4/MODEL_CARD.md)
+Evidence: [vision:src/smarthive_vision/pseudolabel.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pseudolabel.py), [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:models/v0.4/MODEL_CARD.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.4/MODEL_CARD.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -845,9 +845,9 @@ Acceptance criteria:
 2. Given that index, when tier P v2 is built, then photographers are hashed into test, calibration and training buckets, no photographer is on two sides, and test holds at least 450 hornets and 600 look-alike insects in named groups (result: 500 bee, 477 hornet, 635 look-alikes in 23 groups)
 3. Given Open Images V7, when bee boxes are filtered, then only photos whose bees are boxed one by one are kept, with author and license per photo (result: 2,896 photos, 5,267 boxes)
 
-Design: [docs/04-data/01-data-problem-and-strategy.md](../../docs/04-data/01-data-problem-and-strategy.md), [docs/03-vision/05-training-and-evaluation.md](../../docs/03-vision/05-training-and-evaluation.md)
+Design: [docs/04-data/01-data-problem-and-strategy.md](../../docs/04-data/01-data-problem-and-strategy.md), [vision:docs/05-training-and-evaluation.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md)
 
-Evidence: [vision/inat.py](../../vision/inat.py), [vision/openimages.py](../../vision/openimages.py), [vision/splits/P-inat-v2.tsv](../../vision/splits/P-inat-v2.tsv)
+Evidence: [vision:src/smarthive_vision/inat.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/inat.py), [vision:src/smarthive_vision/openimages.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/openimages.py), [vision:src/smarthive_vision/splits/P-inat-v2.tsv](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/splits/P-inat-v2.tsv)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -868,9 +868,9 @@ Acceptance criteria:
 2. Given prompt-free YOLOE proposals and an insectness classifier trained on Open Images human boxes, when scored on held-out Open Images photos, then precision and recall at IoU 0.5 are reported per threshold (result: 0.65 / 0.65 at insect probability 0.7)
 3. Given the 13,090-photo training pool, when labeled and tidied, then a visual audit is recorded (result: 10,783 photos, 12,732 boxes; 6,497 SAM 2.1 cutouts)
 
-Design: [docs/adr/0011-osi-clean-automatic-labeling.md](../../docs/adr/0011-osi-clean-automatic-labeling.md), [docs/03-vision/03-synthetic-image-pipeline.md](../../docs/03-vision/03-synthetic-image-pipeline.md)
+Design: [vision:docs/adr/0011-osi-clean-automatic-labeling.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/adr/0011-osi-clean-automatic-labeling.md), [vision:docs/03-synthetic-image-pipeline.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/03-synthetic-image-pipeline.md)
 
-Evidence: [vision/labeler.py](../../vision/labeler.py), [vision/insectness.py](../../vision/insectness.py), [vision/pseudolabel.py](../../vision/pseudolabel.py), [simulation/images/cutouts.py](../../simulation/images/cutouts.py)
+Evidence: [vision:src/smarthive_vision/labeler.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/labeler.py), [vision:src/smarthive_vision/insectness.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/insectness.py), [vision:src/smarthive_vision/pseudolabel.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pseudolabel.py), [vision:src/smarthive_vision/synth/cutouts.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/synth/cutouts.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -893,9 +893,9 @@ Acceptance criteria:
 4. Given the node pipeline, when the verifier runs in ncnn, then its probabilities match PyTorch and the rule is the same code as the evaluation (decide())
 5. Given Open Images Bee photos, when the verifier checks them, then only honeybees are kept for training (result: 609 of 2,631; the rest were bumblebees, hoverflies, wasps and other bees)
 
-Design: [docs/03-vision/04-model-architecture.md](../../docs/03-vision/04-model-architecture.md)
+Design: [vision:docs/04-model-architecture.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/04-model-architecture.md)
 
-Evidence: [vision/verifier.py](../../vision/verifier.py), [vision/pipeline.py](../../vision/pipeline.py)
+Evidence: [vision:src/smarthive_vision/verifier.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/verifier.py), [vision:src/smarthive_vision/pipeline.py](https://github.com/endlessconflict/SmartHive-Vision/blob/main/src/smarthive_vision/pipeline.py)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -918,9 +918,9 @@ Acceptance criteria:
 4. Given the chosen models, when tier P v2 test and tier P v1 test are opened once, then the numbers are reported next to v0.4 with the look-alike groups (result: 0.886 vs 0.652; hornet P/R 0.899/0.893 vs 0.570/0.748; look-alikes called hornet 34 vs 210; P v1 0.862 vs 0.728)
 5. Given the release, when published under models/v0.5, then it has a model card, checksums, attribution of all 11,392 real photos and the Pi 3B latency estimate including stage 1b (result: 251 ms detector, 46 ms per verifier crop, 33 ms per bee, 173 MB)
 
-Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [models/v0.5/MODEL_CARD.md](../../models/v0.5/MODEL_CARD.md)
+Design: [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:models/v0.5/MODEL_CARD.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.5/MODEL_CARD.md)
 
-Evidence: [models/v0.5/MODEL_CARD.md](../../models/v0.5/MODEL_CARD.md), [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+Evidence: [vision:models/v0.5/MODEL_CARD.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/models/v0.5/MODEL_CARD.md), [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -945,7 +945,7 @@ Acceptance criteria:
 
 Blocked by: [HW-01](#hw-01)
 
-Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md), [docs/03-vision/05-training-and-evaluation.md](../../docs/03-vision/05-training-and-evaluation.md)
+Design: [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md), [vision:docs/05-training-and-evaluation.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/05-training-and-evaluation.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -1015,7 +1015,7 @@ Acceptance criteria:
 
 Design: [docs/05-backend/08-deployment-and-operations.md](../../docs/05-backend/08-deployment-and-operations.md)
 
-Evidence: [.github/workflows/tests.yml](../../.github/workflows/tests.yml)
+Evidence: [.github/workflows/backend.yml](../../.github/workflows/backend.yml)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|
@@ -1125,7 +1125,7 @@ Acceptance criteria:
 1. Given the report, when read, then every metric names its tier (S, P, C, F) and the domain gap is stated
 2. Given the demo, when run, then node (or simulator) to server to dashboard to alert works live
 
-Design: [docs/03-vision/07-results.md](../../docs/03-vision/07-results.md)
+Design: [vision:docs/07-results.md](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/07-results.md)
 
 | Sub-task | Assignee | Hours | Status |
 |---|---|---|---|

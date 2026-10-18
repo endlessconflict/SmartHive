@@ -60,4 +60,4 @@ The node requirements above come from the hardware design. The elicitation matri
 1. Autonomy period (FR-11, NFR-01, NFR-02). Without it we cannot size the battery or decide whether solar is needed.
 2. Storage period (NFR-05). Tied to the retention question EL-09.
 3. Where exactly the temperature and humidity are measured: brood nest, honey super or outside. The backlog story US3 says "brood nest and honey super zones", which implies two sensors.
-4. Camera model and mounting (FR-03). The [camera document](../03-vision/02-camera-and-optics.md) gives the constraints that the choice must satisfy.
+4. Camera model and mounting (FR-03). The [camera document](https://github.com/endlessconflict/SmartHive-Vision/blob/main/docs/02-camera-and-optics.md) gives the constraints that the choice must satisfy.
