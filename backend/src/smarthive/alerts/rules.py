@@ -6,7 +6,7 @@ only where the catalog says so.
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import text
@@ -103,6 +103,43 @@ async def node_offline(conn: Db, p: dict[str, Any], now: datetime) -> list[Findi
             {"last_seen_at": r.last_seen_at.isoformat()},
             r.hive_id,
             r.id,
+            "critical" if now - r.last_seen_at > timedelta(hours=p["escalate_after_hours"]) else None,
+        )
+        for r in rows
+    ]
+
+
+async def node_power_low(conn: Db, p: dict[str, Any], now: datetime) -> list[Finding]:
+    """Battery below the threshold in every reading of the window, or the Pi's under-voltage flag set in
+    at least `uv_snapshots` health snapshots of it. Simulated nodes count: they are how this is demoed."""
+    rows = (
+        await conn.execute(
+            text(
+                "WITH low AS ("
+                "  SELECT node_id, avg(value) AS volts, 'battery_v' AS why FROM readings "
+                "  WHERE quantity = 'battery_v' AND quality = 'ok' "
+                "  AND ts > CAST(:now AS timestamptz) - make_interval(mins => :m) AND ts <= CAST(:now AS timestamptz) "
+                "  GROUP BY node_id HAVING count(*) >= 2 AND bool_and(value < :v) "
+                "  UNION ALL "
+                "  SELECT node_id, NULL, 'under_voltage' FROM node_health "
+                "  WHERE ts > CAST(:now AS timestamptz) - make_interval(mins => :m) AND ts <= CAST(:now AS timestamptz) "
+                "  AND data -> 'throttled' ->> 'under_voltage' = 'true' "
+                "  GROUP BY node_id HAVING count(*) >= :uv"
+                ") SELECT DISTINCT ON (low.node_id) low.node_id, low.volts, low.why, "
+                "(SELECT hive_id FROM node_assignments a WHERE a.node_id = low.node_id "
+                "AND a.valid @> CAST(:now AS timestamptz)) AS hive_id FROM low ORDER BY low.node_id, low.why"
+            ),
+            {"now": now, "m": p["minutes"], "v": p["battery_v_min"], "uv": p["uv_snapshots"]},
+        )
+    ).all()
+    return [
+        Finding(
+            "node_power_low",
+            f"node_power_low:{r.node_id}",
+            f"Node {r.node_id} has a weak power supply",
+            {"reason": r.why, "battery_v": None if r.volts is None else round(r.volts, 2)},
+            r.hive_id,
+            r.node_id,
         )
         for r in rows
     ]
@@ -146,6 +183,7 @@ RULES: dict[str, Rule] = {
         Rule("shb_detected", _threat("shb", "Small hive beetle"), once=True),
         Rule("varroa_high", varroa_high),
         Rule("node_offline", node_offline, auto_resolve=True),
+        Rule("node_power_low", node_power_low, auto_resolve=True),
         Rule("temp_out_of_range", _out_of_range("temp_out_of_range", "Hive temperature out of range")),
         Rule("rh_out_of_range", _out_of_range("rh_out_of_range", "Hive humidity out of range")),
     )

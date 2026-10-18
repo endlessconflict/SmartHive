@@ -79,12 +79,13 @@ Rules are Python functions registered with an ID, a severity and a parameter sch
 
 `smarthive worker` runs the engine (`backend/src/smarthive/alerts/`). It evaluates every enabled rule once at start, again on each `NOTIFY` from the ingestor, and at least every `SMARTHIVE_ALERT_INTERVAL_S` seconds (default 60).
 
-Built: `hornet_detected`, `shb_detected`, `varroa_high`, `node_offline`, `temp_out_of_range`, `rh_out_of_range`, the lifecycle with its event log, in-app notification rows, and the API (`/alerts`, `/alert-rules`). Default thresholds are seeded by migration 0004.
+Built: `hornet_detected`, `shb_detected`, `varroa_high`, `node_offline`, `node_power_low`, `temp_out_of_range`, `rh_out_of_range`, the lifecycle with its event log, in-app notification rows, and the API (`/alerts`, `/alert-rules`). Default thresholds are seeded by migration 0004.
 
 Differences from the design above:
 
 - A condition a user resolved by hand does not reopen for 6 hours, so a standing window condition does not alert again a minute later.
 - Detection alerts are one per episode and never reopen. Window alerts are one per hive (or node).
 - Email and ntfy notifications are written as `pending` rows. Nothing sends them yet.
-- `node_offline` stays `warning`; the escalation to `critical` after 24 hours is not built.
-- Not built yet: `varroa_rising`, `node_power_low`, `weight_sudden_drop`, `sensor_fault`, `clock_unsynced`, `anomaly_detected`, the recommendation rules, and the late-data suppression after a reconnect. Weight and temperature rules do skip hives with a running management event.
+- `node_offline` opens as `warning` and escalates to `critical` once the node has been silent for `escalate_after_hours` (24). A last will (`status: offline`) opens it at once; a silent node opens it after `silent_minutes`.
+- `node_power_low` fires when every `battery_v` reading of the last 10 minutes is below 10.2 V (at least two readings), or when at least 3 health snapshots in that window carry `throttled.under_voltage: true`. The exact shape of `throttled` is not fixed in the messaging contract yet; this key is the assumption to confirm with the node software. Simulated nodes are included. It closes itself when the condition clears.
+- Not built yet: `varroa_rising`, `weight_sudden_drop`, `sensor_fault`, `clock_unsynced`, `anomaly_detected`, the recommendation rules, and the late-data suppression after a reconnect. Weight and temperature rules do skip hives with a running management event.

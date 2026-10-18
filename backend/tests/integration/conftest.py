@@ -1,9 +1,10 @@
 """Real TimescaleDB (Apache-2.0 "-oss" image) in a container, migrated with Alembic. Needs Docker."""
 
-import importlib
+import json
 import os
 from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from alembic import command
@@ -13,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 from testcontainers.postgres import PostgresContainer
 
 BACKEND = Path(__file__).parents[2]
-RULES = importlib.import_module("smarthive.db.migrations.versions.0004_alert_rules").RULES
+_seeded_rules: list[dict[str, Any]] = []  # alert_rules as the migrations left them
 TIMESCALE_IMAGE = "timescale/timescaledb:2.17.2-pg16-oss"
 
 
@@ -42,6 +43,9 @@ def db_url() -> Iterator[str]:
 async def engine(db_url: str) -> AsyncIterator[AsyncEngine]:
     engine = create_async_engine(db_url)
     async with engine.begin() as conn:
+        if not _seeded_rules:  # first test, before anything is truncated
+            rows = await conn.execute(text("SELECT id, severity, params FROM alert_rules"))
+            _seeded_rules.extend(dict(r._mapping) for r in rows)
         await conn.execute(
             text(
                 "TRUNCATE readings, node_health, vision_summaries, detection_events, "
@@ -49,11 +53,13 @@ async def engine(db_url: str) -> AsyncIterator[AsyncEngine]:
                 "hives, apiaries, users RESTART IDENTITY CASCADE"
             )
         )
-        # the cascade also emptied alert_rules, which the migration seeded
-        for rule_id, severity, params in RULES:
+        # the cascade also emptied alert_rules (it references hives)
+        for rule in _seeded_rules:
             await conn.execute(
-                text("INSERT INTO alert_rules (id, severity, params) VALUES (:i, :s, CAST(:p AS jsonb))"),
-                {"i": rule_id, "s": severity, "p": params},
+                text(
+                    "INSERT INTO alert_rules (id, severity, params) VALUES (:id, :severity, CAST(:p AS jsonb))"
+                ),
+                {"id": rule["id"], "severity": rule["severity"], "p": json.dumps(rule["params"])},
             )
     yield engine
     await engine.dispose()
