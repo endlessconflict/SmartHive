@@ -14,6 +14,7 @@ from smarthive.api.routes import (
     alerts,
     apiaries,
     auth,
+    exports,
     health,
     hives,
     images,
@@ -59,6 +60,19 @@ def create_app(settings: Settings | None = None, engine: AsyncEngine | None = No
         app.state.engine = engine
     app.state.login_limiter = FailureLimiter(settings.login_max_failures, settings.login_window_s)
     errors.install(app)
-    for module in (health, auth, me, apiaries, hives, images, management, nodes, readings, alerts, ws):
+    for module in (
+        health,
+        auth,
+        me,
+        apiaries,
+        hives,
+        images,
+        management,
+        nodes,
+        readings,
+        alerts,
+        ws,
+        exports,
+    ):
         app.include_router(module.router)
     return app

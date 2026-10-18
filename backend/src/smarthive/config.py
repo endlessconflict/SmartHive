@@ -33,6 +33,7 @@ class Settings(BaseSettings):
 
     # worker
     alert_interval_s: int = 60
+    weather_interval_s: int = 86400  # Open-Meteo refresh
 
     # notification delivery. A channel without its server stays disabled and its rows stay `pending`.
     smtp_host: str | None = None

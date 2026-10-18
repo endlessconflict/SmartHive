@@ -2,12 +2,14 @@
 
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime
 
 import asyncpg
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
+from smarthive import weather
 from smarthive.alerts import delivery, store
 from smarthive.alerts.rules import RULES
 from smarthive.api.deps import Db
@@ -49,8 +51,15 @@ async def run(settings: Settings, stop: asyncio.Event) -> None:
     wake = asyncio.Event()
     listener = await asyncpg.connect(settings.db_url.replace("+asyncpg", ""))
     await listener.add_listener(CHANNEL, lambda *_: wake.set())
+    last_weather = float("-inf")
     try:
         while not stop.is_set():
+            if time.monotonic() - last_weather >= settings.weather_interval_s:
+                last_weather = time.monotonic()
+                try:
+                    log.info("weather_stored", extra={"fields": {"rows": await weather.refresh_all(engine)}})
+                except Exception:
+                    log.exception("weather_failed")
             try:
                 opened = await evaluate_all(engine)
                 log.info("alerts_evaluated", extra={"fields": {"opened": opened}})
