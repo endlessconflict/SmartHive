@@ -71,8 +71,10 @@ def pki(tmp_path_factory: pytest.TempPathFactory) -> Pki:
         subprocess.run(
             [bash, str(INFRA / "pki" / "gen_certs.sh"), *ids], cwd=directory, check=True, capture_output=True
         )
-    for key in directory.glob("*.key"):
-        key.chmod(0o644)  # the broker runs as another user inside the container
+    # the broker runs as another user inside the container: it must reach the directory and read every file
+    directory.chmod(0o755)
+    for f in directory.iterdir():
+        f.chmod(0o644)
     return Pki(directory)
 
 
