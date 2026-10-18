@@ -1,15 +1,19 @@
 """Email through a real SMTP server (Mailpit), ntfy through a local HTTP server, retries and rate limit."""
 
+import hashlib
+import io
 import json
 import threading
 import urllib.request
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 from typing import Any
 from uuid import UUID
 
 import pytest
+from PIL import Image
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from testcontainers.core.container import DockerContainer
@@ -146,3 +150,34 @@ async def test_per_user_hourly_limit_suppresses_the_rest(
     await deliver_pending(engine, settings)
     sent = (await statuses(engine, first))["email"].status, (await statuses(engine, second))["email"].status
     assert sorted(sent) == ["sent", "suppressed"]
+
+
+async def test_email_is_multipart_with_the_hive_picture(
+    engine: AsyncEngine, mailpit: tuple[str, int, int], tmp_path: Path
+) -> None:
+    host, port, api = mailpit
+    owner, hive, node = await setup_hive(engine)
+    buf = io.BytesIO()
+    Image.new("RGB", (800, 600), (10, 90, 200)).save(buf, "JPEG")
+    digest = hashlib.sha256(buf.getvalue()).hexdigest()
+    rel = f"{digest}.jpg"
+    (tmp_path / rel).write_bytes(buf.getvalue())
+    await add_hornet(engine, hive, node)
+    async with engine.begin() as c:
+        await c.execute(
+            text(
+                "INSERT INTO images (id, node_id, hive_id, captured_at, clock_synced, reason, path, sha256, bytes, objects, expires_at) "
+                "VALUES (gen_random_uuid(), :n, :h, now(), true, 'threat', :p, :s, :b, '[]', now() + interval '1 day')"
+            ),
+            {"n": node, "h": hive, "p": rel, "s": digest, "b": len(buf.getvalue())},
+        )
+    await evaluate_all(engine)
+    settings = Settings(smtp_host=host, smtp_port=port, image_dir=str(tmp_path))
+
+    assert await deliver_pending(engine, settings) >= 1
+    summary = inbox(mailpit)[0]
+    with urllib.request.urlopen(f"http://{host}:{api}/api/v1/message/{summary['ID']}") as r:
+        message = json.load(r)
+    assert "<img" in message["HTML"] and "cid:alert-image" in message["HTML"]
+    assert message["Text"].startswith("Hornet") or "Severity: critical" in message["Text"]
+    assert len(message["Inline"]) == 1 and message["Inline"][0]["ContentType"] == "image/jpeg"

@@ -21,7 +21,7 @@ VALUES (CAST(:msg_id AS uuid), CAST(:episode_id AS uuid), :node_id,
         :max_conf, :frames_positive, :frames_window,
         CAST(:image_id AS uuid), CAST(:models AS jsonb))
 ON CONFLICT DO NOTHING
-RETURNING 1
+RETURNING hive_id
 """)
 
 
@@ -46,9 +46,19 @@ async def store(conn: AsyncConnection, e: Event) -> Stored:
         "image_id": str(b.image_id) if b.image_id else None,
         "models": None if b.models is None else json.dumps(b.models),
     }
-    if (await conn.execute(_INSERT, params)).first() is None:
+    row = (await conn.execute(_INSERT, params)).first()
+    if row is None:
         return Stored(str(e.msg_id), 1, 0)
-    notify = {"kind": "event", "node_id": e.node_id, "msg_id": str(e.msg_id), "type": b.type, "cls": b.cls}
+    notify = {
+        "kind": "event",
+        "node_id": e.node_id,
+        "msg_id": str(e.msg_id),
+        "type": b.type,
+        "cls": b.cls,
+        "hive_id": str(row.hive_id) if row.hive_id else None,
+        "first_seen": first_seen.isoformat(),
+        "image_id": params["image_id"],
+    }
     return Stored(str(e.msg_id), 1, 1, notify)
 
 
