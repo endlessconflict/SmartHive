@@ -1,0 +1,7 @@
+# Dev entry point on :80 (published as 8080). Real deployments add a hostname and Caddy issues TLS.
+:80 {
+	request_body {
+		max_size 6MB
+	}
+	reverse_proxy api:8000
+}
