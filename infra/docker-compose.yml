@@ -1,4 +1,34 @@
 # infra/docker-compose.yml
+# Full server stack. Before the first start:
+#   cd infra/pki && ./gen_certs.sh backend node-0001 && cd ..
+#   cp .env.example .env   (set the passwords and SMARTHIVE_JWT_SECRET)
+#   docker compose up -d --build
+# Dashboard/API entry point: http://localhost:8080 (Caddy). Mail catcher: http://localhost:8025.
+x-backend: &backend
+  build: ../backend
+  image: smarthive-backend:dev
+  restart: unless-stopped
+  environment: &backend-env
+    SMARTHIVE_DB_URL: postgresql+asyncpg://smarthive:${POSTGRES_PASSWORD}@db:5432/smarthive
+    SMARTHIVE_MQTT_HOST: mosquitto
+    SMARTHIVE_MQTT_PORT: "8883"
+    SMARTHIVE_MQTT_TLS_CA: /certs/ca.crt
+    SMARTHIVE_MQTT_TLS_CERT: /certs/backend.crt
+    SMARTHIVE_MQTT_TLS_KEY: /certs/backend.key
+    SMARTHIVE_JWT_SECRET: ${SMARTHIVE_JWT_SECRET:?set SMARTHIVE_JWT_SECRET in infra/.env}
+    SMARTHIVE_IMAGE_DIR: /data/images
+    SMARTHIVE_BACKUP_DIR: /backups
+    SMARTHIVE_SMTP_HOST: mailpit
+    SMARTHIVE_SMTP_PORT: "1025"
+    SMARTHIVE_FORWARDED_ALLOW_IPS: "*"  # only Caddy can reach the api on the internal network
+  volumes:
+    - ./pki:/certs:ro
+    - images:/data/images
+    - backups:/backups
+  depends_on:
+    migrate:
+      condition: service_completed_successfully
+
 services:
   mosquitto:
     image: eclipse-mosquitto:2
@@ -13,6 +43,79 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
 
+  db:
+    image: timescale/timescaledb:2.17.2-pg16-oss
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smarthive
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in infra/.env}
+      POSTGRES_DB: smarthive
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smarthive -d smarthive"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *backend
+    restart: "no"
+    command: ["migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ingest:
+    <<: *backend
+    command: ["ingest"]
+    environment:
+      <<: *backend-env
+      SMARTHIVE_MQTT_CLIENT_ID: smarthive-ingest
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      mosquitto:
+        condition: service_started
+
+  worker:
+    <<: *backend
+    command: ["worker"]
+    environment:
+      <<: *backend-env
+      SMARTHIVE_MQTT_CLIENT_ID: smarthive-worker
+
+  api:
+    <<: *backend
+    command: ["api", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      <<: *backend-env
+      SMARTHIVE_COOKIE_SECURE: "false"  # plain http on localhost; set true behind real TLS
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/readyz')"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
 volumes:
   mosquitto_data:
-  mosquitto_log:  
+  mosquitto_log:
+  pgdata:
+  images:
+  backups:
