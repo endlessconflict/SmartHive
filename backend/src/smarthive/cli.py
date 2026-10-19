@@ -65,6 +65,24 @@ def _worker(settings: Settings) -> None:
         runner.run(main())
 
 
+def _backup(settings: Settings) -> None:
+    from smarthive import maintenance
+
+    if not settings.backup_dir:
+        raise SystemExit("SMARTHIVE_BACKUP_DIR is not set")
+    dump = asyncio.run(maintenance.backup(settings.db_url, Path(settings.backup_dir), settings.backup_keep))
+    print(dump)
+
+
+def _restore_check(settings: Settings, dump: str) -> None:
+    from smarthive import maintenance
+
+    result = asyncio.run(maintenance.restore_check(settings.db_url, Path(dump)))
+    for table, (expected, restored) in result.items():
+        print(f"{table}: expected at least {expected}, restored {restored}")
+    print("restore check passed")
+
+
 def _migrate(settings: Settings) -> None:
     from alembic import command
     from alembic.config import Config
@@ -131,6 +149,11 @@ def main(argv: list[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("ingest", help="subscribe to node topics and store them")
     sub.add_parser("worker", help="evaluate alert rules and open alerts")
+    sub.add_parser("backup", help="write a database dump now and prune old ones")
+    check = sub.add_parser(
+        "restore-check", help="restore a dump into a scratch database and compare row counts"
+    )
+    check.add_argument("dump")
     sub.add_parser("migrate", help="apply database migrations up to the latest")
     api = sub.add_parser("api", help="serve the REST API")
     api.add_argument("--host", default="127.0.0.1")
@@ -150,6 +173,10 @@ def main(argv: list[str] | None = None) -> None:
         _ingest(settings)
     elif args.command == "worker":
         _worker(settings)
+    elif args.command == "backup":
+        _backup(settings)
+    elif args.command == "restore-check":
+        _restore_check(settings, args.dump)
     elif args.command == "migrate":
         _migrate(settings)
     elif args.command == "api":

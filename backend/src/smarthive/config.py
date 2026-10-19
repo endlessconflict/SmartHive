@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # worker
     alert_interval_s: int = 60
     weather_interval_s: int = 86400  # Open-Meteo refresh
+    maintenance_hour_utc: int = 3  # nightly purge and backup start at this hour
+    backup_dir: str | None = None  # no backups unless set
+    backup_keep: int = 14
 
     # notification delivery. A channel without its server stays disabled and its rows stay `pending`.
     smtp_host: str | None = None

@@ -3,13 +3,14 @@
 import asyncio
 import logging
 import time
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
+from pathlib import Path
 
 import asyncpg
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from smarthive import weather
+from smarthive import maintenance, weather
 from smarthive.alerts import delivery, store
 from smarthive.alerts.rules import RULES
 from smarthive.api.deps import Db
@@ -45,6 +46,17 @@ async def evaluate_all(engine: AsyncEngine, now: datetime | None = None) -> int:
     return opened
 
 
+async def _nightly(engine: AsyncEngine, settings: Settings) -> None:
+    try:
+        done = await maintenance.purge(engine, Path(settings.image_dir))
+        log.info("purged", extra={"fields": done})
+        if settings.backup_dir:
+            dump = await maintenance.backup(settings.db_url, Path(settings.backup_dir), settings.backup_keep)
+            log.info("backup_written", extra={"fields": {"file": dump.name}})
+    except Exception:
+        log.exception("nightly_failed")
+
+
 async def run(settings: Settings, stop: asyncio.Event) -> None:
     """Evaluate when the ingestor announces a message, and at least every `alert_interval_s`."""
     engine = create_async_engine(settings.db_url, pool_pre_ping=True)
@@ -52,6 +64,7 @@ async def run(settings: Settings, stop: asyncio.Event) -> None:
     listener = await asyncpg.connect(settings.db_url.replace("+asyncpg", ""))
     await listener.add_listener(CHANNEL, lambda *_: wake.set())
     last_weather = float("-inf")
+    last_maintenance: date | None = None
     try:
         while not stop.is_set():
             if time.monotonic() - last_weather >= settings.weather_interval_s:
@@ -60,6 +73,10 @@ async def run(settings: Settings, stop: asyncio.Event) -> None:
                     log.info("weather_stored", extra={"fields": {"rows": await weather.refresh_all(engine)}})
                 except Exception:
                     log.exception("weather_failed")
+            today = datetime.now(UTC)
+            if today.hour >= settings.maintenance_hour_utc and last_maintenance != today.date():
+                last_maintenance = today.date()
+                await _nightly(engine, settings)
             try:
                 opened = await evaluate_all(engine)
                 log.info("alerts_evaluated", extra={"fields": {"opened": opened}})
