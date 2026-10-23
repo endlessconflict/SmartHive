@@ -1,0 +1,46 @@
+menu "SmartHive node"
+
+    config SMARTHIVE_NODE_ID
+        string "Node id (must match the CN of the client certificate)"
+        default "node-0001"
+
+    config SMARTHIVE_WIFI_SSID
+        string "Wi-Fi SSID"
+        default ""
+
+    config SMARTHIVE_WIFI_PASSWORD
+        string "Wi-Fi password (empty for an open network)"
+        default ""
+
+    config SMARTHIVE_MQTT_URI
+        string "Broker URI"
+        default "mqtts://192.168.1.50:8883"
+        help
+            mqtts://host:8883 for the Compose broker (mutual TLS), mqtt://host:1883 for a plain test broker.
+
+    config SMARTHIVE_MQTT_TLS
+        bool "Use mutual TLS (embeds main/certs/ca.crt, node.crt, node.key)"
+        default y
+
+    config SMARTHIVE_MQTT_SKIP_CN_CHECK
+        bool "Do not check the broker certificate name"
+        depends on SMARTHIVE_MQTT_TLS
+        default n
+        help
+            Only for a lab network where the broker certificate does not list the IP you connect to.
+            The better fix is to reissue it with BROKER_SAN (see infra/pki/gen_certs.sh).
+
+    config SMARTHIVE_DHT11_GPIO
+        int "DHT11 data GPIO"
+        default 4
+
+    config SMARTHIVE_SAMPLE_INTERVAL_S
+        int "Seconds between readings"
+        range 2 3600
+        default 60
+
+    config SMARTHIVE_NTP_SERVER
+        string "NTP server"
+        default "pool.ntp.org"
+
+endmenu

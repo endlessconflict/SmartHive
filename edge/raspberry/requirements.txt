@@ -1,0 +1,2 @@
+# DHT11 node on the Raspberry Pi. The sensor is read through the kernel IIO driver, so no GPIO library.
+paho-mqtt==2.1.0
