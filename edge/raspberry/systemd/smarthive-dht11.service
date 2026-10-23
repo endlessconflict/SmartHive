@@ -1,0 +1,15 @@
+[Unit]
+Description=SmartHive DHT11 telemetry
+Wants=network-online.target time-sync.target
+After=network-online.target
+
+[Service]
+User=smarthive
+WorkingDirectory=/opt/smarthive/edge/raspberry
+ExecStart=/opt/smarthive/venv/bin/python -m pi_node.main --config /etc/smarthive/node.toml
+Restart=always
+RestartSec=10
+MemoryMax=60M
+
+[Install]
+WantedBy=multi-user.target

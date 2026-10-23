@@ -14,6 +14,16 @@ The detection logic `visiond` will run already exists and is tested in the [Smar
 | `uplinkd` | Drain the outbox over MQTT/TLS, upload images over HTTPS | Karen |
 | `agentd` | Configuration, remote commands, health and heartbeat | Ricardo |
 
+## DHT11 telemetry (first prototype)
+
+| Folder | What |
+|---|---|
+| [`esp32/`](esp32/README.md) | ESP32 firmware in C (ESP-IDF): DHT11, Wi-Fi, MQTT over mutual TLS |
+| [`raspberry/`](raspberry/README.md) | The same node in Python for the Raspberry Pi (DHT11 through the kernel IIO driver) |
+| [`scripts/`](scripts/README.md) | `fake_telemetry.py`: fake `sim-` nodes with Gaussian noise to test the backend |
+
+All three publish `temp_in` and `rh_in` on `smarthive/v1/nodes/<node_id>/telemetry` following the messaging contract. The `sensord` and `uplinkd` services below will replace the Raspberry Pi version.
+
 Planned layout:
 
 ```text

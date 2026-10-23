@@ -1,0 +1,2 @@
+# fake_telemetry.py (not needed for --dry-run)
+paho-mqtt==2.1.0

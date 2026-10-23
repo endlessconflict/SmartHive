@@ -1,0 +1,12 @@
+# Copy to /etc/smarthive/node.toml (chmod 600, owner smarthive).
+node_id = "node-0001"      # must be the CN of the client certificate
+sample_interval_s = 60
+max_pending = 1440         # samples kept in memory while the broker is unreachable (24 h at 60 s)
+
+[mqtt]
+host = "gateway.local"
+port = 8883
+tls = true                 # false only for a plain test broker on port 1883
+ca = "/etc/smarthive/certs/ca.crt"
+cert = "/etc/smarthive/certs/node-0001.crt"
+key = "/etc/smarthive/certs/node-0001.key"

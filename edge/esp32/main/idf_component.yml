@@ -1,0 +1,7 @@
+dependencies:
+  idf: ">=5.3"
+  # Built into ESP-IDF up to 5.x, moved to the component registry in 6.0
+  espressif/mqtt:
+    version: "^1.0.0"
+    rules:
+      - if: "idf_version >=6.0"
