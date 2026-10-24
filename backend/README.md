@@ -12,6 +12,7 @@ One Python package (`smarthive`) with several entry points, deployed as separate
 | `smarthive api` | FastAPI app: REST, WebSocket live feed, image upload from nodes, exports | Login, refresh, logout, `/me`, apiaries list, health checks |
 | `smarthive migrate` | Apply the database migrations (what the Compose stack runs before the other services) | Done |
 | `smarthive create-user` | Create the first administrator without SQL; the password is prompted for or read from stdin | Done |
+| `smarthive seed` | Publish fake node messages (telemetry, health, summary, events, status) to the broker; see [Test data](#test-data) | Done |
 | `smarthive worker` | Rules, alert lifecycle, notifications, node-offline detection, ML job scheduling | Planned |
 
 ## Layout
@@ -99,6 +100,28 @@ docker run -d --env-file backend/.env smarthive-backend ingest
 ```
 
 It runs as a non-root user (uid 10001). `SMARTHIVE_JWT_SECRET` is mandatory for `api`; there is no default.
+
+## Test data
+
+`smarthive seed` plays the part of an edge node, so a fresh stack can be filled without hardware. It builds each message from the contract (`docs/05-backend/04-messaging-contract.md`) and publishes it with QoS 1 on `smarthive/v1/nodes/<node>/<kind>`.
+
+```bash
+# Needs the node's own client certificate: the broker takes the MQTT user from the CN and
+# only lets a node write to its own topics (the `backend` certificate cannot publish node data).
+cd infra/pki && ./gen_certs.sh node-0001
+export SMARTHIVE_MQTT_PORT=8883 SMARTHIVE_MQTT_TLS_CA=infra/pki/ca.crt        SMARTHIVE_MQTT_TLS_CERT=infra/pki/node-0001.crt SMARTHIVE_MQTT_TLS_KEY=infra/pki/node-0001.key
+smarthive seed --scenario hornet --rounds 5 --interval 10 --seed 42
+```
+
+| Scenario | What it sends | What it should cause |
+|---|---|---|
+| `normal` | Telemetry (3 readings per quantity, 5 min apart), health, summary | Rows in `readings`, `node_health`, summaries; node registered |
+| `hornet` | `normal` plus one `threat_detected` hornet event per round | A `hornet` alert |
+| `varroa` | `normal` with about 22 % varroa-positive bees | A `varroa_high` alert |
+| `low-battery` | `battery_v` near 9.8 V and `under_voltage` set | A `node_power_low` alert |
+| `offline` | A retained `status: offline` message | A `node_offline` alert |
+
+`--node` picks the node id (it must match the certificate CN), `--rounds` and `--interval` repeat the batch, and `--seed` makes the values repeatable. Readings are backdated so the time-window rules can fire on the first round. Every payload is validated against the contract models in `tests/unit/test_seeder.py`, and `tests/integration/test_seeder.py` pushes them through the ingest path into TimescaleDB. To see alerts, the `worker` service has to be running and the node assigned to a hive.
 
 ## Tests
 

@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 
 from smarthive.config import Settings
+from smarthive.seeder import SCENARIOS
 
 
 class JsonFormatter(logging.Formatter):
@@ -83,6 +84,17 @@ def _restore_check(settings: Settings, dump: str) -> None:
     print("restore check passed")
 
 
+def _seed(
+    settings: Settings, node: str, scenario: str, rounds: int, interval: float, seed: int | None
+) -> None:
+    from smarthive.seeder import publish
+
+    factory = asyncio.SelectorEventLoop if sys.platform == "win32" else None  # aiomqtt, see _ingest
+    with asyncio.Runner(loop_factory=factory) as runner:
+        sent = runner.run(publish(settings, node, scenario, rounds, interval, seed))
+    print(f"published {sent} messages as {node} ({scenario})")
+
+
 def _migrate(settings: Settings) -> None:
     from alembic import command
     from alembic.config import Config
@@ -154,6 +166,12 @@ def main(argv: list[str] | None = None) -> None:
         "restore-check", help="restore a dump into a scratch database and compare row counts"
     )
     check.add_argument("dump")
+    seed = sub.add_parser("seed", help="publish fake node messages to the broker (test data)")
+    seed.add_argument("--node", default="node-0001", help="node id; must match the client certificate CN")
+    seed.add_argument("--scenario", choices=SCENARIOS, default="normal")
+    seed.add_argument("--rounds", type=int, default=1)
+    seed.add_argument("--interval", type=float, default=5.0, help="seconds between rounds")
+    seed.add_argument("--seed", type=int, default=None, help="random seed, for repeatable values")
     sub.add_parser("migrate", help="apply database migrations up to the latest")
     api = sub.add_parser("api", help="serve the REST API")
     api.add_argument("--host", default="127.0.0.1")
@@ -177,6 +195,8 @@ def main(argv: list[str] | None = None) -> None:
         _backup(settings)
     elif args.command == "restore-check":
         _restore_check(settings, args.dump)
+    elif args.command == "seed":
+        _seed(settings, args.node, args.scenario, args.rounds, args.interval, args.seed)
     elif args.command == "migrate":
         _migrate(settings)
     elif args.command == "api":
