@@ -131,4 +131,5 @@ Enough to answer "is it working?" during a demo, without a monitoring project:
 | Charts have gaps | Normal if the node was offline; check `outbox_pending` in health after reconnection |
 | Disk filling up | `du -sh` on the backup and image volumes; `docker compose logs worker \| grep -E "purged|backup_written|nightly_failed"` shows what the last night did |
 | No backup file this morning | `docker compose logs worker \| grep nightly_failed`; run `smarthive backup` by hand and read the error (`pg_dump failed: ...`) |
+| Empty dashboard on a fresh stack | `smarthive seed` publishes fake node data; see [Test data](../../backend/README.md#test-data) |
 | Duplicate-looking data | Should be impossible (primary key on `msg_id`); if seen, check the node's `msg_id` generation |
