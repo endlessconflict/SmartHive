@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN useradd --system --uid 10001 --no-create-home smarthive
 COPY --from=build /src/dist/*.whl /tmp/
 RUN pip install --no-cache-dir /tmp/*.whl && rm /tmp/*.whl
+# A new named volume copies the owner of its mount point, so these must belong to the app user
+RUN mkdir -p /data/images /backups && chown smarthive /data/images /backups
 USER 10001
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8000

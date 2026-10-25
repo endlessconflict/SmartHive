@@ -98,6 +98,8 @@ docker compose exec worker smarthive restore-check /backups/<file>.dump
 
 `restore-check` restores into a scratch database, compares the row counts with the saved ones, drops the scratch database, and exits non-zero if any table came back short. Run it before every sprint review. The image volume still needs its own nightly `rsync`; the worker does not copy images.
 
+Run against the Compose stack on 2026-10-24: `backup` wrote a dump and `restore-check` passed with `readings` 45, `detection_events` 3 and `nodes` 1 restored. The check found that the `backups` and `images` volumes were root-owned, so the worker (uid 10001) got `Permission denied` on the dump; the backend image now creates `/data/images` and `/backups` owned by the app user. A volume created by an older image keeps root ownership: run `docker compose down -v` (this deletes its data) or `docker compose run --rm -u root worker chown smarthive /backups /data/images`. On Windows with Git Bash, prefix the command with `MSYS_NO_PATHCONV=1`, or the shell rewrites `/backups/...` into a Git path.
+
 ## CI
 
 GitHub Actions, free for public repositories:
