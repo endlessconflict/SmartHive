@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/exports/detections?hive_id={{hive_id}}&include_simulated=true&format=jsonl"
+method: GET
+queryParams:
+  hive_id: "{{hive_id}}"
+  include_simulated: "true"
+  format: jsonl
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 2000

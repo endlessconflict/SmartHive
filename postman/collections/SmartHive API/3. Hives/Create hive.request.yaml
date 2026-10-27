@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/apiaries/{{apiary_id}}/hives"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "Hive 1",
+      "hive_type": "langstroth",
+      "boxes": 2
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('status 201', () => pm.expect([201]).to.include(pm.response.code));
+      if (pm.response.code < 300) {
+          const v = pm.response.json().id;
+          if (v) { pm.collectionVariables.set('hive_id', v); console.log('hive_id =', v); }
+      }
+    language: text/javascript
+order: 1000

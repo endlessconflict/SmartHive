@@ -1,0 +1,11 @@
+$kind: http-request
+description: "w: 160, 320 or 640; without w, the original."
+url: "{{baseUrl}}/api/v1/images/{{image_id}}/file?w=320"
+method: GET
+queryParams:
+  w: "320"
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 5000

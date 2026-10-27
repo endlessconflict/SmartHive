@@ -1,0 +1,17 @@
+$kind: http-request
+description: Readings from now on belong to the hive. Add "valid_from" for an earlier start.
+url: "{{baseUrl}}/api/v1/nodes/{{node_id}}/assign"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "hive_id": "{{hive_id}}"
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 3000

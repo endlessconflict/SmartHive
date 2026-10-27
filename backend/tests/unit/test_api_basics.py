@@ -19,6 +19,12 @@ async def client() -> httpx.AsyncClient:
     )
 
 
+def test_sqlalchemy_gets_ssl_where_libpq_gets_sslmode() -> None:
+    settings = Settings(db_url="postgresql+asyncpg://u:p@ep-x.neon.tech/db?sslmode=require")
+    assert settings.engine_url == "postgresql+asyncpg://u:p@ep-x.neon.tech/db?ssl=require"
+    assert Settings(db_url="postgresql+asyncpg://u:p@db/x").engine_url == "postgresql+asyncpg://u:p@db/x"
+
+
 def test_the_api_refuses_to_start_without_a_secret() -> None:
     with pytest.raises(RuntimeError, match="SMARTHIVE_JWT_SECRET"):
         create_app(Settings(jwt_secret=""))

@@ -1,0 +1,9 @@
+$kind: http-request
+description: The worker fetches it from Open-Meteo once a day; empty when the apiary has no lat/lon.
+url: "{{baseUrl}}/api/v1/hives/{{hive_id}}/weather"
+method: GET
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 3000

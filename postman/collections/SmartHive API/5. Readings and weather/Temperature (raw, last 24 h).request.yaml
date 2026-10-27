@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/hives/{{hive_id}}/readings?quantity=temp_in"
+method: GET
+queryParams:
+  quantity: temp_in
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 1000

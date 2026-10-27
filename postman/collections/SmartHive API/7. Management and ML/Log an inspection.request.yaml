@@ -1,0 +1,21 @@
+$kind: http-request
+description: "type: inspection, super_added, super_removed, harvest, feeding, treatment."
+url: "{{baseUrl}}/api/v1/hives/{{hive_id}}/management-events"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "type": "inspection",
+      "started_at": "{{$isoTimestamp}}",
+      "data": {
+        "notes": "All normal"
+      }
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('status 201', () => pm.expect([201]).to.include(pm.response.code));
+    language: text/javascript
+order: 1000

@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/healthz"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 1000

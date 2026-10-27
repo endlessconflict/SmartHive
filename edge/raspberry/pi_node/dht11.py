@@ -22,7 +22,7 @@ class SensorNotFound(RuntimeError):
 
 
 def find_device(root: Path = IIO_ROOT) -> Path:
-    for dev in sorted(root.glob("iio:device*")):
+    for dev in sorted(root.glob("iio*device*")):
         try:
             if (dev / "name").read_text().strip().startswith("dht11"):
                 return dev

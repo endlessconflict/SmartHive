@@ -59,7 +59,7 @@ async def _nightly(engine: AsyncEngine, settings: Settings) -> None:
 
 async def run(settings: Settings, stop: asyncio.Event) -> None:
     """Evaluate when the ingestor announces a message, and at least every `alert_interval_s`."""
-    engine = create_async_engine(settings.db_url, pool_pre_ping=True)
+    engine = create_async_engine(settings.engine_url, pool_pre_ping=True)
     wake = asyncio.Event()
     listener = await asyncpg.connect(settings.db_url.replace("+asyncpg", ""))
     await listener.add_listener(CHANNEL, lambda *_: wake.set())

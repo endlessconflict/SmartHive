@@ -17,7 +17,7 @@ def _run(connection: Connection) -> None:
 
 
 async def _run_online() -> None:
-    engine = create_async_engine(Settings().db_url)
+    engine = create_async_engine(Settings().engine_url)
     try:
         async with engine.connect() as connection:
             await connection.run_sync(_run)

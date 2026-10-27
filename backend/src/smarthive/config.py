@@ -48,3 +48,9 @@ class Settings(BaseSettings):
     ntfy_url: str | None = None  # base URL of the ntfy server; the topic is per user
     notify_max_attempts: int = 5
     notify_per_user_per_hour: int = 10  # per channel; the rest is marked `suppressed`
+
+    @property
+    def engine_url(self) -> str:
+        """`db_url` for SQLAlchemy. `db_url` keeps libpq's `sslmode` (pg_dump and the LISTEN connection
+        read it), but SQLAlchemy hands URL options to asyncpg.connect(), which only knows `ssl`."""
+        return self.db_url.replace("sslmode=", "ssl=")

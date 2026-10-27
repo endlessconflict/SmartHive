@@ -85,7 +85,7 @@ async def _consume(settings: Settings, engine: AsyncEngine, busy: asyncio.Lock) 
 
 async def run(settings: Settings, stop: asyncio.Event) -> None:
     """Run until `stop` is set; the message being inserted at that moment is finished first."""
-    engine = create_async_engine(settings.db_url, pool_pre_ping=True)
+    engine = create_async_engine(settings.engine_url, pool_pre_ping=True)
     busy = asyncio.Lock()
     task = asyncio.create_task(_consume(settings, engine, busy))
     try:

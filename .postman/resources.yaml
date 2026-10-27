@@ -1,0 +1,11 @@
+# Use this workspace to collaborate
+workspace:
+  id: 4525882e-d616-4573-88c5-6eeb97229ffe
+
+localResources:
+  collections:
+    - ../backend/postman/SmartHive.postman_collection.json
+
+cloudResources:
+  collections:
+    ../postman/collections/SmartHive API: e5e02559-f5a4-4be3-aafd-fef9f6be8ca0

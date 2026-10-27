@@ -1,0 +1,27 @@
+$kind: http-request
+description: "Needs `device_token` (folder 4) and the JPEG SHA-256 in `image_sha256` (PowerShell: (Get-FileHash photo.jpg).Hash.ToLower()). Pick the file in the `file` field."
+url: "{{baseUrl}}/device/v1/images"
+method: POST
+body:
+  type: formdata
+  content:
+    - type: text
+      key: meta
+      value: '{"image_id": "{{$guid}}", "node_id": "{{node_id}}", "captured_at": "{{$isoTimestamp}}", "clock_synced": true, "reason": "periodic", "sha256": "{{image_sha256}}", "objects": [{"cls": "bee", "conf": 0.91, "box": [0.1, 0.2, 0.3, 0.4]}]}'
+    - type: file
+      key: file
+      src: []
+auth:
+  type: bearer
+  credentials:
+    token: "{{device_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('status 200/201', () => pm.expect([200, 201]).to.include(pm.response.code));
+      if (pm.response.code < 300) {
+          const v = pm.response.json().image_id;
+          if (v) { pm.collectionVariables.set('image_id', v); console.log('image_id =', v); }
+      }
+    language: text/javascript
+order: 1000

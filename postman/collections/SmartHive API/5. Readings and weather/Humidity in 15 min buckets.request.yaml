@@ -1,0 +1,12 @@
+$kind: http-request
+description: "bucket: raw, 1m, 5m, 15m, 1h, 1d. start/end are ISO 8601 with a time zone."
+url: "{{baseUrl}}/api/v1/hives/{{hive_id}}/readings?quantity=rh_in&bucket=15m"
+method: GET
+queryParams:
+  quantity: rh_in
+  bucket: 15m
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 2000

@@ -1,0 +1,25 @@
+# infra/docker-compose.neon.yml
+# Managed PostgreSQL (Neon) instead of the local `db` container. Put the direct (not "-pooler")
+# connection string in infra/.env as SMARTHIVE_NEON_URL, then:
+#   docker compose -f docker-compose.yml -f docker-compose.neon.yml up -d --build
+# The URL keeps libpq's `?sslmode=require`; drop `channel_binding`, asyncpg does not know it.
+x-neon-env: &neon-env
+  SMARTHIVE_DB_URL: ${SMARTHIVE_NEON_URL:?set SMARTHIVE_NEON_URL in infra/.env}
+  SMARTHIVE_BACKUP_DIR: ""  # Neon keeps its own history; pg_dump 16 also refuses newer servers
+
+services:
+  db:
+    profiles: ["local-db"]  # not started
+
+  migrate:
+    environment: *neon-env
+    depends_on: !reset {}
+
+  ingest:
+    environment: *neon-env
+
+  worker:
+    environment: *neon-env
+
+  api:
+    environment: *neon-env

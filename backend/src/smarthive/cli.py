@@ -133,7 +133,7 @@ def _create_user(settings: Settings, email: str, name: str, role: str, password_
         sys.exit("The password needs at least 12 characters.")
 
     async def run() -> None:
-        engine = create_async_engine(settings.db_url)
+        engine = create_async_engine(settings.engine_url)
         try:
             async with engine.begin() as conn:
                 await conn.execute(

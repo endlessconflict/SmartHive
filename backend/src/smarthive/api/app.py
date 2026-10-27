@@ -36,7 +36,7 @@ def create_app(settings: Settings | None = None, engine: AsyncEngine | None = No
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if not hasattr(app.state, "engine"):
-            app.state.engine = create_async_engine(settings.db_url, pool_pre_ping=True)
+            app.state.engine = create_async_engine(settings.engine_url, pool_pre_ping=True)
         listener = asyncio.create_task(keep_listening(settings.db_url, app.state.hub))
         try:
             yield

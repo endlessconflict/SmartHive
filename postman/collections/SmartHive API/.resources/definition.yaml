@@ -1,0 +1,51 @@
+$kind: collection
+description: Manual tests for the SmartHive API. Set `email` and `password` in the collection variables first (Current value only, so they are never exported). The token renews itself; ids (apiary, hive, alert, image) are saved when created or listed. See backend/postman/README.md.
+variables:
+  baseUrl: http://localhost:8080
+  email: ""
+  password: ""
+  node_id: sim-0001
+  token: ""
+  token_expires_at: "0"
+  apiary_id: ""
+  hive_id: ""
+  alert_id: ""
+  device_token: ""
+  image_id: ""
+  image_sha256: ""
+scripts:
+  - type: http:beforeRequest
+    code: |-
+      // Logs in by itself when there is no token or it is about to expire (tokens last 15 minutes).
+      const url = pm.request.url.toString();
+      const open = ['/auth/', '/device/', '/healthz', '/readyz'].some(p => url.includes(p));
+      const exp = Number(pm.collectionVariables.get('token_expires_at') || 0);
+      if (!open && Date.now() > exp - 30000) {
+          const email = pm.collectionVariables.get('email');
+          const password = pm.collectionVariables.get('password');
+          if (!email || !password) {
+              console.warn('Set the email and password collection variables to log in automatically');
+          } else {
+              pm.sendRequest({
+                  url: pm.collectionVariables.get('baseUrl') + '/api/v1/auth/login',
+                  method: 'POST',
+                  header: { 'Content-Type': 'application/json' },
+                  body: { mode: 'raw', raw: JSON.stringify({ email, password }) },
+              }, (err, res) => {
+                  if (err || res.code !== 200) {
+                      console.error('auto login failed', err || res.json());
+                      return;
+                  }
+                  const d = res.json();
+                  pm.collectionVariables.set('token', d.access_token);
+                  pm.collectionVariables.set('token_expires_at', String(Date.now() + d.expires_in * 1000));
+              });
+          }
+      }
+    language: text/javascript
+auth:
+  - id: b9f7af9c-6e70-4640-a660-2e3e5290e7d6
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{token}}"

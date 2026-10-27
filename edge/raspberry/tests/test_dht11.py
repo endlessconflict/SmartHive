@@ -6,7 +6,8 @@ from pi_node.dht11 import Dht11, Measurement, SensorNotFound, find_device
 
 
 def fake_iio(root: Path, name: str = "dht11", temp: str = "35000", rh: str = "58000") -> Path:
-    dev = root / "iio:device0"
+    # Windows does not allow ":" in directory names.
+    dev = root / "iio-device0"
     dev.mkdir()
     (dev / "name").write_text(name + "\n")
     (dev / "in_temp_input").write_text(temp + "\n")

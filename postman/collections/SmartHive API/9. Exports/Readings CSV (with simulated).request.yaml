@@ -1,0 +1,13 @@
+$kind: http-request
+description: Without include_simulated=true, sim-* nodes are left out.
+url: "{{baseUrl}}/api/v1/exports/readings?hive_id={{hive_id}}&include_simulated=true&format=csv"
+method: GET
+queryParams:
+  hive_id: "{{hive_id}}"
+  include_simulated: "true"
+  format: csv
+scripts:
+  - type: afterResponse
+    code: pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));
+    language: text/javascript
+order: 1000
