@@ -22,7 +22,12 @@ x-backend: &backend
     SMARTHIVE_SMTP_PORT: "1025"
     SMARTHIVE_FORWARDED_ALLOW_IPS: "*"  # only Caddy can reach the api on the internal network
   volumes:
-    - ./pki:/certs:ro
+    # Only this service's certificate, never the whole pki/ folder: ca.key there can sign a certificate
+    # for any node, and the other keys belong to the nodes. A missing file fails the start instead of
+    # Docker creating an empty directory in its place.
+    - {type: bind, source: ./pki/ca.crt, target: /certs/ca.crt, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ./pki/backend.crt, target: /certs/backend.crt, read_only: true, bind: {create_host_path: false}}
+    - {type: bind, source: ./pki/backend.key, target: /certs/backend.key, read_only: true, bind: {create_host_path: false}}
     - images:/data/images
     - backups:/backups
   depends_on:
@@ -39,7 +44,10 @@ services:
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
       - ./mosquitto/acl:/mosquitto/config/acl:ro
-      - ./pki:/mosquitto/certs:ro
+      # the broker's own certificate only (see x-backend volumes)
+      - {type: bind, source: ./pki/ca.crt, target: /mosquitto/certs/ca.crt, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./pki/broker.crt, target: /mosquitto/certs/broker.crt, read_only: true, bind: {create_host_path: false}}
+      - {type: bind, source: ./pki/broker.key, target: /mosquitto/certs/broker.key, read_only: true, bind: {create_host_path: false}}
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
 
@@ -97,6 +105,11 @@ services:
       timeout: 3s
       retries: 10
 
+  frontend:
+    build: ../frontend/hive-heartwatch-main
+    image: smarthive-frontend:dev
+    restart: unless-stopped
+
   caddy:
     image: caddy:2
     restart: unless-stopped
@@ -106,6 +119,7 @@ services:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - api
+      - frontend
 
   mailpit:
     image: axllent/mailpit:v1.21

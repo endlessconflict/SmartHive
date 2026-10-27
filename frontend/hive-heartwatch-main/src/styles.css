@@ -1,0 +1,55 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@theme inline {
+  --font-sans: "Nunito", system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-offline: var(--offline);
+  --color-offline-soft: var(--offline-soft);
+  --color-track: var(--track);
+  --color-input: var(--border);
+  --color-ring: var(--primary);
+  --color-accent: var(--muted);
+  --color-accent-foreground: var(--foreground);
+}
+
+:root {
+  --background: #fff9ee;
+  --foreground: #2b2118;
+  --card: #ffffff;
+  --primary: #f2a900;
+  --primary-foreground: #ffffff;
+  --muted: #fdf3e0;
+  --muted-foreground: #6b5d50;
+  --border: #f0e4cf;
+  --success: #2e9e5b;
+  --success-soft: #e3f4ea;
+  --warning: #e8710a;
+  --warning-soft: #fdebdc;
+  --danger: #d64545;
+  --danger-soft: #fae3e3;
+  --offline: #8a8f98;
+  --offline-soft: #eeeff1;
+  --track: #f0e4cf;
+  --chart-blue: #2f7fc1;
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  body { margin: 0; background: var(--color-background); color: var(--color-foreground); font-family: var(--font-sans); font-size: 17px; }
+  button { font: inherit; cursor: pointer; }
+}

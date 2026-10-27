@@ -1,7 +1,17 @@
 # Dev entry point on :80 (published as 8080). Real deployments add a hostname and Caddy issues TLS.
+# One origin for the browser: the API under /api and /device, the dashboard for everything else.
+# Same origin matters: the API has no CORS and its refresh cookie is SameSite=Strict.
 :80 {
 	request_body {
 		max_size 6MB
 	}
-	reverse_proxy api:8000
+
+	@api path /api/* /device/* /healthz /readyz
+	handle @api {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy frontend:3000
+	}
 }
