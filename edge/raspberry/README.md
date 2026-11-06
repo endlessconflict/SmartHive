@@ -1,10 +1,11 @@
 # edge/raspberry/
 
-Raspberry Pi node (Python): reads the DHT11 and publishes temperature and humidity over MQTT, with the same topics and payloads as the ESP32 firmware ([messaging contract](../../docs/05-backend/04-messaging-contract.md)).
+Raspberry Pi node (Python): reads the DHT11, and an HX711 scale if one is wired, and publishes over MQTT, with the same topics and payloads as the ESP32 firmware ([messaging contract](../../docs/05-backend/04-messaging-contract.md)).
 
 | File | Job |
 |---|---|
 | `pi_node/dht11.py` | Reads the sensor through the kernel IIO driver (no GPIO library, the kernel does the timing) |
+| `pi_node/hx711.py` | Reads the scale over GPIO with libgpiod (optional) |
 | `pi_node/payload.py` | Telemetry and status JSON, UUIDv7 `msg_id` |
 | `pi_node/main.py` | Sampling loop, MQTT client with mutual TLS, last will, clean shutdown on SIGTERM |
 | `config.example.toml` | Node settings |
@@ -30,6 +31,21 @@ One telemetry message per reading, QoS 1. While the broker is unreachable, paho 
    cd /opt/smarthive/edge/raspberry && /opt/smarthive/venv/bin/python -m pi_node.main --config /etc/smarthive/node.toml
    ```
 6. As a service: `sudo cp systemd/smarthive-dht11.service /etc/systemd/system/ && sudo systemctl enable --now smarthive-dht11`.
+
+## Weight (optional)
+
+The node publishes weight once the `[scale]` section is in its config (see `config.example.toml`): `quantity: weight` in kg on the same `telemetry` topic, every 300 s ([contract](../../docs/05-backend/04-messaging-contract.md#weight)). Not tried on hardware yet.
+
+1. Wiring: HX711 VCC to 3V3 (not 5 V: the Pi's GPIO pins are not 5 V tolerant), GND to GND, DT to GPIO 5 (pin 29), SCK to GPIO 6 (pin 31). The load cell goes to E+, E-, A+, A-.
+2. Permissions: `sudo usermod -aG gpio smarthive`.
+3. Calibration, from `/opt/smarthive/edge/raspberry`, using the venv's Python:
+   ```bash
+   python -m pi_node.hx711 --dout 5 --sck 6    # scale empty: this is `offset`
+   python -m pi_node.hx711 --dout 5 --sck 6    # known mass on it: this is `raw`
+   ```
+   `counts_per_kg = (raw - offset) / mass_in_kg`. Put both in `[scale]` and restart the service.
+
+Python can be preempted while it clocks the chip, so one reading is the median of nine conversions. A failed reading goes out as `value: null, quality: read_error`.
 
 ## Tests
 

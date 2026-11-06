@@ -1,6 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
-import { api, type ApiAlert, type ApiHive, type Apiary, type Page, type Series } from "@/lib/api";
+import {
+  api,
+  type ApiAlert,
+  type ApiHive,
+  type Apiary,
+  type Page,
+  type Point,
+  type Series,
+} from "@/lib/api";
 import { useAccount } from "@/hooks/use-account";
 
 export type HiveStatus = "healthy" | "attention" | "critical" | "offline";
@@ -12,6 +20,7 @@ export type Hive = {
   status: HiveStatus;
   temperature: number | null;
   humidity: number | null;
+  weight: number | null; // null also for a node without a scale
   lastUpdate: string;
   openAlerts: number;
   nodeId: string | null;
@@ -51,7 +60,8 @@ function status(h: ApiHive, alerts: ApiAlert[]): HiveStatus {
 function toHive(h: ApiHive, apiaries: Apiary[], alerts: ApiAlert[]): Hive {
   const temp = h.latest["temp_in"];
   const rh = h.latest["rh_in"];
-  const newest = [temp, rh]
+  const weight = h.latest["weight"];
+  const newest = [temp, rh, weight]
     .filter(Boolean)
     .map((l) => l!.ts)
     .sort()
@@ -63,6 +73,7 @@ function toHive(h: ApiHive, apiaries: Apiary[], alerts: ApiAlert[]): Hive {
     status: status(h, alerts),
     temperature: temp?.value ?? null,
     humidity: rh?.value ?? null,
+    weight: weight?.value ?? null,
     lastUpdate: newest ? formatDistanceToNow(new Date(newest), { addSuffix: true }) : "no data yet",
     openAlerts: h.open_alerts,
     nodeId: h.node_id,
@@ -93,7 +104,41 @@ export function useHive(id: string) {
   return { ...hives, data: hives.data?.find((h) => h.id === id) };
 }
 
-export type Reading = { time: string; temperature: number | null; humidity: number | null };
+export type Reading = {
+  time: string;
+  temperature: number | null;
+  humidity: number | null;
+  weight: number | null;
+};
+
+const round = (v: number | null, decimals: number) => {
+  if (v === null) return null;
+  const f = 10 ** decimals;
+  return Math.round(v * f) / f;
+};
+
+/** One row per timestamp, oldest first. A quantity with no value at that time stays null. */
+export function mergeSeries(
+  series: { temperature: Point[]; humidity: Point[]; weight: Point[] },
+  label: (ts: string) => string,
+): Reading[] {
+  const byTs = new Map<string, Reading>();
+  const add = (points: Point[], field: "temperature" | "humidity" | "weight", decimals: number) => {
+    for (const p of points) {
+      const row = byTs.get(p.ts) ?? {
+        time: label(p.ts),
+        temperature: null,
+        humidity: null,
+        weight: null,
+      };
+      byTs.set(p.ts, { ...row, [field]: round(p.value, decimals) });
+    }
+  };
+  add(series.temperature, "temperature", 1);
+  add(series.humidity, "humidity", 1);
+  add(series.weight, "weight", 2); // 10 g, the resolution of the scale
+  return [...byTs.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, r]) => r);
+}
 
 /** Hourly means; the hour label for 24 h, the day for 7 days. */
 export function useHistory(hiveId: string, range: "24h" | "7d") {
@@ -109,18 +154,15 @@ export function useHistory(hiveId: string, range: "24h" | "7d") {
           `/api/v1/hives/${hiveId}/readings?quantity=${quantity}&bucket=1h` +
             `&start=${encodeURIComponent(start.toISOString())}&end=${encodeURIComponent(end.toISOString())}`,
         );
-      const [temp, rh] = await Promise.all([series("temp_in"), series("rh_in")]);
-      const byTs = new Map<string, Reading>();
-      const label = (ts: string) =>
-        format(new Date(ts), range === "24h" ? "HH:mm" : "EEE d, HH:mm");
-      const round = (v: number | null) => (v === null ? null : Math.round(v * 10) / 10);
-      for (const p of temp.points)
-        byTs.set(p.ts, { time: label(p.ts), temperature: round(p.value), humidity: null });
-      for (const p of rh.points) {
-        const row = byTs.get(p.ts) ?? { time: label(p.ts), temperature: null, humidity: null };
-        byTs.set(p.ts, { ...row, humidity: round(p.value) });
-      }
-      return [...byTs.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, r]) => r);
+      const [temp, rh, weight] = await Promise.all([
+        series("temp_in"),
+        series("rh_in"),
+        series("weight"),
+      ]);
+      return mergeSeries(
+        { temperature: temp.points, humidity: rh.points, weight: weight.points },
+        (ts) => format(new Date(ts), range === "24h" ? "HH:mm" : "EEE d, HH:mm"),
+      );
     },
   });
 }

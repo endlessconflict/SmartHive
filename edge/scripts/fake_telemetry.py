@@ -1,4 +1,4 @@
-"""Publishes synthetic DHT11 telemetry (temperature and humidity with Gaussian noise) to test the backend.
+"""Publishes synthetic telemetry (temperature, humidity, optionally weight, with Gaussian noise) to test the backend.
 
     # against the Compose broker (mutual TLS); certificates from infra/pki/gen_certs.sh sim-0001 sim-0002
     python edge/scripts/fake_telemetry.py --host localhost --pki infra/pki --nodes sim-0001 sim-0002
@@ -8,7 +8,8 @@
     python edge/scripts/fake_telemetry.py --dry-run --count 3
 
 Each value is mean + N(0, sd). With --dht11 the values are rounded to whole units and clipped to the
-DHT11 range (0-50 degC, 20-90 %RH), like the real sensor; --fail-p adds read errors (value null).
+DHT11 range (0-50 degC, 20-90 %RH), like the real sensor; --fail-p adds read errors (value null);
+--weight adds an HX711 reading in kg to every sample.
 Node ids should start with `sim-` so the backend can tell synthetic data from real data.
 """
 
@@ -27,7 +28,7 @@ from pathlib import Path
 log = logging.getLogger("fake_telemetry")
 
 DHT11_RANGE = {"temp_in": (0.0, 50.0), "rh_in": (20.0, 90.0)}
-UNITS = {"temp_in": "degC", "rh_in": "pct_rh"}
+UNITS = {"temp_in": "degC", "rh_in": "pct_rh", "weight": "kg"}
 
 
 def uuid7() -> str:
@@ -49,6 +50,8 @@ class Noise:
     rh_sd: float
     dht11: bool
     fail_p: float
+    weight_mean: float | None = None
+    weight_sd: float = 0.03
 
 
 def reading(rng: random.Random, noise: Noise, quantity: str, mean: float, sd: float, common: dict) -> dict:
@@ -56,7 +59,7 @@ def reading(rng: random.Random, noise: Noise, quantity: str, mean: float, sd: fl
     if rng.random() < noise.fail_p:
         return {**r, "value": None, "quality": "read_error"}
     value, quality = rng.gauss(mean, sd), "ok"
-    if noise.dht11:
+    if noise.dht11 and quantity in DHT11_RANGE:
         lo, hi = DHT11_RANGE[quantity]
         if not lo <= value <= hi:
             value, quality = min(max(value, lo), hi), "clipped"
@@ -74,6 +77,9 @@ def telemetry(rng: random.Random, noise: Noise, node_id: str, boot_id: str, star
                   "clock_synced": True, "sensor": "dht11-0"}
         readings.append(reading(rng, noise, "temp_in", noise.temp_mean, noise.temp_sd, common))
         readings.append(reading(rng, noise, "rh_in", noise.rh_mean, noise.rh_sd, common))
+        if noise.weight_mean is not None:
+            readings.append(reading(rng, noise, "weight", noise.weight_mean, noise.weight_sd,
+                                    {**common, "sensor": "hx711-0"}))
     return {"schema": "smarthive.telemetry/1.0", "msg_id": uuid7(), "node_id": node_id, "boot_id": boot_id,
             "sent_at": iso(now), "readings": readings}
 
@@ -109,6 +115,7 @@ def main() -> None:
     ap.add_argument("--rh-mean", type=float, default=58.0, help="%%RH")
     ap.add_argument("--rh-sd", type=float, default=3.0)
     ap.add_argument("--dht11", action="store_true", help="round and clip like a real DHT11")
+    ap.add_argument("--weight", type=float, default=None, metavar="KG", help="also send weight around this value")
     ap.add_argument("--fail-p", type=float, default=0.0, help="probability of a read_error per value")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--dry-run", action="store_true", help="print the payloads instead of publishing")
@@ -120,7 +127,7 @@ def main() -> None:
         if not n.startswith("sim-"):
             log.warning("%s has no sim- prefix: the backend will store it as real data", n)
 
-    noise = Noise(args.temp_mean, args.temp_sd, args.rh_mean, args.rh_sd, args.dht11, args.fail_p)
+    noise = Noise(args.temp_mean, args.temp_sd, args.rh_mean, args.rh_sd, args.dht11, args.fail_p, args.weight)
     rng = random.Random(args.seed)
     boot_ids = {n: str(uuid.uuid4()) for n in args.nodes}
     clients = {} if args.dry_run else {n: connect(args, n) for n in args.nodes}
@@ -138,8 +145,8 @@ def main() -> None:
                     print(json.dumps(doc, indent=2))
                     continue
                 clients[n].publish(f"smarthive/v1/nodes/{n}/telemetry", body, qos=1).wait_for_publish(timeout=10)
-                last = doc["readings"][-2:]
-                log.info("%s  temp %s  rh %s", n, last[0]["value"], last[1]["value"])
+                last = {r["quantity"]: r["value"] for r in doc["readings"]}  # the newest of each
+                log.info("%s  %s", n, "  ".join(f"{q} {v}" for q, v in last.items()))
             sent += 1
             if args.count == 0 or sent < args.count:
                 time.sleep(args.interval)

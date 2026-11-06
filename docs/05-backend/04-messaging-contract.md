@@ -84,13 +84,29 @@ Every node-to-server payload starts with:
 | `rh_in` | `pct_rh` | DHT11 |
 | `temp_out` | `degC` | Optional |
 | `rh_out` | `pct_rh` | Optional |
-| `weight` | `kg` | Future HX711 |
+| `weight` | `kg` | HX711 and load cell, optional on the node |
 | `battery_v` | `V` | Future INA219 |
 | `battery_i` | `mA` | Future INA219 |
 
 Quality codes: `ok`, `read_error`, `clipped`, `stuck`, `clock_unsynced`. Adding a quantity is a minor version change; the server stores unknown quantities rather than rejecting them, so a new sensor on the node does not break ingestion.
 
 Each reading's identity on the server is `(msg_id, index in batch)`, so a duplicated batch is dropped as a whole.
+
+### Weight
+
+Weight has no topic of its own. It is one more reading in `telemetry`, so the `.../telemetry` ACL line already covers it and a node without a scale simply never sends it. The schema stays `smarthive.telemetry/1.0`.
+
+```json
+{"ts": "2026-10-06T14:05:00.118Z", "mono_ms": 8772343, "clock_synced": true,
+ "sensor": "hx711-0", "quantity": "weight", "value": 41.24, "unit": "kg", "quality": "ok"}
+```
+
+| Field | Rule |
+|---|---|
+| `sensor` | `hx711-0`; a second scale on one node would be `hx711-1` |
+| `value` | Total load on the scale in kg, rounded to 10 g, the hive itself included. The node applies its calibration and sends no raw counts. The server does not tare; jumps from adding a super or harvesting are explained by management events |
+| `quality` | `ok`; `read_error` with `value: null` when the HX711 does not answer; `clipped` when the input saturates, with the value at the limit |
+| Interval | One reading every 300 s by default (`scale.interval_s` on the node), usually in the same message as a temperature and humidity sample |
 
 ## events
 

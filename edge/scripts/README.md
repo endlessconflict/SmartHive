@@ -2,7 +2,7 @@
 
 `fake_telemetry.py` connects to the broker as one or more fake nodes and publishes DHT11-like telemetry with Gaussian noise, to test the backend (ingestor, database, live feed, dashboard) without hardware.
 
-Each reading is `mean + N(0, sd)`: by default 35 ± 0.8 degC and 58 ± 3 %RH (a brood nest). `--dht11` rounds and clips like the real sensor (values outside the range get `quality: clipped`), `--fail-p` adds read errors, `--batch` sends several samples per message like a node draining its queue, `--seed` makes a run repeatable.
+Each reading is `mean + N(0, sd)`: by default 35 ± 0.8 degC and 58 ± 3 %RH (a brood nest). `--dht11` rounds and clips like the real sensor (values outside the range get `quality: clipped`), `--weight 41` adds a `weight` reading around that many kg (σ 30 g, 10 g resolution, like the simulator's HX711), `--fail-p` adds read errors, `--batch` sends several samples per message like a node draining its queue, `--seed` makes a run repeatable.
 
 ```bash
 pip install -r edge/scripts/requirements.txt

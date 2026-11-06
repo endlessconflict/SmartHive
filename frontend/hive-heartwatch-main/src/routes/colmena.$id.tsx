@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Camera, Droplets, Thermometer, WifiOff } from "lucide-react";
+import { ArrowLeft, Camera, Droplets, Scale, Thermometer, WifiOff } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useHistory, useHive } from "@/data/hives";
+import { useHistory, useHive, type Reading } from "@/data/hives";
 import { detections, useImageUrl, useLatestImage } from "@/data/images";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Loading, RequireLogin } from "@/components/RequireLogin";
@@ -100,7 +100,9 @@ function HiveDetail() {
         <StatusBadge status={hive.status} />
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-4">
+      <div
+        className={`mt-5 grid grid-cols-2 gap-4 ${hive.weight !== null ? "sm:grid-cols-3" : ""}`}
+      >
         <Big
           icon={<Thermometer className="size-5" />}
           label="Temperature"
@@ -111,6 +113,11 @@ function HiveDetail() {
           label="Humidity"
           value={`${hive.humidity ?? "—"} %`}
         />
+        {hive.weight !== null && (
+          <div className="col-span-2 sm:col-span-1">
+            <Big icon={<Scale className="size-5" />} label="Weight" value={`${hive.weight} kg`} />
+          </div>
+        )}
       </div>
 
       <div
@@ -143,6 +150,17 @@ function HiveDetail() {
           dataKey="humidity"
           color="var(--chart-blue)"
         />
+        {/* a node without a scale has no weight, so no empty chart for it */}
+        {history.data?.some((r) => r.weight !== null) && (
+          <div className="md:col-span-2">
+            <ChartCard
+              title="Weight (kg)"
+              data={history.data}
+              dataKey="weight"
+              color="var(--success)"
+            />
+          </div>
+        )}
       </div>
       {history.data?.length === 0 && (
         <p className="mt-2 text-muted-foreground">No readings in this period.</p>
@@ -189,8 +207,8 @@ function ChartCard({
   color,
 }: {
   title: string;
-  data: object[];
-  dataKey: string;
+  data: Reading[];
+  dataKey: "temperature" | "humidity" | "weight";
   color: string;
 }) {
   return (
@@ -208,7 +226,8 @@ function ChartCard({
               dataKey={dataKey}
               stroke={color}
               strokeWidth={3}
-              dot={false}
+              // a line needs two values; until then, the only one shows as a dot
+              dot={data.filter((r) => r[dataKey] !== null).length < 2}
               connectNulls
             />
           </LineChart>

@@ -684,6 +684,26 @@
           ]
         },
         {
+          "name": "Weight in 1 h buckets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/v1/hives/{{hive_id}}/readings?quantity=weight&bucket=1h",
+            "description": "Weight in kg. Use bucket=raw for every reading. Only quality ok counts; exports keep all of them."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect([200]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Apiary weather",
           "request": {
             "method": "GET",

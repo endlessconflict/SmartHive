@@ -1,2 +1,4 @@
-# DHT11 node on the Raspberry Pi. The sensor is read through the kernel IIO driver, so no GPIO library.
+# The node on the Raspberry Pi. The DHT11 is read through the kernel IIO driver, so it needs no GPIO library;
+# the optional HX711 needs gpiod, which only installs on Linux. The tests use fake pins.
 paho-mqtt==2.1.0
+gpiod==2.4.3; sys_platform == "linux"

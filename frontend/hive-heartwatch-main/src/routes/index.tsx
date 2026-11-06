@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, ChevronRight, Clock, Droplets, Thermometer } from "lucide-react";
+import { Bell, ChevronRight, Clock, Droplets, Scale, Thermometer } from "lucide-react";
 import { useHives } from "@/data/hives";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Loading, RequireLogin } from "@/components/RequireLogin";
@@ -76,6 +76,15 @@ function HivesPage() {
                   </p>
                   <p className="text-xl font-bold">{h.humidity ?? "—"} %</p>
                 </div>
+                {h.weight !== null && (
+                  <div className="col-span-2 rounded-xl bg-muted p-3">
+                    <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Scale className="size-4" />
+                      Weight
+                    </p>
+                    <p className="text-xl font-bold">{h.weight} kg</p>
+                  </div>
+                )}
               </div>
               <div className="mt-4 flex items-center justify-between text-sm">
                 <span className="flex items-center gap-1 text-muted-foreground">
