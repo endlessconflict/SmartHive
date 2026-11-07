@@ -27,6 +27,7 @@ Store-and-forward is what makes US03 and FR-13 true. Everything the node wants t
 ```sql
 CREATE TABLE outbox (
   msg_id       TEXT PRIMARY KEY,      -- UUIDv7: unique and time-ordered
+  node_id      TEXT NOT NULL,
   kind         TEXT NOT NULL,         -- telemetry | event | health | detection_summary
   topic        TEXT NOT NULL,
   payload      BLOB NOT NULL,         -- JSON, already serialized
@@ -36,7 +37,7 @@ CREATE TABLE outbox (
   attempts     INTEGER NOT NULL DEFAULT 0,
   sent_at      INTEGER                -- NULL until PUBACK received
 );
-CREATE INDEX outbox_pending ON outbox (sent_at, priority, created_at);
+CREATE INDEX outbox_pending ON outbox (sent_at, priority);
 
 CREATE TABLE images (
   image_id     TEXT PRIMARY KEY,      -- UUIDv7, also referenced by events
@@ -49,15 +50,17 @@ CREATE TABLE images (
 );
 ```
 
-Settings: `PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;`. Writers batch inserts (for example every 10 s or 50 rows) to limit SD card writes.
+Settings: `PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;`. Writers batch inserts (for example every 10 s or 50 rows) to limit SD card writes; at one sample a minute the Raspberry Pi node writes each message as it is produced.
+
+Pending rows leave in write order (`priority, rowid`), not by `created_at`: the Pi has no real-time clock, so the time of a reading taken before NTP sync can be far off.
 
 ### Uplink algorithm
 
 ```text
 loop:
   ensure MQTT session (TLS, persistent session, last will on status topic)
-  rows = pending rows ordered by priority, then created_at, limit 100
-  group telemetry rows into one batch message (max ~16 KB)
+  rows = pending rows ordered by priority, then write order, limit 100
+  group telemetry rows into one batch message (max ~16 KB; the DHT11 node sends each row as it was stored)
   publish each message with QoS 1
   on PUBACK: mark rows sent
   on failure: exponential backoff (1 s → 5 min, with jitter)

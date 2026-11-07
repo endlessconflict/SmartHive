@@ -90,7 +90,7 @@ Every node-to-server payload starts with:
 
 Quality codes: `ok`, `read_error`, `clipped`, `stuck`, `clock_unsynced`. Adding a quantity is a minor version change; the server stores unknown quantities rather than rejecting them, so a new sensor on the node does not break ingestion.
 
-Each reading's identity on the server is `(msg_id, index in batch)`, so a duplicated batch is dropped as a whole.
+Each reading's identity on the server is `(msg_id, index in batch)`, so a duplicated batch is dropped as a whole. A message re-sent after an outage is byte for byte the stored one: same `msg_id`, and `sent_at` still says when it was built.
 
 ### Weight
 

@@ -48,6 +48,7 @@ smarthive = ["templates/*", "db/migrations/*.py", "db/migrations/*.mako", "db/mi
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
+pythonpath = ["../edge/raspberry"]  # test_node_outage.py runs the real node code
 markers = ["integration: needs a Docker daemon (Testcontainers)"]
 
 [tool.ruff]
@@ -68,5 +69,5 @@ files = ["src", "tests"]
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
-module = ["asyncpg.*", "testcontainers.*", "alembic.*", "argon2.*"]
+module = ["asyncpg.*", "testcontainers.*", "alembic.*", "argon2.*", "pi_node.*"]
 ignore_missing_imports = true

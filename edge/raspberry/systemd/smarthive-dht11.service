@@ -5,6 +5,7 @@ After=network-online.target
 
 [Service]
 User=smarthive
+StateDirectory=smarthive
 WorkingDirectory=/opt/smarthive/edge/raspberry
 ExecStart=/opt/smarthive/venv/bin/python -m pi_node.main --config /etc/smarthive/node.toml
 Restart=always

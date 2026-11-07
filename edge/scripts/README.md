@@ -19,3 +19,10 @@ python edge/scripts/fake_telemetry.py --dry-run --count 2 --fail-p 0.2
 ```
 
 Use node ids with the `sim-` prefix: the backend marks those nodes as simulated, so test data never mixes with real hives. `python edge/scripts/fake_telemetry.py -h` lists every option.
+
+`fake_node.py` runs the real Raspberry Pi node code (outbox and uplink) with simulated sensors, so unlike `fake_telemetry.py` it keeps what it cannot send, also across restarts:
+
+```bash
+python edge/scripts/fake_node.py --node sim-0001 --interval 5 --weight 41
+python edge/scripts/fake_node.py --node sim-0001 --show   # how many messages wait on disk
+```

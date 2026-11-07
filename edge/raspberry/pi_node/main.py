@@ -2,20 +2,21 @@
 
     python -m pi_node.main --config config.toml
 
-One telemetry message per sample, QoS 1. While the broker is unreachable paho keeps them queued in
-memory (up to `max_pending`) and sends them when the connection is back. The network itself (Wi-Fi or Ethernet) is the operating system's job, see README.md.
+One telemetry message per sample, QoS 1. Each one is first written to the outbox on disk, and leaves from there,
+oldest first, whenever the broker is reachable. The network itself (Wi-Fi or Ethernet) is the operating system's job, see README.md.
 """
 
 import argparse
 import logging
 import signal
+import sqlite3
 import subprocess
 import threading
 import time
 import tomllib
 import uuid
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import paho.mqtt.client as mqtt
@@ -23,8 +24,12 @@ import paho.mqtt.client as mqtt
 from pi_node import payload
 from pi_node.dht11 import Dht11
 from pi_node.hx711 import GpiodPins, Hx711, Weight
+from pi_node.outbox import Outbox
+from pi_node.uplink import Uplink
 
 log = logging.getLogger("pi_node")
+
+PURGE_INTERVAL_S = 3600
 
 
 @dataclass(frozen=True)
@@ -54,7 +59,6 @@ class ScaleConfig:
 class Config:
     node_id: str
     sample_interval_s: float
-    max_pending: int
     host: str
     port: int
     tls: bool
@@ -62,6 +66,8 @@ class Config:
     cert: str | None
     key: str | None
     scale: ScaleConfig | None = None
+    outbox_path: Path = Path("/var/lib/smarthive/outbox.db")
+    outbox_retention_days: float = 7
 
     @classmethod
     def load(cls, path: Path) -> "Config":
@@ -70,7 +76,6 @@ class Config:
         return cls(
             node_id=raw["node_id"],
             sample_interval_s=float(raw.get("sample_interval_s", 60)),
-            max_pending=int(raw.get("max_pending", 1440)),
             host=m.get("host", "gateway.local"),
             port=int(m.get("port", 8883)),
             tls=bool(m.get("tls", True)),
@@ -78,6 +83,8 @@ class Config:
             cert=m.get("cert"),
             key=m.get("key"),
             scale=ScaleConfig.load(raw["scale"]) if "scale" in raw else None,
+            outbox_path=Path(raw.get("outbox_path", "/var/lib/smarthive/outbox.db")),
+            outbox_retention_days=float(raw.get("outbox_retention_days", 7)),
         )
 
 
@@ -112,7 +119,6 @@ def make_client(cfg: Config, boot_id: str) -> mqtt.Client:
     client.on_connect = on_connect
     client.on_disconnect = on_disconnect
     client.reconnect_delay_set(min_delay=1, max_delay=60)
-    client.max_queued_messages_set(cfg.max_pending)
     client.connect_async(cfg.host, cfg.port, keepalive=60)
     client.loop_start()  # background thread; retries until the network and broker are reachable
     return client
@@ -127,12 +133,14 @@ def read_scale(scale: Hx711) -> Weight:
     return w
 
 
-def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, stop: threading.Event) -> None:
+def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, outbox: Outbox, stop: threading.Event) -> None:
     boot_id = str(uuid.uuid4())
     log.info("node %s, boot %s", cfg.node_id, boot_id)
     client = make_client(cfg, boot_id)
+    uplink = Uplink(client, outbox)
 
     next_at = next_weight_at = time.monotonic()
+    next_purge_at = next_at + PURGE_INTERVAL_S
     while not stop.is_set():
         m = sensor.read()
         if m is None:
@@ -145,12 +153,26 @@ def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, stop: threading.Event) 
             weight = read_scale(scale)
             next_weight_at += cfg.scale.interval_s
         sample = payload.Sample(datetime.now(UTC), time.monotonic_ns() // 1_000_000, clock_synced(), m, weight)
-        info = client.publish(payload.topic(cfg.node_id, "telemetry"),
-                              payload.telemetry(cfg.node_id, boot_id, [sample]), qos=1)
-        if info.rc == mqtt.MQTT_ERR_QUEUE_SIZE:
-            log.warning("send queue full (%d), reading dropped", cfg.max_pending)
+        topic = payload.topic(cfg.node_id, "telemetry")
+        body = payload.telemetry(cfg.node_id, boot_id, [sample])
+        try:
+            outbox.add(topic, body, sample.ts, sample.clock_synced)
+        except sqlite3.Error:  
+            log.exception("outbox write failed")
+            if client.is_connected():
+                client.publish(topic, body, qos=1)
         next_at += cfg.sample_interval_s
-        stop.wait(max(0.0, next_at - time.monotonic()))
+        while not stop.is_set() and time.monotonic() < next_at:  # checks often, so a reconnect is noticed at once
+            try:
+                sent = uplink.drain(stop, next_at)
+                if sent:
+                    log.info("sent %d from the outbox", sent)
+                if time.monotonic() >= next_purge_at:
+                    next_purge_at += PURGE_INTERVAL_S
+                    outbox.purge(datetime.now(UTC) - timedelta(days=cfg.outbox_retention_days))
+            except sqlite3.Error:
+                log.exception("outbox read failed")
+            stop.wait(max(0.0, min(1.0, next_at - time.monotonic())))
 
     log.info("shutting down")
     if client.is_connected():
@@ -175,7 +197,11 @@ def main() -> None:
     if cfg.scale is not None:
         pins = GpiodPins(cfg.scale.chip, cfg.scale.dout_gpio, cfg.scale.sck_gpio)
         scale = Hx711(pins, cfg.scale.offset, cfg.scale.counts_per_kg)
-    run(cfg, Dht11(), scale, stop)
+    outbox = Outbox(cfg.outbox_path)
+    try:
+        run(cfg, Dht11(), scale, outbox, stop)
+    finally:
+        outbox.close()
 
 
 if __name__ == "__main__":

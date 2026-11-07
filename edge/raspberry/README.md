@@ -7,11 +7,13 @@ Raspberry Pi node (Python): reads the DHT11, and an HX711 scale if one is wired,
 | `pi_node/dht11.py` | Reads the sensor through the kernel IIO driver (no GPIO library, the kernel does the timing) |
 | `pi_node/hx711.py` | Reads the scale over GPIO with libgpiod (optional) |
 | `pi_node/payload.py` | Telemetry and status JSON, UUIDv7 `msg_id` |
+| `pi_node/outbox.py` | SQLite outbox on the microSD: every message is stored before it is sent |
+| `pi_node/uplink.py` | Sends the outbox over MQTT, oldest first, and marks a row sent only after the PUBACK |
 | `pi_node/main.py` | Sampling loop, MQTT client with mutual TLS, last will, clean shutdown on SIGTERM |
 | `config.example.toml` | Node settings |
 | `systemd/smarthive-dht11.service` | Runs it at boot |
 
-One telemetry message per reading, QoS 1. While the broker is unreachable, paho keeps them queued in memory (`max_pending`) and delivers them on reconnect; they are lost if the process restarts. `clock_synced` comes from `timedatectl` (the Pi has no RTC).
+One telemetry message per sample, QoS 1. Each one is first written to the outbox (`/var/lib/smarthive/outbox.db`) with its exact bytes, connected or not, and leaves from there, oldest first. While the broker is unreachable the rows wait, also across restarts, and go out within about a second of the connection coming back. A row counts as sent only after the broker's PUBACK; a crash just before the mark sends it twice, and the server drops the repeat by its `msg_id`. Sent rows are deleted after `outbox_retention_days`; unsent rows are never deleted. `backend/tests/integration/test_node_outage.py` runs this code against a real broker that goes down, through to TimescaleDB. `clock_synced` comes from `timedatectl` (the Pi has no RTC).
 
 ## Setup on the Pi
 

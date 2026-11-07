@@ -1,7 +1,8 @@
 # Copy to /etc/smarthive/node.toml (chmod 600, owner smarthive).
 node_id = "node-0001"      # must be the CN of the client certificate
 sample_interval_s = 60
-max_pending = 1440         # samples kept in memory while the broker is unreachable (24 h at 60 s)
+outbox_path = "/var/lib/smarthive/outbox.db"   # every message is written here first, and waits here while offline
+outbox_retention_days = 7  # how long sent rows stay on disk; unsent rows are never deleted
 
 [mqtt]
 host = "gateway.local"
