@@ -20,3 +20,19 @@ key = "/etc/smarthive/certs/node-0001.key"
 # offset = 0               # raw counts with nothing on the scale
 # counts_per_kg = 21000.0
 # interval_s = 300
+
+# Only with the camera and visiond running; without this section the node handles no images.
+# Kept frames (threat, Varroa, a small random sample) go to the SD card and are uploaded; the rest never leave RAM.
+# [images]
+# api_url = "https://gateway.local"
+# ca = "/etc/smarthive/certs/ca.crt"
+# device_token_file = "/etc/smarthive/device_token"   # chmod 600; shown once when the node is registered in Setup
+# frames_dir = "/run/smarthive/frames"   # tmpfs, where visiond leaves analyzed frames
+# image_dir = "/var/lib/smarthive/images"
+# retention_days = 3         # after upload
+# sample_rate = 0.01         # share of the discarded frames kept anyway, to check the filter
+# max_samples_per_day = 24
+# [images.thresholds]
+# hornet = 0.45
+# shb = 0.50
+# varroa = 0.60

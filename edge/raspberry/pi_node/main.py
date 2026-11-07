@@ -15,7 +15,7 @@ import threading
 import time
 import tomllib
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -23,8 +23,11 @@ import paho.mqtt.client as mqtt
 
 from pi_node import payload
 from pi_node.dht11 import Dht11
+from pi_node.frames import FrameFilter
 from pi_node.hx711 import GpiodPins, Hx711, Weight
+from pi_node.image_upload import ImageUploader, read_token
 from pi_node.outbox import Outbox
+from pi_node.retention import Retention, RetentionRule
 from pi_node.uplink import Uplink
 
 log = logging.getLogger("pi_node")
@@ -56,6 +59,34 @@ class ScaleConfig:
 
 
 @dataclass(frozen=True)
+class ImagesConfig:
+    api_url: str
+    device_token_file: Path
+    frames_dir: Path = Path("/run/smarthive/frames")
+    image_dir: Path = Path("/var/lib/smarthive/images")
+    ca: str | None = None
+    retention_days: float = 3
+    rule: RetentionRule = field(default_factory=RetentionRule)
+
+    @classmethod
+    def load(cls, raw: dict) -> "ImagesConfig":
+        default = RetentionRule()
+        return cls(
+            api_url=raw["api_url"],
+            device_token_file=Path(raw["device_token_file"]),
+            frames_dir=Path(raw.get("frames_dir", "/run/smarthive/frames")),
+            image_dir=Path(raw.get("image_dir", "/var/lib/smarthive/images")),
+            ca=raw.get("ca"),
+            retention_days=float(raw.get("retention_days", 3)),
+            rule=RetentionRule(
+                thresholds={**default.thresholds, **{k: float(v) for k, v in raw.get("thresholds", {}).items()}},
+                sample_rate=float(raw.get("sample_rate", default.sample_rate)),
+                max_samples_per_day=int(raw.get("max_samples_per_day", default.max_samples_per_day)),
+            ),
+        )
+
+
+@dataclass(frozen=True)
 class Config:
     node_id: str
     sample_interval_s: float
@@ -68,6 +99,7 @@ class Config:
     scale: ScaleConfig | None = None
     outbox_path: Path = Path("/var/lib/smarthive/outbox.db")
     outbox_retention_days: float = 7
+    images: ImagesConfig | None = None
 
     @classmethod
     def load(cls, path: Path) -> "Config":
@@ -85,6 +117,7 @@ class Config:
             scale=ScaleConfig.load(raw["scale"]) if "scale" in raw else None,
             outbox_path=Path(raw.get("outbox_path", "/var/lib/smarthive/outbox.db")),
             outbox_retention_days=float(raw.get("outbox_retention_days", 7)),
+            images=ImagesConfig.load(raw["images"]) if "images" in raw else None,
         )
 
 
@@ -138,6 +171,11 @@ def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, outbox: Outbox, stop: t
     log.info("node %s, boot %s", cfg.node_id, boot_id)
     client = make_client(cfg, boot_id)
     uplink = Uplink(client, outbox)
+    frames, uploader = None, None
+    if cfg.images is not None:
+        im = cfg.images
+        frames = FrameFilter(cfg.node_id, im.frames_dir, im.image_dir, outbox, Retention(im.rule))
+        uploader = ImageUploader(im.api_url, read_token(im.device_token_file), outbox, im.ca)
 
     next_at = next_weight_at = time.monotonic()
     next_purge_at = next_at + PURGE_INTERVAL_S
@@ -167,9 +205,19 @@ def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, outbox: Outbox, stop: t
                 sent = uplink.drain(stop, next_at)
                 if sent:
                     log.info("sent %d from the outbox", sent)
+                if frames is not None and uploader is not None:
+                    try:
+                        frames.process()
+                        uploaded = uploader.drain(stop, next_at)  # after the MQTT messages: events still go first
+                        if uploaded:
+                            log.info("uploaded %d images", uploaded)
+                    except (OSError, ValueError):  # an image problem must not stop the sensors
+                        log.exception("image handling failed")
                 if time.monotonic() >= next_purge_at:
                     next_purge_at += PURGE_INTERVAL_S
                     outbox.purge(datetime.now(UTC) - timedelta(days=cfg.outbox_retention_days))
+                    if frames is not None and cfg.images is not None:
+                        frames.purge(datetime.now(UTC) - timedelta(days=cfg.images.retention_days))
             except sqlite3.Error:
                 log.exception("outbox read failed")
             stop.wait(max(0.0, min(1.0, next_at - time.monotonic())))

@@ -21,7 +21,8 @@ class ImageMeta(BaseModel):
     node_id: str
     captured_at: AwareDatetime
     clock_synced: bool
-    reason: Literal["threat", "varroa", "periodic", "on_demand"]
+    # sample: the node's random share of frames it would have discarded (US08), to check what the filter drops
+    reason: Literal["threat", "varroa", "periodic", "on_demand", "sample"]
     sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
     width: Annotated[int, Field(gt=0, le=20000)] | None = None
     height: Annotated[int, Field(gt=0, le=20000)] | None = None

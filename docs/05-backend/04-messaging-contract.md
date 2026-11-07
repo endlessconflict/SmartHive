@@ -223,6 +223,8 @@ Content-Type: image/jpeg
 | `200 OK` | Already have this `image_id` with the same hash | Mark uploaded |
 | `409 Conflict` | Same `image_id`, different hash | Log error, keep file, alert in health |
 | `413`, `415`, `422` | Rejected | Log error, do not retry |
+
+`reason` is one of `threat`, `varroa`, `periodic`, `on_demand` or `sample`. `sample` is the node's small random share of frames it would otherwise have discarded ([retention rule](03-edge-node-software.md#image-retention-rule-us08)); the server keeps it 30 days, like `periodic`, while `threat` and `varroa` are kept 365 days.
 | `5xx`, timeout | Server problem | Retry with backoff |
 
 Device tokens are long random strings issued at registration and stored on the node with file permissions `600`. Mutual TLS with the device certificate is an alternative if Caddy is configured for it.

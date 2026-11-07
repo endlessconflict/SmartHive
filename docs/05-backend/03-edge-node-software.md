@@ -45,10 +45,31 @@ CREATE TABLE images (
   sha256       TEXT NOT NULL,
   bytes        INTEGER NOT NULL,
   captured_at  INTEGER NOT NULL,
-  reason       TEXT NOT NULL,         -- threat | varroa | periodic
-  uploaded_at  INTEGER
+  reason       TEXT NOT NULL,         -- threat | varroa | periodic | on_demand | sample
+  priority     INTEGER NOT NULL,      -- 0 threat ... 4 sample: upload order
+  meta         BLOB NOT NULL,         -- the upload's meta part, as sent
+  attempts     INTEGER NOT NULL DEFAULT 0,
+  uploaded_at  INTEGER,               -- NULL until 201 or 200
+  rejected     TEXT                   -- 409/413/415/422 and why; never retried
 );
 ```
+
+### Image retention rule (US08)
+
+visiond leaves each analyzed frame in a tmpfs (`/run/smarthive/frames`, RAM) as `<frame id>.jpg` plus `<frame id>.json` with its detections; the `.json` is renamed into place last. The filter (`pi_node/frames.py`, rule in `pi_node/retention.py`) applies, in order:
+
+| # | Condition | Kept as |
+|---|---|---|
+| 1 | A `hornet` or `shb` at or above its class threshold | `threat` |
+| 2 | A `varroa` (Varroa-positive bee) at or above the varroa threshold | `varroa` |
+| 3 | A random `sample_rate` (default 1 %) of the frames rules 1 and 2 did not keep, at most `max_samples_per_day` (default 24) | `sample` |
+| 4 | Anything else | discarded: deleted from RAM, never written to the SD card |
+
+Bees, other insects and threats below their threshold do not keep a frame. The sample is what lets someone check what the filter throws away (false negatives) and collect real backgrounds for retraining ([ADR-0002](../adr/0002-synthetic-first-training-data.md)); it is the first thing dropped if the card fills up. The thresholds are the vision thresholds in the configuration below.
+
+A kept frame is written to `image_dir` (fsync, then the outbox row) and queued with its boxes; crops are cut from the frame with the boxes, not stored separately. The frame id becomes the `image_id`, so processing the same frame twice after a crash queues it once.
+
+Measured with `edge/scripts/storage_check.py` on 1000 synthetic frames (the scene mix in `pi_node/fake_camera.py`, ~450 KB each): 440 MB analyzed, 25 frames and 10.6 MB kept (14 relevant, 11 samples), a 97.6 % reduction with no relevant frame lost. `tests/test_frames.py` checks the same in CI.
 
 Settings: `PRAGMA journal_mode=WAL; PRAGMA synchronous=NORMAL;`. Writers batch inserts (for example every 10 s or 50 rows) to limit SD card writes; at one sample a minute the Raspberry Pi node writes each message as it is produced.
 

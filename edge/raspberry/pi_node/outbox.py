@@ -24,8 +24,24 @@ CREATE TABLE IF NOT EXISTS outbox (
   sent_at      INTEGER
 );
 CREATE INDEX IF NOT EXISTS outbox_pending ON outbox (sent_at, priority);
+CREATE TABLE IF NOT EXISTS images (
+  image_id     TEXT PRIMARY KEY,
+  path         TEXT NOT NULL,
+  sha256       TEXT NOT NULL,
+  bytes        INTEGER NOT NULL,
+  captured_at  INTEGER NOT NULL,
+  reason       TEXT NOT NULL,
+  priority     INTEGER NOT NULL,
+  meta         BLOB NOT NULL,
+  attempts     INTEGER NOT NULL DEFAULT 0,
+  uploaded_at  INTEGER,
+  rejected     TEXT
+);
+CREATE INDEX IF NOT EXISTS images_pending ON images (uploaded_at, priority);
 """
-_PRIORITY = {"events": 0, "telemetry": 1, "health": 2}  
+_PRIORITY = {"events": 0, "telemetry": 1, "health": 2}
+# threat pictures first after an outage; the random sample last, and first to go if the card fills up
+_IMAGE_PRIORITY = {"threat": 0, "varroa": 1, "on_demand": 2, "periodic": 3, "sample": 4}
 
 
 @dataclass(frozen=True)
@@ -37,6 +53,15 @@ class Row:
     payload: bytes
     created_at: int  
     clock_synced: bool
+
+
+@dataclass(frozen=True)
+class ImageRow:
+    image_id: str
+    path: Path
+    sha256: str
+    reason: str
+    meta: bytes
 
 
 class Outbox:
@@ -80,6 +105,53 @@ class Outbox:
             "DELETE FROM outbox WHERE sent_at IS NOT NULL AND sent_at < ?", (int(older_than.timestamp() * 1000),)
         )
         return cursor.rowcount
+
+    def add_image(self, image_id: str, path: Path, sha256: str, size: int, captured_at: datetime, reason: str,
+                  meta: bytes) -> bool:
+        """Queue a kept image for upload. `meta` is the upload's meta part, stored as sent. False if already queued."""
+        cursor = self._db.execute(
+            "INSERT OR IGNORE INTO images (image_id, path, sha256, bytes, captured_at, reason, priority, meta) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (image_id, str(path), sha256, size, int(captured_at.timestamp() * 1000), reason,
+             _IMAGE_PRIORITY.get(reason, 3), meta),
+        )
+        return cursor.rowcount == 1
+
+    def pending_images(self, limit: int = 10) -> list[ImageRow]:
+        rows = self._db.execute(
+            "SELECT image_id, path, sha256, reason, meta FROM images WHERE uploaded_at IS NULL AND rejected IS NULL "
+            "ORDER BY priority, rowid LIMIT ?",
+            (limit,),
+        )
+        return [ImageRow(r[0], Path(r[1]), r[2], r[3], r[4]) for r in rows]
+
+    def mark_uploaded(self, image_id: str, at: datetime | None = None) -> None:
+        at = at or datetime.now(UTC)
+        self._db.execute("UPDATE images SET uploaded_at = ? WHERE image_id = ?",
+                         (int(at.timestamp() * 1000), image_id))
+
+    def mark_image_failed(self, image_id: str) -> None:
+        self._db.execute("UPDATE images SET attempts = attempts + 1 WHERE image_id = ?", (image_id,))
+
+    def mark_image_rejected(self, image_id: str, detail: str) -> None:
+        """The server refused it for good (409, 413, 415, 422): not retried, the file stays until the purge."""
+        self._db.execute("UPDATE images SET rejected = ? WHERE image_id = ?", (detail, image_id))
+
+    def image_paths(self) -> set[Path]:
+        return {Path(r[0]) for r in self._db.execute("SELECT path FROM images")}
+
+    def image_counts(self) -> dict[str, tuple[int, int]]:
+        """reason -> (images, bytes), everything still on the node."""
+        rows = self._db.execute("SELECT reason, count(*), coalesce(sum(bytes), 0) FROM images GROUP BY reason")
+        return {r[0]: (r[1], r[2]) for r in rows}
+
+    def purge_images(self, older_than: datetime) -> list[Path]:
+        """Forget images uploaded or rejected before that time, and return their files for the caller to delete."""
+        cutoff = int(older_than.timestamp() * 1000)
+        where = "(uploaded_at IS NOT NULL AND uploaded_at < ?) OR (rejected IS NOT NULL AND captured_at < ?)"
+        paths = [Path(r[0]) for r in self._db.execute(f"SELECT path FROM images WHERE {where}", (cutoff, cutoff))]
+        self._db.execute(f"DELETE FROM images WHERE {where}", (cutoff, cutoff))
+        return paths
 
     def close(self) -> None:
         self._db.close()

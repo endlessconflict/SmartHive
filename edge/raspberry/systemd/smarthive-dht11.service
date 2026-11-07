@@ -6,6 +6,9 @@ After=network-online.target
 [Service]
 User=smarthive
 StateDirectory=smarthive
+# /run/smarthive is RAM: analyzed frames wait there, and the ones not kept never touch the SD card
+RuntimeDirectory=smarthive
+RuntimeDirectoryPreserve=yes
 WorkingDirectory=/opt/smarthive/edge/raspberry
 ExecStart=/opt/smarthive/venv/bin/python -m pi_node.main --config /etc/smarthive/node.toml
 Restart=always

@@ -26,3 +26,16 @@ Use node ids with the `sim-` prefix: the backend marks those nodes as simulated,
 python edge/scripts/fake_node.py --node sim-0001 --interval 5 --weight 41
 python edge/scripts/fake_node.py --node sim-0001 --show   # how many messages wait on disk
 ```
+
+With `--images` it also runs a fake camera (synthetic analyzed frames, real JPEGs), the US08 filter and the upload to `POST /device/v1/images`. The node needs a device token: register it in Setup (shown once) and save it to `data/token-<node>.txt`.
+
+```bash
+python edge/scripts/fake_node.py --node sim-0001 --images --frame-every 1 --sample-rate 0.05
+python edge/scripts/fake_node.py --node sim-0001 --show   # images kept, uploaded and waiting, by reason
+```
+
+`storage_check.py` is the US08 test run: frames through the real filter, offline, and how much reaches the card.
+
+```bash
+python edge/scripts/storage_check.py --frames 1000
+```
