@@ -76,7 +76,7 @@ async def test_kept_frames_go_up_as_the_node_sends_them(
     assert Image.open(io.BytesIO(thumb.content)).format == "JPEG"  # the padded fake frame is a real JPEG
 
     async with engine.connect() as c:
-        keep = dict(
+        keep: dict[str, timedelta] = dict(
             (
                 await c.execute(
                     text("SELECT reason, expires_at - captured_at FROM images WHERE node_id = :n"),
