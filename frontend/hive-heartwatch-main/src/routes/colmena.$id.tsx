@@ -1,16 +1,36 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Camera, Droplets, Scale, Thermometer, WifiOff } from "lucide-react";
+import {
+  Activity,
+  ArrowLeft,
+  Camera,
+  ChevronRight,
+  Droplets,
+  Scale,
+  Thermometer,
+  WifiOff,
+} from "lucide-react";
 import {
   CartesianGrid,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import { useHistory, useHive, type Reading } from "@/data/hives";
+import {
+  bands,
+  describe,
+  LEVEL_LABELS,
+  useAnomalies,
+  useAnomalyWarnings,
+  type Band,
+  type Chart,
+  type Warning,
+} from "@/data/anomalies";
 import { detections, useImageUrl, useLatestImage } from "@/data/images";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Loading, RequireLogin } from "@/components/RequireLogin";
@@ -39,6 +59,8 @@ function HiveDetail() {
   const { data: hive, error, isPending } = useHive(id);
   const [range, setRange] = useState<"24h" | "7d">("24h");
   const history = useHistory(id, range);
+  const anomalies = useAnomalies(id, range).data ?? [];
+  const warnings = useAnomalyWarnings(id).data ?? [];
   const image = useLatestImage(id);
   const imageUrl = useImageUrl(image.data?.id);
 
@@ -55,6 +77,8 @@ function HiveDetail() {
   }
   const offline = hive.status === "offline";
   const found = detections(image.data);
+  const rows = history.data ?? [];
+  const bandsFor = (chart: Chart) => bands(rows, anomalies, chart);
 
   return (
     <main className="mx-auto min-h-screen max-w-4xl px-4 py-6 sm:px-6">
@@ -100,6 +124,8 @@ function HiveDetail() {
         <StatusBadge status={hive.status} />
       </div>
 
+      <ToReview warnings={warnings} />
+
       <div
         className={`mt-5 grid grid-cols-2 gap-4 ${hive.weight !== null ? "sm:grid-cols-3" : ""}`}
       >
@@ -140,30 +166,39 @@ function HiveDetail() {
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <ChartCard
           title="Temperature (°C)"
-          data={history.data ?? []}
+          data={rows}
           dataKey="temperature"
           color="var(--warning)"
+          bands={bandsFor("temperature")}
         />
         <ChartCard
           title="Humidity (%)"
-          data={history.data ?? []}
+          data={rows}
           dataKey="humidity"
           color="var(--chart-blue)"
+          bands={bandsFor("humidity")}
         />
         {/* a node without a scale has no weight, so no empty chart for it */}
-        {history.data?.some((r) => r.weight !== null) && (
+        {rows.some((r) => r.weight !== null) && (
           <div className="md:col-span-2">
             <ChartCard
               title="Weight (kg)"
-              data={history.data}
+              data={rows}
               dataKey="weight"
               color="var(--success)"
+              bands={bandsFor("weight")}
             />
           </div>
         )}
       </div>
       {history.data?.length === 0 && (
         <p className="mt-2 text-muted-foreground">No readings in this period.</p>
+      )}
+      {anomalies.length > 0 && (
+        <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+          <span aria-hidden className="inline-block size-3 rounded-sm bg-warning/25" />
+          Shaded: hours unlike this hive's usual pattern. Worth a look, not an emergency.
+        </p>
       )}
 
       <section className="mt-6 rounded-2xl bg-card p-5 ring-1 ring-border">
@@ -200,17 +235,58 @@ function Big({ icon, label, value }: { icon: React.ReactNode; label: string; val
   );
 }
 
+/** Ongoing anomalies, worded as something to look at on the next visit: no red, no alarm role. */
+function ToReview({ warnings }: { warnings: Warning[] }) {
+  if (!warnings.length) return null;
+  return (
+    <section role="status" className="mt-4 rounded-2xl bg-warning-soft p-4">
+      <p className="flex items-center gap-2 font-bold">
+        <Activity className="size-5 text-warning" />
+        To review when convenient
+      </p>
+      <p className="mt-1 text-muted-foreground">
+        These readings are unlike this hive's last days. No need to act now; check at your next
+        visit.
+      </p>
+      <ul className="mt-3 space-y-2">
+        {warnings.map((a) => (
+          <li key={a.alertId}>
+            <Link
+              to="/alertas/$id"
+              params={{ id: a.alertId }}
+              className="flex min-h-12 items-center justify-between gap-3 rounded-xl bg-card px-4 py-2"
+            >
+              <span>
+                <span className="font-semibold">{a.title}</span>
+                <span className="block text-sm text-muted-foreground">{describe(a.details)}</span>
+              </span>
+              <span className="flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
+                {LEVEL_LABELS[a.details.level]}
+                <ChevronRight className="size-4" />
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ChartCard({
   title,
   data,
   dataKey,
   color,
+  bands = [],
 }: {
   title: string;
   data: Reading[];
   dataKey: "temperature" | "humidity" | "weight";
   color: string;
+  bands?: Band[];
 }) {
+  const label = new Map(data.map((r) => [r.ts, r.time]));
+  const toLabel = (ts: unknown) => label.get(String(ts)) ?? String(ts);
   return (
     <section className="rounded-2xl bg-card p-4 ring-1 ring-border">
       <h2 className="mb-2 font-bold">{title}</h2>
@@ -218,9 +294,24 @@ function ChartCard({
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ left: -20, right: 8, top: 8 }}>
             <CartesianGrid stroke="var(--track)" vertical={false} />
-            <XAxis dataKey="time" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
+            {bands.map((b) => (
+              <ReferenceArea
+                key={`${b.x1}-${b.x2}`}
+                x1={b.x1}
+                x2={b.x2}
+                fill="var(--warning)"
+                fillOpacity={b.level === "warning" ? 0.22 : 0.12}
+                strokeOpacity={0}
+              />
+            ))}
+            <XAxis
+              dataKey="ts"
+              tick={{ fontSize: 12 }}
+              tickFormatter={toLabel}
+              interval="preserveStartEnd"
+            />
             <YAxis tick={{ fontSize: 12 }} domain={["auto", "auto"]} />
-            <Tooltip />
+            <Tooltip labelFormatter={toLabel} />
             <Line
               type="monotone"
               dataKey={dataKey}

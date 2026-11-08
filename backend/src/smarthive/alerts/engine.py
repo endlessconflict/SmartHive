@@ -34,7 +34,7 @@ async def evaluate_all(engine: AsyncEngine, now: datetime | None = None) -> int:
         try:
             findings = await rule.evaluate(db, row.params, now)
             for f in findings:
-                if await store.raise_alert(db, row.severity, f, now, once=rule.once):
+                if await store.raise_alert(db, row.severity, f, now, once=rule.once, notify=rule.notify):
                     opened += 1
             if rule.auto_resolve:
                 await store.resolve_stale(db, rule.id, {f.dedup_key for f in findings}, now)

@@ -37,8 +37,9 @@ class Anomaly(BaseModel):
     start: datetime
     end: datetime
     score: float
-    kind: str | None  # None: a pattern the model could not name
+    kind: str | None  # None: a pattern the model could not name; robust-z@1 writes <quantity>_<high|low>
     model: str
+    level: Literal["info", "warning"]  # never critical: a warning to review, not an alert to act on
 
 
 class Prediction(BaseModel):
@@ -134,7 +135,8 @@ async def list_anomalies(
     rows = (
         await conn.execute(
             text(
-                'SELECT id, hive_id, lower(period) AS start, upper(period) AS "end", score, kind, model '
+                'SELECT id, hive_id, lower(period) AS start, upper(period) AS "end", score, kind, model, '
+                "level "
                 "FROM anomalies WHERE hive_id = :h AND period && tstzrange(:s, :e) "
                 "ORDER BY lower(period) DESC, id LIMIT :n"
             ),

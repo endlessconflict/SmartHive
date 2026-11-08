@@ -8,9 +8,11 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
+from uuid import UUID, uuid4
 
 from sqlalchemy import text
 
+from smarthive.alerts import anomaly
 from smarthive.alerts.store import Finding
 from smarthive.api.deps import Db
 
@@ -28,6 +30,7 @@ class Rule:
     evaluate: Evaluate
     once: bool = False  # key names one occurrence, never reopens
     auto_resolve: bool = False  # alert closes itself when the condition clears
+    notify: bool = True  # False: dashboard only, no notification of any kind (anomalies, US17)
 
 
 def _threat(cls: str, label: str) -> Evaluate:
@@ -181,6 +184,81 @@ def _out_of_range(rule_id: str, label: str) -> Evaluate:
     return evaluate
 
 
+async def anomaly_detected(conn: Db, p: dict[str, Any], now: datetime) -> list[Finding]:
+    """Hourly means unlike the hive's own previous days (smarthive.alerts.anomaly). Hours with a management
+    event are left out, so an inspection is neither an anomaly nor part of the baseline."""
+    p = {**anomaly.DEFAULTS, **p}
+    rows = (
+        await conn.execute(
+            text(
+                "SELECT hive_id, quantity, time_bucket('1 hour', ts) AS b, avg(value) AS v FROM readings "
+                "WHERE hive_id IS NOT NULL AND quantity = ANY(:qs) AND quality = 'ok' AND value IS NOT NULL "
+                "AND ts > CAST(:now AS timestamptz) - make_interval(days => :d) AND ts <= CAST(:now AS timestamptz) "
+                "AND NOT EXISTS (SELECT 1 FROM management_events m WHERE m.hive_id = readings.hive_id "
+                "AND m.started_at <= readings.ts "
+                f"AND coalesce(m.ended_at, CAST(:now AS timestamptz)) + interval '{MASK_MARGIN}' > readings.ts) "
+                "GROUP BY 1, 2, 3 HAVING count(*) >= 3 ORDER BY 1, 2, 3"
+            ),
+            {"qs": list(anomaly.QUANTITIES), "now": now, "d": int(p["baseline_days"])},
+        )
+    ).all()
+    series: dict[tuple[UUID, str], list[anomaly.Bucket]] = {}
+    for r in rows:
+        series.setdefault((r.hive_id, r.quantity), []).append(anomaly.Bucket(r.b, r.v))
+    findings = []
+    for (hive_id, quantity), buckets in series.items():
+        found = anomaly.score(quantity, buckets, now, p)
+        if found is not None:
+            window_id = await _record_window(conn, hive_id, found)
+            findings.append(
+                Finding(
+                    "anomaly_detected",
+                    f"anomaly_detected:{hive_id}:{quantity}",
+                    found.title(),
+                    {**found.details(), "anomaly_id": str(window_id)},
+                    hive_id,
+                    severity=found.level,  # info or warning, never the stored severity, never critical
+                )
+            )
+    return findings
+
+
+async def _record_window(conn: Db, hive_id: UUID, found: anomaly.Anomaly) -> UUID:
+    """The window in `anomalies`, where ML models write theirs too: extended while the anomaly goes on."""
+    params = {
+        "h": hive_id,
+        "m": anomaly.MODEL,
+        "k": found.kind,
+        "s": found.start,
+        "e": found.end,
+        "score": abs(found.z),
+        "level": found.level,
+    }
+    grown = (
+        await conn.execute(
+            text(
+                "UPDATE anomalies SET period = tstzrange(least(lower(period), :s), greatest(upper(period), :e)), "
+                "score = greatest(score, :score), "
+                "level = CASE WHEN level = 'warning' OR :level = 'warning' THEN 'warning' ELSE 'info' END "
+                "WHERE hive_id = :h AND model = :m AND kind = :k AND period && tstzrange(:s, :e, '[]') "
+                "RETURNING id"
+            ),
+            params,
+        )
+    ).first()
+    if grown is not None:
+        return UUID(str(grown.id))
+    window_id = uuid4()
+    await conn.execute(
+        text(
+            "INSERT INTO anomalies (id, hive_id, period, score, kind, model, level) "
+            "VALUES (:id, :h, tstzrange(:s, :e), :score, :k, :m, :level)"
+        ),
+        {**params, "id": window_id},
+    )
+    return window_id
+
+
 RULES: dict[str, Rule] = {
     r.id: r
     for r in (
@@ -191,5 +269,6 @@ RULES: dict[str, Rule] = {
         Rule("node_power_low", node_power_low, auto_resolve=True),
         Rule("temp_out_of_range", _out_of_range("temp_out_of_range", "Hive temperature out of range")),
         Rule("rh_out_of_range", _out_of_range("rh_out_of_range", "Hive humidity out of range")),
+        Rule("anomaly_detected", anomaly_detected, auto_resolve=True, notify=False),
     )
 }

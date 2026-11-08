@@ -14,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from smarthive.alerts.rules import MASK_MARGIN
 
+LEVELS = ("info", "warning")
+
 
 @dataclass(frozen=True)
 class Feature:
@@ -63,18 +65,25 @@ async def write_anomaly(
     score: float,
     model: str,
     kind: str | None = None,
+    level: str = "warning",
 ) -> UUID:
-    """Store one anomaly window. `kind` None means the model found something it cannot name."""
+    """Store one anomaly window. `kind` None means the model found something it cannot name.
+
+    `level` is info (unusual) or warning (very unusual). An anomaly is never critical: the dashboard shows it
+    as something to review, and nobody is notified (US17).
+    """
     if not model:
         raise ValueError("model is required")
     if start >= end:
         raise ValueError("start must be before end")
+    if level not in LEVELS:
+        raise ValueError("level must be info or warning")
     anomaly_id = uuid4()
     async with engine.begin() as conn:
         await conn.execute(
             text(
-                "INSERT INTO anomalies (id, hive_id, period, score, kind, model) "
-                "VALUES (:id, :h, tstzrange(:s, :e), :score, :kind, :model)"
+                "INSERT INTO anomalies (id, hive_id, period, score, kind, model, level) "
+                "VALUES (:id, :h, tstzrange(:s, :e), :score, :kind, :model, :level)"
             ),
             {
                 "id": anomaly_id,
@@ -84,6 +93,7 @@ async def write_anomaly(
                 "score": score,
                 "kind": kind,
                 "model": model,
+                "level": level,
             },
         )
     return anomaly_id

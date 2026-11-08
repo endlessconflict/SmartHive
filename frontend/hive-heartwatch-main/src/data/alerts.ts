@@ -4,7 +4,15 @@ import { api, type ApiAlert, type ApiAlertDetail, type Page } from "@/lib/api";
 import { useAccount } from "@/hooks/use-account";
 
 export type AlertType =
-  "varroa" | "beetle" | "hornet" | "offline" | "power" | "temperature" | "humidity" | "other";
+  | "varroa"
+  | "beetle"
+  | "hornet"
+  | "offline"
+  | "power"
+  | "temperature"
+  | "humidity"
+  | "anomaly"
+  | "other";
 export type AlertStatus = "new" | "in_progress" | "resolved";
 
 export const ALERT_TYPE_LABELS: Record<AlertType, string> = {
@@ -15,6 +23,7 @@ export const ALERT_TYPE_LABELS: Record<AlertType, string> = {
   power: "Weak power supply",
   temperature: "Temperature out of range",
   humidity: "Humidity out of range",
+  anomaly: "Unusual pattern · to review",
   other: "Alert",
 };
 
@@ -32,6 +41,7 @@ const TYPES: Record<string, AlertType> = {
   node_power_low: "power",
   temp_out_of_range: "temperature",
   rh_out_of_range: "humidity",
+  anomaly_detected: "anomaly",
 };
 
 const STATES: Record<ApiAlert["state"], AlertStatus> = {

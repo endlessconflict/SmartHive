@@ -27,10 +27,30 @@ Owners: James Tack (engine), Maria de los Angeles Agudelo (UI)
 | `weight_sudden_drop` | Weight drops more than X kg in Y minutes, outside a logged management event | critical | 1 kg in 30 min | Swarm / absconding |
 | `sensor_fault` | `sensor_fault` event or no valid reading for a quantity for M minutes while the node is online | warning | M = 15 | EL-08 |
 | `clock_unsynced` | Node reporting unsynced clock for more than an hour | info | | |
-| `anomaly_detected` | ML anomaly score above threshold, unknown pattern | warning | | US16, US17 |
+| `anomaly_detected` | Readings unlike the hive's own last days, see [Anomalies](#anomalies-us17) | info or warning, never critical, never notified | robust z ≥ 3.5 for 2 h; 6 for warning | US16, US17 |
 | `harvest_ready`, `add_super` | Recommendation from the yield model | info | | US21, US22 (EL-11: informative) |
 
 Rules marked with a weight trigger need the load cell, so they are active only with simulated nodes until then. They are still worth building now: the simulator produces swarms, and the demo can show the full chain.
+
+## Anomalies (US17)
+
+An anomaly is a reading pattern unlike the hive's own recent behaviour, with no known cause attached. It is shown on the dashboard as something to review at the next visit, never as an emergency:
+
+- Its level is `info` (*Unusual*) or `warning` (*Very unusual*). It is **never `critical`**, whatever the rule's stored severity.
+- It sends **no notification of any kind**: no email, no ntfy, not even an in-app notification, when it opens or when it grows from `info` to `warning`.
+- It does not count in the hive's `open_alerts` or the header badge; the hive list shows it apart (`open_anomalies`, "to review").
+- It closes by itself when the readings are back to normal; its window stays on the charts as a past band.
+
+The first model, `robust-z@1` (`smarthive/alerts/anomaly.py`), runs as the `anomaly_detected` rule. Per hive and per quantity (`temp_in`, `rh_in`, and the hourly change of `weight` in kg/h):
+
+1. Hourly means of `ok` readings, leaving out logged management events and their margin.
+2. Baseline: the hours from `baseline_days` (7) ago up to `recent_hours` (24) ago; at least `min_baseline_hours` (48), or the hive is not scored.
+3. Robust z-score of each recent hour: (mean − median) / (1.4826 × MAD), with the scale floored per quantity (`min_scale_temp_in` 0.3 °C, `min_scale_rh_in` 1.5 %, `min_scale_weight` 0.1 kg/h) so a very steady hive does not flag sensor noise.
+4. An anomaly is a run of at least `min_run_hours` (2) consecutive hours on the same side, all with |z| ≥ `info_z` (3.5), ending at the latest hour. A peak |z| ≥ `warning_z` (6) makes it `warning`. No data for 2 h is not an anomaly (that is `node_offline`).
+
+The rule writes the window to the `anomalies` table, where ML models (US16) write theirs, as model `robust-z@1` with kind `<quantity>_<high|low>` and score |z|, and extends it while the anomaly lasts. The dashboard draws a band for every window from `GET /hives/{id}/anomalies`, whatever the model. The parameters are in `alert_rules` and can be changed with `PATCH /alert-rules/anomaly_detected`.
+
+To see it without days of real data: `docker compose run --rm api demo-anomaly --node sim-0001 --quantity rh_in` (the image's entrypoint is already `smarthive`) writes 3 days of normal readings with a change in the last 4 hours, for a simulated node attached to a hive, and evaluates the rules.
 
 ## Lifecycle
 
@@ -88,4 +108,5 @@ Differences from the design above:
 - Email and ntfy notifications are written as `pending` rows, and the worker sends them after each evaluation. Email needs `SMARTHIVE_SMTP_HOST`, ntfy needs `SMARTHIVE_NTFY_URL`; a channel without its server keeps its rows pending. A failed send is retried after 1, 2, 4 ... minutes and marked `failed` after `SMARTHIVE_NOTIFY_MAX_ATTEMPTS` (5). More than `SMARTHIVE_NOTIFY_PER_USER_PER_HOUR` (10) sent per user and channel in an hour marks the rest `suppressed`. Emails have a plain-text and an HTML part from the Jinja2 templates in `smarthive/templates/`; when the hive has an image from the hour before the alert, a 320 px thumbnail is attached inline.
 - `node_offline` opens as `warning` and escalates to `critical` once the node has been silent for `escalate_after_hours` (24). A last will (`status: offline`) opens it at once; a silent node opens it after `silent_minutes`.
 - `node_power_low` fires when every `battery_v` reading of the last 10 minutes is below 10.2 V (at least two readings), or when at least 3 health snapshots in that window carry `throttled.under_voltage: true`. The exact shape of `throttled` is not fixed in the messaging contract yet; this key is the assumption to confirm with the node software. Simulated nodes are included. It closes itself when the condition clears.
-- Not built yet: `varroa_rising`, `weight_sudden_drop`, `sensor_fault`, `clock_unsynced`, `anomaly_detected`, the recommendation rules, and the late-data suppression after a reconnect. Weight and temperature rules do skip hives with a running management event.
+- `anomaly_detected` is built with the rule-based model `robust-z@1`. Windows that other models write to `anomalies` are drawn on the charts, but do not open a warning yet.
+- Not built yet: `varroa_rising`, `weight_sudden_drop`, `sensor_fault`, `clock_unsynced`, the recommendation rules, and the late-data suppression after a reconnect. Weight and temperature rules do skip hives with a running management event.

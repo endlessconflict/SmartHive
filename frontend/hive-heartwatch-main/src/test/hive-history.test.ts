@@ -22,8 +22,20 @@ describe("mergeSeries", () => {
       (ts) => ts.slice(11, 16),
     );
     expect(rows).toEqual([
-      { time: "10:00", temperature: 35, humidity: 58, weight: 41.24 },
-      { time: "11:00", temperature: 35, humidity: null, weight: null },
+      {
+        ts: "2026-11-06T10:00:00Z",
+        time: "10:00",
+        temperature: 35,
+        humidity: 58,
+        weight: 41.24,
+      },
+      {
+        ts: "2026-11-06T11:00:00Z",
+        time: "11:00",
+        temperature: 35,
+        humidity: null,
+        weight: null,
+      },
     ]);
   });
 

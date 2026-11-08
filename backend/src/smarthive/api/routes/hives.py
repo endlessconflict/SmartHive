@@ -40,7 +40,8 @@ class HiveStatus(Hive):
     node_id: str | None
     node_status: str | None
     simulated: bool  # the attached node is a simulator; its data must never pass for a real colony
-    open_alerts: int
+    open_alerts: int  # anomalies are not alerts to act on, so they are counted apart (US17)
+    open_anomalies: int
     latest: dict[str, Latest]  # newest good reading per quantity, last 7 days
 
 
@@ -151,8 +152,10 @@ async def _status(conn: Conn, where: str, params: dict[str, object], tail: str =
                 "SELECT h.id, h.apiary_id, h.name, h.hive_type, h.boxes, h.installed_on, h.notes, "
                 "h.archived, n.id AS node_id, n.status AS node_status, "
                 "COALESCE(n.is_simulated, false) AS simulated, "
-                "(SELECT count(*) FROM alerts al WHERE al.hive_id = h.id AND al.state <> 'resolved') "
-                "AS open_alerts "
+                "(SELECT count(*) FROM alerts al WHERE al.hive_id = h.id AND al.state <> 'resolved' "
+                "AND al.rule_id <> 'anomaly_detected') AS open_alerts, "
+                "(SELECT count(*) FROM alerts al WHERE al.hive_id = h.id AND al.state <> 'resolved' "
+                "AND al.rule_id = 'anomaly_detected') AS open_anomalies "
                 "FROM hives h JOIN apiaries a ON a.id = h.apiary_id "
                 "LEFT JOIN node_assignments na ON na.hive_id = h.id AND na.valid @> now() "
                 f"LEFT JOIN nodes n ON n.id = na.node_id WHERE {where} ORDER BY h.id {tail}"

@@ -95,6 +95,49 @@ def _seed(
     print(f"published {sent} messages as {node} ({scenario})")
 
 
+def _demo_anomaly(
+    settings: Settings,
+    node: str,
+    quantity: str,
+    shift: float | None,
+    days: float,
+    hours: float,
+    real_node: bool = False,
+) -> None:
+    from sqlalchemy import text
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from smarthive.alerts.engine import evaluate_all
+    from smarthive.demo import write_history
+
+    async def run() -> None:
+        engine = create_async_engine(settings.engine_url)
+        try:
+            done = await write_history(engine, node, quantity, shift, days, hours, real_node=real_node)
+            if real_node:
+                print(f"note: {node}'s readings of the last {days:g} days were replaced by demo data")
+            await evaluate_all(engine)  # the worker would do it within a minute; now, for the demo
+            async with engine.connect() as c:
+                found = (
+                    await c.execute(
+                        text(
+                            "SELECT severity, title FROM alerts WHERE hive_id = :h "
+                            "AND rule_id = 'anomaly_detected' AND state <> 'resolved'"
+                        ),
+                        {"h": done["hive_id"]},
+                    )
+                ).all()
+        finally:
+            await engine.dispose()
+        print(f"wrote {done['readings']} readings for {node}, {quantity} shifted by {done['shift']}")
+        for r in found:
+            print(f"anomaly ({r.severity}): {r.title}")
+        if not found:
+            print("no anomaly yet: try a larger --shift or more --hours")
+
+    asyncio.run(run())
+
+
 def _migrate(settings: Settings) -> None:
     from alembic import command
     from alembic.config import Config
@@ -172,6 +215,21 @@ def main(argv: list[str] | None = None) -> None:
     seed.add_argument("--rounds", type=int, default=1)
     seed.add_argument("--interval", type=float, default=5.0, help="seconds between rounds")
     seed.add_argument("--seed", type=int, default=None, help="random seed, for repeatable values")
+    demo = sub.add_parser(
+        "demo-anomaly", help="write days of readings with a recent change, to show the anomaly warnings"
+    )
+    demo.add_argument("--node", default="sim-0001", help="a simulated node attached to a hive")
+    demo.add_argument("--quantity", choices=["temp_in", "rh_in", "weight"], default="temp_in")
+    demo.add_argument(
+        "--shift", type=float, default=None, help="change in the last hours (weight: kg per hour)"
+    )
+    demo.add_argument("--days", type=float, default=3, help="history to write")
+    demo.add_argument("--hours", type=float, default=4, help="how long ago the change started")
+    demo.add_argument(
+        "--real-node",
+        action="store_true",
+        help="allow a node without the sim- prefix; its readings in the period are replaced",
+    )
     sub.add_parser("migrate", help="apply database migrations up to the latest")
     api = sub.add_parser("api", help="serve the REST API")
     api.add_argument("--host", default="127.0.0.1")
@@ -197,6 +255,8 @@ def main(argv: list[str] | None = None) -> None:
         _restore_check(settings, args.dump)
     elif args.command == "seed":
         _seed(settings, args.node, args.scenario, args.rounds, args.interval, args.seed)
+    elif args.command == "demo-anomaly":
+        _demo_anomaly(settings, args.node, args.quantity, args.shift, args.days, args.hours, args.real_node)
     elif args.command == "migrate":
         _migrate(settings)
     elif args.command == "api":

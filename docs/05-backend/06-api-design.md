@@ -105,7 +105,7 @@ Example response for `readings`:
 
 | Method and path | Purpose | Story |
 |---|---|---|
-| `GET /hives/{id}/anomalies?from=&to=` | Anomaly windows with scores | US16, US17 |
+| `GET /hives/{id}/anomalies?start=&end=` | Anomaly windows with score, kind, model and `level` (`info` or `warning`, never critical) | US16, US17 |
 | `GET /hives/{id}/predictions?target=yield_7d_kg` | Latest prediction as a range (p10, p50, p90) | US18, US19 |
 
 ### Export

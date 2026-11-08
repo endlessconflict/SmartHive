@@ -10,6 +10,7 @@ import {
   type Series,
 } from "@/lib/api";
 import { useAccount } from "@/hooks/use-account";
+import { ANOMALY_RULE } from "@/data/anomalies";
 
 export type HiveStatus = "healthy" | "attention" | "critical" | "offline";
 
@@ -23,6 +24,7 @@ export type Hive = {
   weight: number | null; // null also for a node without a scale
   lastUpdate: string;
   openAlerts: number;
+  openAnomalies: number; // warnings to review, not alerts: they never change the status
   nodeId: string | null;
   simulated: boolean;
 };
@@ -34,7 +36,10 @@ export const STATUS_LABELS: Record<HiveStatus, string> = {
   offline: "Offline",
 };
 
-/** Alerts still to be handled (open or acknowledged), shared by the hive cards and the header badge. */
+/**
+ * Alerts still to be handled (open or acknowledged), shared by the hive cards and the header badge.
+ * Anomalies are left out: they are shown on the hive page as something to review, without pressure (US17).
+ */
 export function useActiveAlerts() {
   const { user } = useAccount();
   return useQuery({
@@ -45,7 +50,7 @@ export function useActiveAlerts() {
         api<Page<ApiAlert>>("/api/v1/alerts?state=open&limit=200"),
         api<Page<ApiAlert>>("/api/v1/alerts?state=acknowledged&limit=200"),
       ]);
-      return [...open.items, ...acknowledged.items];
+      return [...open.items, ...acknowledged.items].filter((a) => a.rule_id !== ANOMALY_RULE);
     },
   });
 }
@@ -76,6 +81,7 @@ function toHive(h: ApiHive, apiaries: Apiary[], alerts: ApiAlert[]): Hive {
     weight: weight?.value ?? null,
     lastUpdate: newest ? formatDistanceToNow(new Date(newest), { addSuffix: true }) : "no data yet",
     openAlerts: h.open_alerts,
+    openAnomalies: h.open_anomalies ?? 0,
     nodeId: h.node_id,
     simulated: h.simulated,
   };
@@ -105,6 +111,7 @@ export function useHive(id: string) {
 }
 
 export type Reading = {
+  ts: string; // start of the hour, ISO: the x of the charts, and where anomaly bands snap to
   time: string;
   temperature: number | null;
   humidity: number | null;
@@ -126,6 +133,7 @@ export function mergeSeries(
   const add = (points: Point[], field: "temperature" | "humidity" | "weight", decimals: number) => {
     for (const p of points) {
       const row = byTs.get(p.ts) ?? {
+        ts: p.ts,
         time: label(p.ts),
         temperature: null,
         humidity: null,

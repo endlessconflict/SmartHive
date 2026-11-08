@@ -267,7 +267,8 @@ CREATE TABLE anomalies (
   score     real NOT NULL,
   kind      text,                              -- NULL = unknown pattern (US16)
   model     text NOT NULL,
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  level     text NOT NULL DEFAULT 'warning'    -- info | warning; never critical (US17, migration 0007)
 );
 
 CREATE TABLE predictions (
@@ -299,7 +300,7 @@ CREATE TABLE commands (
 | Table | Written by | Read by |
 |---|---|---|
 | `management_events` | The beekeeper, through `POST /hives/{id}/management-events` | Alert rules, ML features, the dashboard |
-| `anomalies` | ML jobs, with `smarthive.jobs.write_anomaly` | `GET /hives/{id}/anomalies` |
+| `anomalies` | ML jobs, with `smarthive.jobs.write_anomaly`, and the `anomaly_detected` rule (model `robust-z@1`) | `GET /hives/{id}/anomalies` |
 | `predictions` | ML jobs, with `smarthive.jobs.write_prediction` | `GET /hives/{id}/predictions` |
 
 A job reads its input with `smarthive.jobs.read_features`, which returns bucketed readings of quality `ok` and leaves out everything taken during a logged event or in the 30 minutes after it. Every row a job writes carries the model name; the functions refuse an empty one. Units: weights in kilograms, temperatures in degrees Celsius, `horizon` as an interval, `p10 <= p50 <= p90`. The columns are the ones above; Diego should confirm them before the first model writes (SCRUM-88, criterion 4).

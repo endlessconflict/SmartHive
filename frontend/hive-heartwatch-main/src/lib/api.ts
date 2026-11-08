@@ -27,8 +27,35 @@ export type ApiHive = {
   node_id: string | null;
   node_status: string | null;
   simulated: boolean;
-  open_alerts: number;
+  open_alerts: number; // without anomalies: they are not alerts to act on
+  open_anomalies: number;
   latest: Record<string, Latest>;
+};
+
+/**
+ * GET /api/v1/hives/{id}/anomalies: a window some model found unusual, for the charts. Never critical,
+ * never notified. `kind` is like "temp_in_high" for the rule-based model; null when a model cannot name it.
+ */
+export type ApiAnomaly = {
+  id: string;
+  hive_id: string;
+  start: string;
+  end: string;
+  score: number;
+  kind: string | null;
+  model: string;
+  level: "info" | "warning";
+};
+
+/** `details` of an anomaly_detected alert: what the dashboard says about it. */
+export type AnomalyDetails = {
+  quantity: "temp_in" | "rh_in" | "weight";
+  level: "info" | "warning";
+  window_start: string;
+  window_end: string;
+  value: number;
+  expected: number;
+  unit: string;
 };
 
 export type Apiary = {

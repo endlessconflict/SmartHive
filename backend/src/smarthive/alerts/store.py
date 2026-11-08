@@ -31,11 +31,12 @@ class Finding:
 
 
 async def raise_alert(
-    conn: Db, severity: str, f: Finding, now: datetime, *, once: bool = False
+    conn: Db, severity: str, f: Finding, now: datetime, *, once: bool = False, notify: bool = True
 ) -> UUID | None:
     """Open an alert, or refresh the open one with the same key. Returns the id only for a new alert.
 
     `once`: the key names one occurrence (a detection episode), so it never reopens, even after resolution.
+    `notify`: False writes no notification rows at all, not even in-app, on opening or on escalation.
     """
     touched = await conn.execute(
         text(
@@ -53,7 +54,8 @@ async def raise_alert(
             await _log(
                 conn, open_alert.id, "escalated", None, {"from": open_alert.severity, "to": f.severity}
             )
-            await _notify(conn, open_alert.id, f.severity, f.hive_id, f.node_id, now)
+            if notify:
+                await _notify(conn, open_alert.id, f.severity, f.hive_id, f.node_id, now)
             await _announce(conn, open_alert.id)
         return None
     blocked = (
@@ -93,7 +95,8 @@ async def raise_alert(
     if row is None:  # another worker opened it between our checks
         return None
     await _log(conn, alert_id, "opened", None, {"severity": severity})
-    await _notify(conn, alert_id, severity, f.hive_id, f.node_id, now)
+    if notify:
+        await _notify(conn, alert_id, severity, f.hive_id, f.node_id, now)
     await _announce(conn, alert_id)
     return alert_id
 

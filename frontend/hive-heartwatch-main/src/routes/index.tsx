@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Bell, ChevronRight, Clock, Droplets, Scale, Thermometer } from "lucide-react";
+import { Activity, Bell, ChevronRight, Clock, Droplets, Scale, Thermometer } from "lucide-react";
 import { useHives } from "@/data/hives";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Loading, RequireLogin } from "@/components/RequireLogin";
@@ -91,11 +91,19 @@ function HivesPage() {
                   <Clock className="size-4" />
                   {h.lastUpdate}
                 </span>
-                <span
-                  className={`flex items-center gap-1 font-semibold ${h.openAlerts ? "text-danger" : "text-muted-foreground"}`}
-                >
-                  <Bell className="size-4" />
-                  {h.openAlerts === 1 ? "1 alert" : `${h.openAlerts} alerts`}
+                <span className="flex items-center gap-3">
+                  {h.openAnomalies > 0 && (
+                    <span className="flex items-center gap-1 font-semibold text-warning">
+                      <Activity className="size-4" />
+                      {h.openAnomalies} to review
+                    </span>
+                  )}
+                  <span
+                    className={`flex items-center gap-1 font-semibold ${h.openAlerts ? "text-danger" : "text-muted-foreground"}`}
+                  >
+                    <Bell className="size-4" />
+                    {h.openAlerts === 1 ? "1 alert" : `${h.openAlerts} alerts`}
+                  </span>
                 </span>
               </div>
             </Link>
