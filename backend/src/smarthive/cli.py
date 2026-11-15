@@ -138,6 +138,26 @@ def _demo_anomaly(
     asyncio.run(run())
 
 
+def _demo_bootstrap(settings: Settings) -> None:
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    from smarthive import demo_bootstrap
+
+    email, password, name = demo_bootstrap.credentials()
+
+    async def run() -> None:
+        engine = create_async_engine(settings.engine_url)
+        try:
+            done = await demo_bootstrap.run(engine, email, password, name)
+        finally:
+            await engine.dispose()
+        print(
+            f"demo apiary written, sign in as {email}" if done else f"{email} exists already, nothing written"
+        )
+
+    asyncio.run(run())
+
+
 def _migrate(settings: Settings) -> None:
     from alembic import command
     from alembic.config import Config
@@ -230,6 +250,7 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="allow a node without the sim- prefix; its readings in the period are replaced",
     )
+    sub.add_parser("demo-bootstrap", help="write the demo account, apiary, hives and a week of history")
     sub.add_parser("migrate", help="apply database migrations up to the latest")
     api = sub.add_parser("api", help="serve the REST API")
     api.add_argument("--host", default="127.0.0.1")
@@ -257,6 +278,8 @@ def main(argv: list[str] | None = None) -> None:
         _seed(settings, args.node, args.scenario, args.rounds, args.interval, args.seed)
     elif args.command == "demo-anomaly":
         _demo_anomaly(settings, args.node, args.quantity, args.shift, args.days, args.hours, args.real_node)
+    elif args.command == "demo-bootstrap":
+        _demo_bootstrap(settings)
     elif args.command == "migrate":
         _migrate(settings)
     elif args.command == "api":

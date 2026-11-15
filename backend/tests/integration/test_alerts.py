@@ -112,6 +112,21 @@ async def test_simulated_nodes_never_get_email(engine: AsyncEngine) -> None:
     assert [r.channel for r in rows] == ["app"]
 
 
+async def test_simulated_nodes_get_email_when_the_demo_asks_for_it(
+    engine: AsyncEngine, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("SMARTHIVE_NOTIFY_SIMULATED", "1")
+    _, hive, node = await setup_hive(engine, simulated=True)
+    await add_hornet(engine, hive, node)
+    await evaluate_all(engine)
+    (alert,) = await alerts_of(engine, hive)
+    async with engine.connect() as c:
+        rows = (
+            await c.execute(text("SELECT channel FROM notifications WHERE alert_id = :a"), {"a": alert.id})
+        ).all()
+    assert sorted(r.channel for r in rows) == ["app", "email"]
+
+
 async def test_a_resolved_episode_does_not_come_back(client: httpx.AsyncClient, engine: AsyncEngine) -> None:
     owner, hive, node = await setup_hive(engine)
     await add_hornet(engine, hive, node)
@@ -329,3 +344,24 @@ async def test_power_low_from_battery_or_the_undervoltage_flag(engine: AsyncEngi
         if a.rule_id == "node_power_low"
     ]
     assert [a.state for a in power] == ["resolved", "resolved"]
+
+
+async def test_out_of_range_window_may_be_shorter_than_an_hour(engine: AsyncEngine) -> None:
+    """The demo shortens `hours` to a few minutes (0.04 h), so the parameter is a float."""
+    _, hive, node = await setup_hive(engine)
+    async with engine.begin() as c:
+        await c.execute(
+            text(
+                "UPDATE alert_rules SET params = params || '{\"hours\": 0.04}' WHERE id = 'temp_out_of_range'"
+            )
+        )
+        for seconds in range(0, 160, 10):
+            await c.execute(
+                text(
+                    "INSERT INTO readings (ts, node_id, hive_id, quantity, value, quality, sensor, clock_synced, msg_id, idx) "
+                    "VALUES (now() - make_interval(secs => :s), :n, :h, 'temp_in', 40.5, 'ok', 'dht11-0', true, gen_random_uuid(), 0)"
+                ),
+                {"s": seconds, "n": node, "h": hive},
+            )
+    await evaluate_all(engine)
+    assert [a.state for a in await alerts_of(engine, hive)] == ["open"]
