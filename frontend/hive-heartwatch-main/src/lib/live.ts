@@ -42,6 +42,7 @@ export function useLiveUpdates(hiveIds: string[]) {
             break;
           case "alert":
             stale("alerts");
+            stale("notifications");
             stale("hives");
             break;
           case "node_status":

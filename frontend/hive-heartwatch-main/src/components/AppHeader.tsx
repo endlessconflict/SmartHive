@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, LogOut, Settings } from "lucide-react";
+import { Bell, Inbox, LogOut, Settings } from "lucide-react";
 import { useActiveAlerts } from "@/data/hives";
+import { useInbox } from "@/data/notifications";
 import { useAccount } from "@/hooks/use-account";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/api";
@@ -8,6 +9,7 @@ import { useState } from "react";
 
 export function AppHeader() {
   const unread = (useActiveAlerts().data ?? []).filter((a) => a.state === "open").length;
+  const unreadMessages = useInbox().data?.unread ?? 0;
   const account = useAccount();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
@@ -68,6 +70,19 @@ export function AppHeader() {
               <Link to="/auth">Iniciar sesión</Link>
             </Button>
           ))}
+        <Link
+          to="/notificaciones"
+          aria-label={`Bandeja de notificaciones, ${unreadMessages} sin leer`}
+          title="Inbox"
+          className="relative grid size-12 place-items-center rounded-2xl bg-card ring-1 ring-border"
+        >
+          <Inbox className="size-6" />
+          {unreadMessages > 0 && (
+            <span className="absolute -right-1 -top-1 grid min-w-6 place-items-center rounded-full bg-danger px-1.5 text-xs font-bold text-primary-foreground">
+              {unreadMessages}
+            </span>
+          )}
+        </Link>
         <Link
           to="/alertas"
           aria-label={`Alertas, ${unread} nuevas`}

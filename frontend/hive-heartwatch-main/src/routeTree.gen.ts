@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as GestionRouteImport } from './routes/gestion'
+import { Route as NotificacionesRouteImport } from './routes/notificaciones'
 import { Route as AlertasIndexRouteImport } from './routes/alertas.index'
 import { Route as AlertasIdRouteImport } from './routes/alertas.$id'
 import { Route as ColmenaIdRouteImport } from './routes/colmena.$id'
@@ -29,6 +30,11 @@ const AuthRoute = AuthRouteImport.update({
 const GestionRoute = GestionRouteImport.update({
   id: '/gestion',
   path: '/gestion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacionesRoute = NotificacionesRouteImport.update({
+  id: '/notificaciones',
+  path: '/notificaciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AlertasIndexRoute = AlertasIndexRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/gestion': typeof GestionRoute
+  '/notificaciones': typeof NotificacionesRoute
   '/alertas/$id': typeof AlertasIdRoute
   '/colmena/$id': typeof ColmenaIdRoute
   '/alertas/': typeof AlertasIndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/gestion': typeof GestionRoute
+  '/notificaciones': typeof NotificacionesRoute
   '/alertas/$id': typeof AlertasIdRoute
   '/colmena/$id': typeof ColmenaIdRoute
   '/alertas': typeof AlertasIndexRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/gestion': typeof GestionRoute
+  '/notificaciones': typeof NotificacionesRoute
   '/alertas/$id': typeof AlertasIdRoute
   '/colmena/$id': typeof ColmenaIdRoute
   '/alertas/': typeof AlertasIndexRoute
@@ -75,14 +84,28 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/gestion' | '/alertas/$id' | '/colmena/$id' | '/alertas/'
+    | '/'
+    | '/auth'
+    | '/gestion'
+    | '/notificaciones'
+    | '/alertas/$id'
+    | '/colmena/$id'
+    | '/alertas/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/gestion' | '/alertas/$id' | '/colmena/$id' | '/alertas'
+  to:
+    | '/'
+    | '/auth'
+    | '/gestion'
+    | '/notificaciones'
+    | '/alertas/$id'
+    | '/colmena/$id'
+    | '/alertas'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/gestion'
+    | '/notificaciones'
     | '/alertas/$id'
     | '/colmena/$id'
     | '/alertas/'
@@ -92,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   GestionRoute: typeof GestionRoute
+  NotificacionesRoute: typeof NotificacionesRoute
   AlertasIdRoute: typeof AlertasIdRoute
   ColmenaIdRoute: typeof ColmenaIdRoute
   AlertasIndexRoute: typeof AlertasIndexRoute
@@ -118,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/gestion'
       fullPath: '/gestion'
       preLoaderRoute: typeof GestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificaciones': {
+      id: '/notificaciones'
+      path: '/notificaciones'
+      fullPath: '/notificaciones'
+      preLoaderRoute: typeof NotificacionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/alertas/': {
@@ -148,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   GestionRoute: GestionRoute,
+  NotificacionesRoute: NotificacionesRoute,
   AlertasIdRoute: AlertasIdRoute,
   ColmenaIdRoute: ColmenaIdRoute,
   AlertasIndexRoute: AlertasIndexRoute,
