@@ -3,6 +3,8 @@
 FROM alpine:3.20
 RUN apk add --no-cache bash openssl
 COPY gen_certs.sh /usr/local/bin/gen_certs.sh
+# a checkout on Windows leaves no executable bit; Linux and macOS runners need it
+RUN chmod +x /usr/local/bin/gen_certs.sh
 WORKDIR /pki
 # Demo only: the keys are world-readable inside the volume so the broker (uid 1883) and the services can read them.
 CMD ["sh", "-c", "[ -f ca.crt ] || { gen_certs.sh backend sim-0001 sim-0002 sim-0003 sim-0004 sim-0005 && chmod 644 *.key *.crt; }"]
