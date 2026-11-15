@@ -29,13 +29,18 @@ jobs:
           done
           sleep 60   # the simulator staggers its five MQTT connections
           docker compose ps
+      - name: Simulator log (first start)
+        if: always()
+        working-directory: demo
+        run: docker compose logs simulator --tail 60
       - name: Verify the whole pipeline
         working-directory: demo
         run: mkdir -p report && docker compose run --rm verify
       - name: Logs on failure
         if: failure()
         working-directory: demo
-        run: docker compose logs --tail 200
+        run: |
+          for s in simulator ingest worker api mosquitto; do echo "== $s"; docker compose logs $s --tail 60; done
       - uses: actions/upload-artifact@v4
         if: always()
         with:
