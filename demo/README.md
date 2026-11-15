@@ -93,6 +93,10 @@ What happens, in order, and what to say:
 
 7. In the dashboard open **Alerts**, then the alert: its log shows who saw it and when. Acknowledge it and resolve it with a note, as a beekeeper would after closing the entrance.
 
+The header has an inbox button with the number of unread notifications. Every alert that reaches the beekeeper lands there, and opening one marks it read and goes to the alert.
+
+![Inbox](guide/img/14-inbox.png)
+
 ![Alert list](guide/img/08-alerts.png)
 
 ![One alert and its log](guide/img/09-alert-detail.png)

@@ -38,7 +38,7 @@ await page.goto(PANEL);
 await snap("04-control-panel", { wait: 1500 });
 
 // the scenarios, all at once; the alerts need a couple of minutes to build up
-for (const [n, a] of [["sim-0002", "hornet"], ["sim-0001", "varroa"], ["sim-0005", "heat"], ["sim-0004", "off"], ["sim-0003", "shb"]]) await act(n, a);
+for (const [n, a] of [["sim-0002", "hornet"], ["sim-0001", "varroa"], ["sim-0005", "heat"], ["sim-0004", "off"]]) await act(n, a);
 await sleep(200);
 await page.goto(PANEL);
 await snap("05-control-panel-running", { wait: 1500 });
@@ -50,6 +50,8 @@ await page.goto(`${APP}/alertas`);
 await snap("08-alerts", { full: true });
 const first = await page.$("a[href^='/alertas/']");
 if (first) { await first.click(); await snap("09-alert-detail", { full: true, wait: 3000 }); }
+await page.goto(`${APP}/notificaciones`);
+await snap("14-inbox", { full: true });
 await page.goto(MAIL);
 await snap("10-mailpit", { wait: 3000 });
 const mail = await page.$("a.message, .message a, [href*='/view/']");

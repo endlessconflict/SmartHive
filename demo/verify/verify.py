@@ -419,6 +419,13 @@ def scenarios(hives: dict[int, dict], live: Live) -> dict:
     hv = api.json(f"/api/v1/hives/{h[4]}/latest")
     record("pipeline", "power cut: the hive card shows the node as offline", hv["node_status"] == "offline", hv["node_status"])
 
+    # --- no false alarms: what a hive did not do, it must not be told about
+    expected = {2: {"hornet_detected"}, 1: {"varroa_high"}, 5: {"temp_out_of_range"}, 4: {"node_offline"}, 3: set()}
+    for i, ok_rules in expected.items():
+        got = {a["rule_id"] for a in api.json("/api/v1/alerts", params={"hive_id": h[i], "limit": 100})["items"]
+               if a["rule_id"] != "anomaly_detected" and datetime.fromisoformat(a["opened_at"].replace("Z", "+00:00")) >= t0}
+        record("pipeline", f"hive {i}: only the expected alerts, no false alarms", got <= ok_rules, f"got {sorted(got)}, may have {sorted(ok_rules)}")
+
     # --- anomaly (in the seeded history) is a review item, not a notification
     an = api.json(f"/api/v1/hives/{h[3]}/anomalies", params={"start": iso(now() - timedelta(days=2))})
     items = an["items"] if isinstance(an, dict) else an

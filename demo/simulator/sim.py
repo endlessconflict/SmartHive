@@ -45,6 +45,7 @@ BROKER = os.environ.get("MQTT_HOST", "mosquitto")
 SAMPLE_S = float(os.environ.get("SAMPLE_S", "10"))
 WEIGHT_S = float(os.environ.get("WEIGHT_S", "30"))
 FRAME_S = float(os.environ.get("FRAME_S", "5"))
+MITE_CONF = 0.60  # the node counts a Varroa box only at or above this, the same threshold its filter uses
 SUMMARY_S = float(os.environ.get("SUMMARY_S", "60"))  # ten minutes on a real node; the demo cannot wait
 # node -> (baseline weight in kg, weight change in kg per hour while nothing else is set)
 FLEET = {
@@ -182,7 +183,7 @@ class Camera:
         # the detector's `wasp` class (wasps and hornets) is the contract's `hornet` threat
         objects = [{"cls": "hornet" if o["cls"] == "wasp" else o["cls"], "conf": o["conf"], "box": o["box"]} for o in found]
         bees = sum(o["cls"] == "bee" for o in objects)
-        mites = sum(o["cls"] == "varroa" for o in objects)
+        mites = sum(o["cls"] == "varroa" and o["conf"] >= MITE_CONF for o in objects)  # as the node reports them
         with self.acc_lock:
             self.acc["frames"] += 1
             for o in objects:
