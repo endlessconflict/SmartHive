@@ -50,3 +50,4 @@ Thumbs.db
 
 /infra/data/
 /demo/report/
+!demo/simulator/model/*.onnx
