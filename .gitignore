@@ -48,3 +48,6 @@ vendor/
 .DS_Store
 Thumbs.db
 
+/infra/data/
+/demo/report/
+!demo/simulator/model/*.onnx

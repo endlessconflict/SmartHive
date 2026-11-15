@@ -1,6 +1,7 @@
 """Alert rows: open once per key, touch while the condition holds, move through the lifecycle, notify."""
 
 import json
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -138,7 +139,9 @@ async def _notify(
             {"h": hive_id},
         )
     ).all()
-    simulated = bool(
+    simulated = not os.environ.get(
+        "SMARTHIVE_NOTIFY_SIMULATED"
+    ) and bool(  # set in the demo, where every node is simulated
         node_id
         and (
             await conn.execute(text("SELECT is_simulated FROM nodes WHERE id = :n"), {"n": node_id})

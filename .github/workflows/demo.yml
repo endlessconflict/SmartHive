@@ -1,0 +1,52 @@
+name: demo
+
+# Builds the demo stack from scratch and runs the end-to-end verifier against it (demo/verify/verify.py):
+# capture, MQTT with mutual TLS, ingestion, alert rules, API, WebSocket, email, the dashboard in a browser,
+# outages and backup/restore. The report is kept as an artifact whether it passes or not.
+on:
+  pull_request:
+    paths: ["demo/**", "backend/**", "edge/raspberry/**", "frontend/**", "infra/mosquitto/**", "infra/caddy/**", ".github/workflows/demo.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start the stack
+        working-directory: demo
+        run: docker compose up -d --build
+      - name: Wait for the dashboard and the first telemetry
+        working-directory: demo
+        run: |
+          for i in $(seq 1 60); do
+            curl -fsS http://localhost:8080/readyz >/dev/null 2>&1 && break
+            sleep 5
+          done
+          sleep 60   # the simulator staggers its five MQTT connections
+          docker compose ps
+      - name: Simulator log (first start)
+        if: always()
+        working-directory: demo
+        run: docker compose logs simulator --tail 60
+      - name: Verify the whole pipeline
+        working-directory: demo
+        run: mkdir -p report && docker compose run --rm verify
+      - name: Logs on failure
+        if: failure()
+        working-directory: demo
+        run: |
+          for s in simulator ingest worker api mosquitto; do echo "== $s"; docker compose logs $s --tail 60; done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-verification-report
+          path: demo/report
+      - name: Stop
+        if: always()
+        working-directory: demo
+        run: docker compose down -v

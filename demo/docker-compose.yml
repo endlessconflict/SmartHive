@@ -1,0 +1,200 @@
+# SmartHive live demo: the whole product on one machine that only has Docker.
+#
+#   docker compose up -d --build        # first time: 5-10 minutes (downloads and builds); later: seconds
+#   open http://localhost:8080          # dashboard, sign in with demo@smarthive.dev / SmartHive-Demo-2026
+#   open http://localhost:8090          # presenter's control panel (scenarios)
+#   open http://localhost:8025          # the mailbox the alert emails land in
+#   docker compose down -v              # forget everything and start from scratch
+#
+# Everything here is for a demonstration: fixed passwords, certificates readable by every container.
+# The real stack is infra/docker-compose.yml.
+name: smarthive-demo
+
+x-backend: &backend
+  build: ../backend
+  image: smarthive-backend:demo
+  restart: unless-stopped
+  environment: &backend-env
+    SMARTHIVE_DB_URL: postgresql+asyncpg://smarthive:demo-db-password@db:5432/smarthive
+    SMARTHIVE_MQTT_HOST: mosquitto
+    SMARTHIVE_MQTT_PORT: "8883"
+    SMARTHIVE_MQTT_TLS_CA: /certs/ca.crt
+    SMARTHIVE_MQTT_TLS_CERT: /certs/backend.crt
+    SMARTHIVE_MQTT_TLS_KEY: /certs/backend.key
+    SMARTHIVE_JWT_SECRET: demo-only-jwt-secret-0123456789abcdef0123456789abcdef
+    SMARTHIVE_IMAGE_DIR: /data/images
+    SMARTHIVE_BACKUP_DIR: /backups
+    SMARTHIVE_SMTP_HOST: mailpit
+    SMARTHIVE_SMTP_PORT: "1025"
+    SMARTHIVE_FORWARDED_ALLOW_IPS: "*"
+    SMARTHIVE_NOTIFY_SIMULATED: "1"   # email the critical alerts of simulated nodes too: here they are all simulated
+    SMARTHIVE_ALERT_INTERVAL_S: "15"   # the worker looks every 15 s instead of every minute: alerts appear sooner
+    SMARTHIVE_WEATHER_INTERVAL_S: "86400000"  # the demo has its own weather; no call to the internet
+  volumes:
+    - pki:/certs:ro
+    - images:/data/images
+    - backups:/backups
+  depends_on:
+    pki:
+      condition: service_completed_successfully
+    migrate:
+      condition: service_completed_successfully
+
+services:
+  pki:
+    build:
+      context: ../infra/pki
+      dockerfile: ../../demo/pki/Dockerfile
+    restart: "no"
+    volumes:
+      - pki:/pki
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "8883:8883"
+    volumes:
+      - ../infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ../infra/mosquitto/acl:/mosquitto/config/acl:ro
+      - pki:/mosquitto/certs:ro
+      - mosquitto_data:/mosquitto/data
+    depends_on:
+      pki:
+        condition: service_completed_successfully
+
+  db:
+    image: timescale/timescaledb:2.17.2-pg16-oss
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: smarthive
+      POSTGRES_PASSWORD: demo-db-password
+      POSTGRES_DB: smarthive
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smarthive -d smarthive"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *backend
+    restart: "no"
+    command: ["migrate"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  bootstrap:
+    <<: *backend
+    restart: "no"
+    command: ["demo-bootstrap"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  ingest:
+    <<: *backend
+    command: ["ingest"]
+    environment:
+      <<: *backend-env
+      SMARTHIVE_MQTT_CLIENT_ID: smarthive-ingest
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+      mosquitto:
+        condition: service_started
+
+  worker:
+    <<: *backend
+    command: ["worker"]
+    environment:
+      <<: *backend-env
+      SMARTHIVE_MQTT_CLIENT_ID: smarthive-worker
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+
+  api:
+    <<: *backend
+    command: ["api", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      <<: *backend-env
+      SMARTHIVE_COOKIE_SECURE: "false"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8000/readyz')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+
+  frontend:
+    build: ../frontend/hive-heartwatch-main
+    image: smarthive-frontend:demo
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ../infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - api
+      - frontend
+
+  mailpit:
+    image: axllent/mailpit:v1.21
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+
+  simulator:
+    build:
+      context: ..
+      dockerfile: demo/simulator/Dockerfile
+    image: smarthive-simulator:demo
+    restart: unless-stopped
+    ports:
+      - "8090:8090"
+    volumes:
+      - pki:/pki:ro
+      - simdata:/data
+      - control:/control
+    depends_on:
+      api:
+        condition: service_healthy
+      ingest:
+        condition: service_started
+      caddy:
+        condition: service_started
+
+  # `docker compose run --rm verify` drives the running stack and checks the whole pipeline (see verify/verify.py).
+  # It needs the Docker socket to stop and start services for the outage tests: demo only.
+  verify:
+    profiles: ["verify"]
+    build: ./verify
+    image: smarthive-verify:demo
+    shm_size: 1gb
+    environment:
+      COMPOSE_PROJECT: smarthive-demo
+    volumes:
+      - pki:/pki:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./report:/report
+    depends_on:
+      simulator:
+        condition: service_started
+
+volumes:
+  pki:
+  mosquitto_data:
+  pgdata:
+  images:
+  backups:
+  simdata:
+  control:
