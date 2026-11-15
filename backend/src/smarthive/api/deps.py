@@ -61,7 +61,12 @@ class Db:
 
 
 async def get_db(request: Request) -> AsyncIterator[Db]:
-    """One transaction per request: it commits when the route returns and rolls back when it raises."""
+    """One transaction per request: it commits when the route returns and rolls back when it raises.
+
+    Used with scope="function" (see `Conn`): the commit happens before the response is sent. With the default
+    scope, FastAPI 0.118 and later run this exit code after the response, so a client could get its 201 and
+    read the old data with its next request.
+    """
     db = Db(request.app.state.engine)
     try:
         yield db
@@ -72,7 +77,7 @@ async def get_db(request: Request) -> AsyncIterator[Db]:
         await db.finish(commit=True)
 
 
-Conn = Annotated[Db, Depends(get_db)]
+Conn = Annotated[Db, Depends(get_db, scope="function")]
 Config = Annotated[Settings, Depends(get_settings)]
 
 
