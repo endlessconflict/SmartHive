@@ -93,8 +93,8 @@ Example response for `readings`:
 | `POST /alerts/{id}/acknowledge` | Mark as seen | US14, EL-20 |
 | `POST /alerts/{id}/resolve` `{note}` | Mark as handled, with what the beekeeper did | US14 |
 | `GET /alert-rules`, `PATCH /alert-rules/{id}` | View and adjust predefined thresholds | EL-19 |
-| `GET /me/notifications`, `POST /me/notifications/{id}/read` | In-app notification inbox | US12 |
-| `PATCH /me` | Notification preferences (email on/off, ntfy topic) | EL-18 |
+| `GET /me/notifications`, `POST /me/notifications/{id}/read`, `POST /me/notifications/read-all` | In-app notification inbox (implemented; `?unread=true`, cursor paging, `unread` count in every page) | US12 |
+| `PATCH /me` | Display name and notification preferences (email on/off, ntfy topic; an empty topic turns ntfy off). Implemented | EL-18 |
 
 ### Beekeeper log
 
