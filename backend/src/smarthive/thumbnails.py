@@ -8,9 +8,14 @@ from PIL import Image, ImageOps
 WIDTHS = (160, 320, 640)
 
 
+def thumb_name(rel: str) -> str:
+    """Thumbnails are JPEG whatever the original (JPEG or PNG) is."""
+    return Path(rel).stem + ".jpg"
+
+
 def thumbnail(root: Path, rel: str, width: int) -> Path:
     """Path of the `width`-wide copy of the image at `rel`; made on first use. Never upscales."""
-    target = root / "thumbs" / str(width) / Path(rel).name
+    target = root / "thumbs" / str(width) / thumb_name(rel)
     if not target.exists():
         target.parent.mkdir(parents=True, exist_ok=True)
         with Image.open(root / rel) as src:

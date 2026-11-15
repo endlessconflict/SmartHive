@@ -4,7 +4,10 @@
 |---------------------|--------------------------------------------------|
 | 201, 200            | mark uploaded (200: the server already had it)   |
 | 409, 413, 415, 422  | mark rejected, never retried; the file stays     |
-| anything else       | retry with backoff (5xx, network, 401/403 token) |
+| 401, 403            | ask for a new device token, then retry           |
+| anything else       | retry with backoff (5xx, network)                |
+
+No token yet (it comes over MQTT, see device_token.py): nothing is sent, the images wait on the SD card.
 """
 
 import json
@@ -17,7 +20,6 @@ import urllib.error
 import urllib.request
 import uuid
 from collections.abc import Callable
-from pathlib import Path
 
 from pi_node.outbox import ImageRow, Outbox
 
@@ -28,9 +30,10 @@ MIN_BACKOFF_S = 1.0
 MAX_BACKOFF_S = 300.0
 _DONE = {200, 201}
 _REJECTED = {409, 413, 415, 422}
+_REFUSED = {401, 403}
 
 
-def multipart(meta: bytes, data: bytes, filename: str) -> tuple[str, bytes]:
+def multipart(meta: bytes, data: bytes, filename: str, content_type: str = "image/jpeg") -> tuple[str, bytes]:
     """(Content-Type, body) of the meta + file form the endpoint expects."""
     boundary = uuid.uuid4().hex
     body = b"".join([
@@ -38,25 +41,20 @@ def multipart(meta: bytes, data: bytes, filename: str) -> tuple[str, bytes]:
         b'Content-Disposition: form-data; name="meta"\r\nContent-Type: application/json\r\n\r\n',
         meta,
         f'\r\n--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{filename}"\r\n'.encode(),
-        b"Content-Type: image/jpeg\r\n\r\n",
+        f"Content-Type: {content_type}\r\n\r\n".encode(),
         data,
         f"\r\n--{boundary}--\r\n".encode(),
     ])
     return f"multipart/form-data; boundary={boundary}", body
 
 
-def read_token(path: Path) -> str:
-    token = path.read_text().strip()
-    if not token:
-        raise ValueError(f"{path} is empty: put the node's device token there (shown once at registration)")
-    return token
-
-
 class ImageUploader:
-    def __init__(self, api_url: str, token: str, outbox: Outbox, ca: str | None = None,
-                 clock: Callable[[], float] = time.monotonic, opener: Callable | None = None) -> None:
+    def __init__(self, api_url: str, token: Callable[[], str | None], outbox: Outbox, ca: str | None = None,
+                 clock: Callable[[], float] = time.monotonic, opener: Callable | None = None,
+                 on_refused: Callable[[], None] = lambda: None) -> None:
         self.url = api_url.rstrip("/") + "/device/v1/images"
-        self.token = token
+        self.token = token  # read before each upload: it can arrive, or change, while the node runs
+        self.on_refused = on_refused
         self.outbox = outbox
         self.clock = clock
         context = ssl.create_default_context(cafile=ca) if ca else None
@@ -64,11 +62,11 @@ class ImageUploader:
         self._delay = MIN_BACKOFF_S
         self._retry_at = 0.0
 
-    def _post(self, row: ImageRow) -> tuple[int | None, str]:
+    def _post(self, row: ImageRow, token: str) -> tuple[int | None, str]:
         """(HTTP status, detail); status None when the server could not be reached."""
         content_type, body = multipart(row.meta, row.path.read_bytes(), f"{row.image_id}.jpg")
         req = urllib.request.Request(self.url, data=body, method="POST", headers={
-            "Authorization": f"Bearer {self.token}", "Content-Type": content_type})
+            "Authorization": f"Bearer {token}", "Content-Type": content_type})
         try:
             with self._open(req) as resp:
                 return resp.status, ""
@@ -89,8 +87,11 @@ class ImageUploader:
             if not rows:
                 break
             row = rows[0]
+            token = self.token()
+            if token is None:
+                break
             try:
-                status, detail = self._post(row)
+                status, detail = self._post(row, token)
             except FileNotFoundError:
                 self.outbox.mark_image_rejected(row.image_id, "file missing on the node")
                 log.error("image %s: the file is gone", row.image_id)
@@ -103,6 +104,9 @@ class ImageUploader:
                 self.outbox.mark_image_rejected(row.image_id, f"{status} {detail}".strip())
                 log.error("image %s rejected: %s %s", row.image_id, status, detail)
             else:
+                if status in _REFUSED:
+                    log.warning("the API refused the device token (%s); asking for a new one", status)
+                    self.on_refused()
                 self.outbox.mark_image_failed(row.image_id)
                 self._retry_at = self.clock() + self._delay * random.uniform(0.5, 1.0)
                 self._delay = min(self._delay * 2, MAX_BACKOFF_S)

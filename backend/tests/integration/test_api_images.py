@@ -131,7 +131,8 @@ async def test_rejections(client: httpx.AsyncClient, engine: AsyncEngine) -> Non
     assert (await upload(client, headers, other_node)).status_code == 403  # token of another node
     assert (await upload(client, headers, node, sha="0" * 64)).status_code == 422
     assert (await upload(client, headers, node, reason="selfie")).status_code == 422
-    assert (await upload(client, headers, node, content_type="image/png")).status_code == 415
+    assert (await upload(client, headers, node, content_type="image/gif")).status_code == 415
+    assert (await upload(client, headers, node, content_type="image/png")).status_code == 415  # JPEG bytes
     assert (await upload(client, headers, node, data=b"GIF89a-not-a-jpeg")).status_code == 415
     assert (await upload(client, headers, node, data=b"\xff\xd8\xff" + b"x" * 20_000)).status_code == 413
     async with engine.connect() as c:
@@ -194,6 +195,26 @@ async def test_a_file_removed_from_the_volume_is_a_404(
     for f in tmp_path.rglob("*.jpg"):
         f.unlink()
     assert (await client.get(f"/api/v1/images/{image_id}/file", headers=user_auth(owner))).status_code == 404
+
+
+async def test_a_png_is_stored_as_png_and_its_thumbnail_is_jpeg(
+    client: httpx.AsyncClient, engine: AsyncEngine, tmp_path: Path
+) -> None:
+    owner, _, node = await setup_hive(engine)
+    headers = await give_token(engine, node)
+    buf = io.BytesIO()
+    Image.new("RGB", (800, 400), (20, 120, 200)).save(buf, "PNG")
+    png, image_id = buf.getvalue(), uuid4()
+    r = await upload(client, headers, node, data=png, image_id=image_id, content_type="image/png")
+    assert r.status_code == 201
+    digest = hashlib.sha256(png).hexdigest()
+    assert (tmp_path / digest[:2] / digest[2:4] / f"{digest}.png").read_bytes() == png
+
+    f = await client.get(f"/api/v1/images/{image_id}/file", headers=user_auth(owner))
+    assert f.content == png and f.headers["content-type"] == "image/png"
+    t = await client.get(f"/api/v1/images/{image_id}/file?w=160", headers=user_auth(owner))
+    assert t.headers["content-type"] == "image/jpeg" and t.content.startswith(b"\xff\xd8\xff")
+    assert (tmp_path / "thumbs" / "160" / f"{digest}.jpg").exists()
 
 
 def real_jpeg(width: int = 1000, height: int = 500) -> bytes:

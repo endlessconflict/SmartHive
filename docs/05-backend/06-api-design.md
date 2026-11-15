@@ -20,7 +20,7 @@ FastAPI generates the OpenAPI document at `/api/v1/openapi.json`; the dashboard 
 | Client | Method |
 |---|---|
 | Dashboard users | `POST /api/v1/auth/login` with email and password → short-lived access token (15 min) and a refresh token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie. `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout` |
-| Nodes | `Authorization: Bearer <device token>` on `/device/v1/*`, token hash stored in `nodes` |
+| Nodes | `Authorization: Bearer <device token>` on `/device/v1/*`, token hash stored in `nodes`; the node gets the token itself over MQTT ([messaging contract](04-messaging-contract.md#device-token)) |
 | WebSocket | Access token sent in the first message after connecting, not in the URL |
 
 Details as built (SCRUM-84):
@@ -43,7 +43,8 @@ Authorization: a `beekeeper` sees apiaries they own; an `admin` sees everything 
 | `GET /apiaries`, `POST /apiaries`, `PATCH /apiaries/{id}` | Manage apiaries | EL-02 |
 | `GET /hives?apiary_id=` | List hives with status summary (last reading, open alerts, node status) | Main screen, EL-21 |
 | `POST /hives`, `GET /hives/{id}`, `PATCH /hives/{id}` | Hive details and metadata | EL-03 |
-| `GET /nodes`, `POST /nodes` (admin) | Register a node, returns the device token once | |
+| `GET /nodes`, `POST /nodes` (admin) | Register a node (nothing to copy: the node fetches its device token over MQTT) | |
+| `POST /nodes/{id}/device-token` (admin) | Issue a token by hand, for testing uploads; replaces the node's | |
 | `POST /nodes/{id}/assign` `{hive_id, from}` | Assign a node to a hive | |
 | `GET /nodes/{id}/health?from=&to=` | Health history | Ops |
 | `POST /nodes/{id}/commands` `{name, args}` | Send a command (for example `capture_now`) | US15 |
@@ -78,7 +79,7 @@ Example response for `readings`:
 |---|---|---|
 | `GET /hives/{id}/images/latest` | Most recent image with its detected objects | US15 |
 | `GET /hives/{id}/images?reason=threat&from=&to=` | Image gallery | |
-| `GET /images/{id}` | Metadata; `GET /images/{id}/file` returns the JPEG (`?w=160`, `320` or `640` returns a smaller copy, cached under `thumbs/` in the image volume) | |
+| `GET /images/{id}` | Metadata; `GET /images/{id}/file` returns the image as uploaded, JPEG or PNG (`?w=160`, `320` or `640` returns a smaller JPEG copy, cached under `thumbs/` in the image volume) | |
 | `GET /hives/{id}/detections?from=&to=&cls=` | Detection events | US09, US10 |
 | `GET /hives/{id}/varroa?from=&to=&bucket=1d` | Varroa index over time, with counts and confidence interval | US09 |
 | `GET /hives/{id}/traffic?from=&to=&bucket=1h` | Bee counts from summaries | |

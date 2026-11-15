@@ -8,6 +8,7 @@ from sqlalchemy.exc import InterfaceError, OperationalError
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from smarthive.config import Settings
+from smarthive.ingest import device_token
 from smarthive.ingest.handler import ingest
 from smarthive.ingest.handlers import TOPIC_FILTERS
 
@@ -49,6 +50,26 @@ async def process(engine: AsyncEngine, topic: str, payload: bytes, sleep: float 
             return
 
 
+async def give_token(engine: AsyncEngine, node_id: str, sleep: float = 1.0) -> bytes | None:
+    """A new device token for the node, or None when the database refuses it for good."""
+    delay = sleep
+    while True:
+        try:
+            answer = await device_token.issue(engine, node_id)
+            log.info("device_token_issued", extra={"fields": {"node_id": node_id}})
+            return answer
+        except TRANSIENT as e:
+            log.warning(
+                "database_unavailable",
+                extra={"fields": {"node_id": node_id, "error": str(e)[:200], "retry_in_s": delay}},
+            )
+            await asyncio.sleep(delay)
+            delay = min(delay * 2, MAX_BACKOFF_S)
+        except Exception:
+            log.exception("device_token_failed", extra={"fields": {"node_id": node_id}})
+            return None
+
+
 async def _consume(settings: Settings, engine: AsyncEngine, busy: asyncio.Lock) -> None:
     tls = tls_parameters(settings)
     backoff = 1.0
@@ -69,13 +90,18 @@ async def _consume(settings: Settings, engine: AsyncEngine, busy: asyncio.Lock) 
         try:
             async with client:
                 backoff = 1.0
-                for topic_filter in TOPIC_FILTERS:
+                for topic_filter in (*TOPIC_FILTERS, device_token.REQUEST_FILTER):
                     await client.subscribe(topic_filter, qos=1)
                 log.info("mqtt_connected", extra={"fields": {"host": settings.mqtt_host}})
                 async for message in client.messages:
                     async with busy:
                         payload = message.payload if isinstance(message.payload, bytes) else b""
-                        await process(engine, str(message.topic), payload)
+                        node_id = device_token.requester(str(message.topic))
+                        if node_id is None:
+                            await process(engine, str(message.topic), payload)
+                        elif (answer := await give_token(engine, node_id)) is not None:
+                            # not retained: a token must not wait on the broker for whoever reads next
+                            await client.publish(device_token.answer_topic(node_id), answer, qos=1)
                         paho.ack(message.mid, message.qos)  # after the commit, or after a logged rejection
         except aiomqtt.MqttError as e:
             log.warning("mqtt_disconnected", extra={"fields": {"error": str(e), "retry_in_s": backoff}})

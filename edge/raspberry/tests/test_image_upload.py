@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from pi_node.image_upload import ImageUploader, read_token
+from pi_node.image_upload import ImageUploader
 from pi_node.outbox import Outbox
 
 NOW = datetime(2026, 10, 6, 14, 3, 21, tzinfo=UTC)
@@ -60,9 +60,12 @@ def queue(outbox: Outbox, tmp_path: Path, image_id: str, reason: str = "threat")
     return data
 
 
-def uploader(outbox: Outbox, server: Server, now: list[float] | None = None) -> ImageUploader:
+def uploader(outbox: Outbox, server: Server, now: list[float] | None = None, token: str | None = "tok",
+             refused: list[int] | None = None) -> ImageUploader:
     clock = (lambda: now[0]) if now is not None else (lambda: 0.0)
-    return ImageUploader("https://gateway.local/", "tok", outbox, clock=clock, opener=server)
+    on_refused = (lambda: refused.append(1)) if refused is not None else (lambda: None)
+    return ImageUploader("https://gateway.local/", lambda: token, outbox, clock=clock, opener=server,
+                         on_refused=on_refused)
 
 
 def test_an_upload_is_the_multipart_form_the_endpoint_expects(outbox: Outbox, tmp_path: Path) -> None:
@@ -130,7 +133,17 @@ def test_a_missing_file_is_rejected_not_retried(outbox: Outbox, tmp_path: Path) 
     assert outbox.pending_images() == []
 
 
-def test_an_empty_token_file_is_refused(tmp_path: Path) -> None:
-    (tmp_path / "token").write_text("\n")
-    with pytest.raises(ValueError, match="device token"):
-        read_token(tmp_path / "token")
+def test_without_a_token_nothing_is_sent_and_the_images_wait(outbox: Outbox, tmp_path: Path) -> None:
+    queue(outbox, tmp_path, "img-1")
+    server = Server()
+    assert uploader(outbox, server, token=None).drain(threading.Event(), float("inf")) == 0
+    assert server.requests == [] and len(outbox.pending_images()) == 1
+    assert outbox._db.execute("SELECT attempts FROM images").fetchone() == (0,)
+
+
+@pytest.mark.parametrize("status", [401, 403])
+def test_a_refused_token_is_replaced(outbox: Outbox, tmp_path: Path, status: int) -> None:
+    queue(outbox, tmp_path, "img-1")
+    refused: list[int] = []
+    assert uploader(outbox, Server(status), refused=refused).drain(threading.Event(), float("inf")) == 0
+    assert refused == [1] and len(outbox.pending_images()) == 1  # retried once the new token is here

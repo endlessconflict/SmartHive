@@ -1,0 +1,18 @@
+$kind: http-request
+description: "Adds the node (201, also when it already exists). Nothing to copy: the node gets its image-upload token by itself over MQTT."
+url: "{{baseUrl}}/api/v1/nodes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": "{{node_id}}"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('status 201', () => pm.expect([201]).to.include(pm.response.code));
+    language: text/javascript
+order: 1500

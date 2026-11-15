@@ -6,6 +6,9 @@
     # how many messages are on disk and how many wait to be sent
     python edge/scripts/fake_node.py --node sim-0001 --show
 
+    # also the image pipeline, with your photos as the camera (see pi_node/photo_camera.py for the folders)
+    python edge/scripts/fake_node.py --node node-0001 --images --photos C:/fotos
+
 Unlike fake_telemetry.py, which publishes straight to the broker, this one keeps what it cannot send, also
 across restarts. Stop the broker while it runs (docker compose stop mosquitto) to see it.
 """
@@ -24,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "raspberry"))
 
 from pi_node import main as node  # noqa: E402
 from pi_node.dht11 import Measurement  # noqa: E402
-from pi_node.fake_camera import FakeCamera  # noqa: E402
+from pi_node.photo_camera import PhotoCamera  # noqa: E402
 from pi_node.hx711 import Weight  # noqa: E402
 from pi_node.outbox import Outbox  # noqa: E402
 from pi_node.retention import RetentionRule  # noqa: E402
@@ -80,14 +83,13 @@ def single_instance(lock_path: Path, node_id: str):
     return f  # the lock lasts while the file stays open, and goes away with the process
 
 
-def camera(frames_dir: Path, every: float, stop: threading.Event) -> None:
-    cam = FakeCamera(frames_dir)
+def camera(cam: PhotoCamera, every: float, stop: threading.Event) -> None:
     seen = 0
     while not stop.wait(every):
         cam.shoot()
         seen += 1
         if seen % 50 == 0:
-            logging.info("fake camera: %d frames analyzed", seen)
+            logging.info("mock camera: %d frames analyzed", seen)
 
 
 def run() -> None:
@@ -101,11 +103,17 @@ def run() -> None:
     ap.add_argument("--weight", type=float, default=None, metavar="KG", help="also send weight around this value")
     ap.add_argument("--outbox", type=Path, default=None, help="default data/outbox-<node>.db")
     ap.add_argument("--show", action="store_true", help="print the outbox counts and exit")
-    ap.add_argument("--images", action="store_true", help="also run a fake camera, the image filter and the upload")
+    ap.add_argument("--images", action="store_true",
+                    help="also the image pipeline: mock camera and vision from --photos, the filter, the upload")
+    ap.add_argument("--photos", type=Path, default=None,
+                    help="your photos; subfolders hornet/, shb/, varroa/ say what they show (pi_node/photo_camera.py)")
+    ap.add_argument("--visit-rate", type=float, default=0.03, help="chance per frame that a pest visit starts")
+    ap.add_argument("--periodic-min", type=float, default=60,
+                    help="keep one image when none was kept for this long (0: never)")
     ap.add_argument("--api", default="http://localhost:8080", help="where images go (Caddy)")
     ap.add_argument("--token-file", type=Path, default=None,
-                    help="file with the node's device token; default data/token-<node>.txt")
-    ap.add_argument("--frame-every", type=float, default=1.0, metavar="S", help="seconds between fake frames")
+                    help="where the node keeps the device token it gets over MQTT; default data/token-<node>.txt")
+    ap.add_argument("--frame-every", type=float, default=2.0, metavar="S", help="seconds between analyzed frames")
     ap.add_argument("--sample-rate", type=float, default=RetentionRule().sample_rate)
     args = ap.parse_args()
 
@@ -122,16 +130,27 @@ def run() -> None:
     if args.weight is not None:
         scale_cfg = node.ScaleConfig(0, 0, 0, 1.0, args.interval, "")
     images_cfg = None
+    cam = None
     if args.images:
-        token_file = args.token_file or Path("data") / f"token-{args.node}.txt"
-        if not token_file.exists():
-            sys.exit(f"{token_file} not found: register {args.node} in Setup and paste its device token there")
+        if args.photos is None:
+            sys.exit("--images needs --photos <folder with your photos>: no picture is generated")
+        frames_dir = Path("data") / f"frames-{args.node}"  # RAM on the Pi: empty after a restart, so here too
+        for old in (*frames_dir.glob("*.jpg"), *frames_dir.glob("*.json")):
+            old.unlink(missing_ok=True)
+        try:
+            cam = PhotoCamera(args.photos, frames_dir, visit_rate=args.visit_rate)
+        except (OSError, ValueError) as e:
+            sys.exit(str(e))
+        logging.info("mock camera: %d background photos, pests %s", len(cam.background),
+                     {k: len(v) for k, v in cam.pests.items()} or "none")
+        token_file = args.token_file or Path("data") / f"token-{args.node}.txt"  # asked for if missing
         images_cfg = node.ImagesConfig(
             api_url=args.api,
             device_token_file=token_file,
-            frames_dir=Path("data") / f"frames-{args.node}",  # RAM on the Pi
+            frames_dir=frames_dir,
             image_dir=Path("data") / f"images-{args.node}",
-            rule=RetentionRule(sample_rate=args.sample_rate),
+            rule=RetentionRule(sample_rate=args.sample_rate, periodic_every_s=args.periodic_min * 60 or None),
+            raise_events=True,
         )
     cfg = node.Config(
         args.node,
@@ -149,8 +168,8 @@ def run() -> None:
     stop = threading.Event()
     for sig in (signal.SIGTERM, signal.SIGINT):
         signal.signal(sig, lambda *_: stop.set())
-    if images_cfg is not None:
-        threading.Thread(target=camera, args=(images_cfg.frames_dir, args.frame_every, stop), daemon=True).start()
+    if cam is not None:
+        threading.Thread(target=camera, args=(cam, args.frame_every, stop), daemon=True).start()
     outbox = Outbox(outbox_path)
     try:
         node.run(cfg, FakeDht11(), FakeScale(args.weight) if args.weight is not None else None, outbox, stop)

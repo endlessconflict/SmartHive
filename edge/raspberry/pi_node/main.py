@@ -23,9 +23,11 @@ import paho.mqtt.client as mqtt
 
 from pi_node import payload
 from pi_node.dht11 import Dht11
+from pi_node.episodes import Episodes
 from pi_node.frames import FrameFilter
 from pi_node.hx711 import GpiodPins, Hx711, Weight
-from pi_node.image_upload import ImageUploader, read_token
+from pi_node.device_token import DeviceToken
+from pi_node.image_upload import ImageUploader
 from pi_node.outbox import Outbox
 from pi_node.retention import Retention, RetentionRule
 from pi_node.uplink import Uplink
@@ -61,19 +63,21 @@ class ScaleConfig:
 @dataclass(frozen=True)
 class ImagesConfig:
     api_url: str
-    device_token_file: Path
+    device_token_file: Path = Path("/var/lib/smarthive/device_token")  # written by the node itself
     frames_dir: Path = Path("/run/smarthive/frames")
     image_dir: Path = Path("/var/lib/smarthive/images")
     ca: str | None = None
     retention_days: float = 3
     rule: RetentionRule = field(default_factory=RetentionRule)
+    # mock vision only: the node raises the threat events itself (on the Pi, visiond does)
+    raise_events: bool = False
 
     @classmethod
     def load(cls, raw: dict) -> "ImagesConfig":
         default = RetentionRule()
         return cls(
             api_url=raw["api_url"],
-            device_token_file=Path(raw["device_token_file"]),
+            device_token_file=Path(raw.get("device_token_file", "/var/lib/smarthive/device_token")),
             frames_dir=Path(raw.get("frames_dir", "/run/smarthive/frames")),
             image_dir=Path(raw.get("image_dir", "/var/lib/smarthive/images")),
             ca=raw.get("ca"),
@@ -82,7 +86,9 @@ class ImagesConfig:
                 thresholds={**default.thresholds, **{k: float(v) for k, v in raw.get("thresholds", {}).items()}},
                 sample_rate=float(raw.get("sample_rate", default.sample_rate)),
                 max_samples_per_day=int(raw.get("max_samples_per_day", default.max_samples_per_day)),
+                periodic_every_s=float(raw.get("keep_periodic_image_every_min", 60)) * 60 or None,
             ),
+            raise_events=bool(raw.get("raise_events", False)),
         )
 
 
@@ -131,7 +137,7 @@ def clock_synced() -> bool:
         return False
 
 
-def make_client(cfg: Config, boot_id: str) -> mqtt.Client:
+def make_client(cfg: Config, boot_id: str, token: DeviceToken | None = None) -> mqtt.Client:
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=cfg.node_id)
     if cfg.tls:
         # mutual TLS: the broker takes the MQTT user from the certificate CN, which must be the node id
@@ -145,6 +151,8 @@ def make_client(cfg: Config, boot_id: str) -> mqtt.Client:
             return
         log.info("connected to %s:%d", cfg.host, cfg.port)
         c.publish(status_topic, payload.status("online", boot_id), qos=1, retain=True)
+        if token is not None:
+            token.subscribe(c)
 
     def on_disconnect(_c, _userdata, _flags, reason_code, _props):
         log.warning("disconnected: %s", reason_code)
@@ -169,13 +177,16 @@ def read_scale(scale: Hx711) -> Weight:
 def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, outbox: Outbox, stop: threading.Event) -> None:
     boot_id = str(uuid.uuid4())
     log.info("node %s, boot %s", cfg.node_id, boot_id)
-    client = make_client(cfg, boot_id)
+    token = DeviceToken(cfg.node_id, cfg.images.device_token_file) if cfg.images is not None else None
+    client = make_client(cfg, boot_id, token)
     uplink = Uplink(client, outbox)
     frames, uploader = None, None
-    if cfg.images is not None:
+    if cfg.images is not None and token is not None:
         im = cfg.images
-        frames = FrameFilter(cfg.node_id, im.frames_dir, im.image_dir, outbox, Retention(im.rule))
-        uploader = ImageUploader(im.api_url, read_token(im.device_token_file), outbox, im.ca)
+        episodes = Episodes(cfg.node_id, boot_id, im.rule.thresholds) if im.raise_events else None
+        frames = FrameFilter(cfg.node_id, im.frames_dir, im.image_dir, outbox, Retention(im.rule), episodes)
+        uploader = ImageUploader(im.api_url, lambda: token.value, outbox, im.ca,
+                                 on_refused=lambda: token.refused(client))
 
     next_at = next_weight_at = time.monotonic()
     next_purge_at = next_at + PURGE_INTERVAL_S
@@ -205,8 +216,9 @@ def run(cfg: Config, sensor: Dht11, scale: Hx711 | None, outbox: Outbox, stop: t
                 sent = uplink.drain(stop, next_at)
                 if sent:
                     log.info("sent %d from the outbox", sent)
-                if frames is not None and uploader is not None:
+                if frames is not None and uploader is not None and token is not None:
                     try:
+                        token.request(client)  # only does something while there is no token
                         frames.process()
                         uploaded = uploader.drain(stop, next_at)  # after the MQTT messages: events still go first
                         if uploaded:

@@ -237,3 +237,68 @@ async def test_the_ingestor_handles_every_node_topic_through_the_broker(
     finally:
         stop.set()
         await asyncio.wait_for(runner, timeout=10)
+
+
+async def test_only_the_node_itself_asks_for_and_reads_its_device_token(
+    broker: tuple[str, int], pki: Pki
+) -> None:
+    async with (
+        connect(broker, pki, "backend") as backend,
+        connect(broker, pki, NODES[0]) as node,
+        connect(broker, pki, NODES[1]) as other,
+    ):
+        await backend.subscribe("smarthive/v1/nodes/+/#", qos=1)
+        await node.subscribe("smarthive/v1/nodes/+/token", qos=1)
+        await other.subscribe("smarthive/v1/nodes/+/token", qos=1)
+        await other.publish(topic(NODES[0], "token/req"), b"{}", qos=1)  # asking in someone else's name
+        await node.publish(topic(NODES[0], "token/req"), b"{}", qos=1)
+        await other.publish(topic(NODES[0], "token"), b'{"token": "forged"}', qos=1)  # a fake answer
+        assert await received(backend, SILENCE_S) == [topic(NODES[0], "token/req")]
+        await backend.publish(topic(NODES[0], "token"), b'{"token": "t"}', qos=1)
+        assert await received(node, SILENCE_S) == [topic(NODES[0], "token")]
+        assert await received(other, SILENCE_S) == []
+
+
+async def test_the_ingestor_answers_a_token_request_over_mutual_tls(
+    broker: tuple[str, int], pki: Pki, engine: AsyncEngine, db_url: str
+) -> None:
+    host, port = broker
+    settings = Settings(
+        db_url=db_url,
+        mqtt_host=host,
+        mqtt_port=port,
+        mqtt_tls_ca=str(pki.dir / "ca.crt"),
+        mqtt_tls_cert=str(pki.dir / "backend.crt"),
+        mqtt_tls_key=str(pki.dir / "backend.key"),
+        mqtt_client_id=f"test-{uuid.uuid4().hex[:8]}",
+    )
+    stop = asyncio.Event()
+    runner = asyncio.create_task(service.run(settings, stop))
+    try:
+        async with connect(broker, pki, NODES[1]) as node:
+            await node.subscribe(topic(NODES[1], "token"), qos=1)
+            token = None
+
+            async def first_answer() -> str:
+                async for message in node.messages:
+                    return str(json.loads(message.payload)["token"])
+                raise AssertionError("no answer")
+
+            for _ in range(30):  # the ingestor may not be subscribed yet
+                await node.publish(topic(NODES[1], "token/req"), b"{}", qos=1)
+                try:
+                    token = await asyncio.wait_for(first_answer(), timeout=1.0)
+                    break
+                except TimeoutError:
+                    pass
+        assert token is not None
+        await asyncio.sleep(0.5)  # an extra request may still be answered: the last token wins
+        async with engine.connect() as conn:
+            stored = (
+                await conn.execute(text("SELECT device_token_hash FROM nodes WHERE id = :n"), {"n": NODES[1]})
+            ).scalar_one()
+        assert stored  # the node is registered with a token
+        assert not runner.done()
+    finally:
+        stop.set()
+        await asyncio.wait_for(runner, timeout=10)

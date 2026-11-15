@@ -13,7 +13,7 @@ import asyncpg
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from smarthive.thumbnails import WIDTHS
+from smarthive.thumbnails import WIDTHS, thumb_name
 
 log = logging.getLogger("smarthive.maintenance")
 
@@ -83,7 +83,7 @@ async def purge(engine: AsyncEngine, image_dir: Path, now: datetime | None = Non
         except FileNotFoundError:
             pass
         for w in WIDTHS:  # cached thumbnails go with the original
-            (image_dir / "thumbs" / str(w) / Path(rel).name).unlink(missing_ok=True)
+            (image_dir / "thumbs" / str(w) / thumb_name(rel)).unlink(missing_ok=True)
     return {"health_chunks": len(chunks), "images": len(expired), "files": removed}
 
 

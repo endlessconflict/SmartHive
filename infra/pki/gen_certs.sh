@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+cd #!/usr/bin/env bash
 # Creates the local CA and the broker certificate (once), then one client certificate per device id.
 # The CN of a client certificate is the MQTT user, so it must match the node id: node-0001, backend, ...
 #

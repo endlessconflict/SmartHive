@@ -26,12 +26,13 @@ key = "/etc/smarthive/certs/node-0001.key"
 # [images]
 # api_url = "https://gateway.local"
 # ca = "/etc/smarthive/certs/ca.crt"
-# device_token_file = "/etc/smarthive/device_token"   # chmod 600; shown once when the node is registered in Setup
+# device_token_file = "/var/lib/smarthive/device_token"   # the node asks for it over MQTT and writes it here (600)
 # frames_dir = "/run/smarthive/frames"   # tmpfs, where visiond leaves analyzed frames
 # image_dir = "/var/lib/smarthive/images"
 # retention_days = 3         # after upload
 # sample_rate = 0.01         # share of the discarded frames kept anyway, to check the filter
 # max_samples_per_day = 24
+# keep_periodic_image_every_min = 60   # one image when none was kept for this long; 0: never
 # [images.thresholds]
 # hornet = 0.45
 # shb = 0.50

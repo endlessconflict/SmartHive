@@ -28,6 +28,8 @@ Prefix: `smarthive/v1/nodes/{node_id}/`
 | `config` | server → node | 1 | yes | Desired configuration (partial overrides) |
 | `cmd` | server → node | 1 | no | Commands |
 | `cmd/ack` | node → server | 1 | no | Command results |
+| `token/req` | node → server | 1 | no | Asks for a new image-upload device token (`{}`) |
+| `token` | server → node | 1 | no | The token: `{"token": "..."}` |
 
 Broker ACLs (Mosquitto pattern syntax), so a node can only touch its own topics:
 
@@ -38,9 +40,13 @@ pattern write smarthive/v1/nodes/%u/summary
 pattern write smarthive/v1/nodes/%u/health
 pattern write smarthive/v1/nodes/%u/status
 pattern write smarthive/v1/nodes/%u/cmd/ack
+pattern write smarthive/v1/nodes/%u/token/req
 pattern read  smarthive/v1/nodes/%u/config
 pattern read  smarthive/v1/nodes/%u/cmd
+pattern read  smarthive/v1/nodes/%u/token
 ```
+
+The backend may also write `+/token`; the dashboard account reads everything except `+/token`.
 
 The MQTT username of each device is its `node_id`. The backend services and the simulator have their own accounts with wider rights. The simulator's fake nodes use `node_id`s with a `sim-` prefix, so synthetic data can never be mistaken for real data in the database.
 
@@ -222,12 +228,21 @@ Content-Type: image/jpeg
 | `201 Created` | Stored | Mark uploaded |
 | `200 OK` | Already have this `image_id` with the same hash | Mark uploaded |
 | `409 Conflict` | Same `image_id`, different hash | Log error, keep file, alert in health |
-| `413`, `415`, `422` | Rejected | Log error, do not retry |
+| `413`, `415`, `422` | Rejected (`415`: not `image/jpeg` or `image/png`, or the bytes do not match the type) | Log error, do not retry |
+| `401`, `403` | Token refused (replaced, or the node was re-created) | Ask for a new token over MQTT, retry |
 
 `reason` is one of `threat`, `varroa`, `periodic`, `on_demand` or `sample`. `sample` is the node's small random share of frames it would otherwise have discarded ([retention rule](03-edge-node-software.md#image-retention-rule-us08)); the server keeps it 30 days, like `periodic`, while `threat` and `varroa` are kept 365 days.
 | `5xx`, timeout | Server problem | Retry with backoff |
 
-Device tokens are long random strings issued at registration and stored on the node with file permissions `600`. Mutual TLS with the device certificate is an alternative if Caddy is configured for it.
+### Device token
+
+Device tokens are long random strings; the server keeps only their hash. **The node fetches its own** over MQTT, so registering a node in Setup is all an admin does:
+
+1. When it has no token (first start, or after a `401`), the node subscribes to `.../<node_id>/token` and publishes `{}` on `.../<node_id>/token/req`, again every 30 s until answered.
+2. The ACL lets only the holder of the `<node_id>` certificate publish there, so the request proves who asks. The ingestor creates a new token, stores its hash in `nodes.device_token_hash` (the old token stops working; a node nobody registered yet is added) and answers on `.../<node_id>/token`, not retained.
+3. The node writes the token to `device_token_file` (default `/var/lib/smarthive/device_token`) with permissions `600` and keeps using it after restarts.
+
+Until the token arrives the kept images wait on the SD card. For testing by hand, an admin can issue one with `POST /api/v1/nodes/{id}/device-token` (shown once; the node replaces it the next time the API refuses its own). Mutual TLS with the device certificate at Caddy remains an alternative.
 
 ## Versioning
 

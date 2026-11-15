@@ -40,12 +40,23 @@ const notFoundIsNull = (e: unknown) => {
   throw e;
 };
 
-export function useLatestImage(hiveId: string) {
+/** The hive's newest picture, or its newest kept for `reason` (threat, varroa). Asked again every minute:
+ * an image upload sends no push, only detections and alerts do. */
+export function useLatestImage(hiveId: string, reason?: string, enabled = true) {
   const { user } = useAccount();
   return useQuery({
-    queryKey: ["images", hiveId, "latest"],
-    enabled: !!user,
-    queryFn: () => api<ApiImage>(`/api/v1/hives/${hiveId}/images/latest`).catch(notFoundIsNull),
+    queryKey: ["images", hiveId, "latest", reason ?? "any"],
+    enabled: !!user && enabled,
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      if (!reason) {
+        return api<ApiImage>(`/api/v1/hives/${hiveId}/images/latest`).catch(notFoundIsNull);
+      }
+      const page = await api<Page<ApiImage>>(
+        `/api/v1/hives/${hiveId}/images?reason=${reason}&limit=1`,
+      );
+      return page.items[0] ?? null;
+    },
   });
 }
 

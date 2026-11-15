@@ -1,4 +1,8 @@
-"""Node registry: an admin issues the device token and decides which hive a node is attached to."""
+"""Node registry: an admin adds nodes and decides which hive each one is attached to.
+
+A node gets its image-upload token by itself over MQTT (smarthive/ingest/device_token.py), so registering
+it is all an admin does. `POST /nodes/{id}/device-token` is there for testing the upload by hand.
+"""
 
 import secrets
 from datetime import datetime
@@ -42,7 +46,8 @@ class NodeIn(BaseModel):
     id: NodeId
 
 
-class RegisteredNode(Node):
+class IssuedToken(BaseModel):
+    node_id: str
     device_token: str  # shown once; only its hash is stored
 
 
@@ -63,23 +68,34 @@ async def list_nodes(conn: Conn, _: Admin) -> list[Node]:
     return [Node(**r._mapping) for r in (await conn.execute(text(f"{_NODE} ORDER BY n.id"))).all()]
 
 
-@router.post("/api/v1/nodes", response_model=RegisteredNode, status_code=201, summary="Register a node")
-async def register_node(body: NodeIn, conn: Conn, _: Admin) -> RegisteredNode:
-    """A node that already talked over MQTT has a row without a token; this call issues it."""
+@router.post("/api/v1/nodes", response_model=Node, status_code=201, summary="Register a node")
+async def register_node(body: NodeIn, conn: Conn, _: Admin) -> Node:
+    """Adds the node; a node that already talked over MQTT exists, and the call just returns it.
+
+    The node asks for its device token over MQTT the first time it needs one; nothing to copy.
+    """
+    await conn.execute(
+        text("INSERT INTO nodes (id, is_simulated) VALUES (:id, :sim) ON CONFLICT (id) DO NOTHING"),
+        {"id": body.id, "sim": body.id.startswith("sim-")},
+    )
+    return await _node(conn, body.id)
+
+
+@router.post(
+    "/api/v1/nodes/{node_id}/device-token",
+    response_model=IssuedToken,
+    summary="Issue a new device token by hand (testing)",
+)
+async def issue_device_token(node_id: str, conn: Conn, _: Admin) -> IssuedToken:
+    """Replaces the node's token, for uploading images from Postman. The real node gets its own over MQTT,
+    and asks again (replacing this one) when the API refuses its old one."""
+    await _node(conn, node_id)
     token = secrets.token_urlsafe(32)
-    row = (
-        await conn.execute(
-            text(
-                "INSERT INTO nodes (id, is_simulated, device_token_hash) VALUES (:id, :sim, :h) "
-                "ON CONFLICT (id) DO UPDATE SET device_token_hash = :h "
-                "WHERE COALESCE(nodes.device_token_hash, '') = '' RETURNING id"
-            ),
-            {"id": body.id, "sim": body.id.startswith("sim-"), "h": hash_refresh_token(token)},
-        )
-    ).first()
-    if row is None:
-        raise Problem(409, "Node already has a device token")
-    return RegisteredNode(**(await _node(conn, body.id)).model_dump(), device_token=token)
+    await conn.execute(
+        text("UPDATE nodes SET device_token_hash = :h WHERE id = :id"),
+        {"id": node_id, "h": hash_refresh_token(token)},
+    )
+    return IssuedToken(node_id=node_id, device_token=token)
 
 
 @router.get("/api/v1/nodes/{node_id}", response_model=Node, summary="One node")

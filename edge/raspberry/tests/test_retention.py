@@ -5,7 +5,7 @@ import pytest
 from pi_node.retention import DAY_S, Detection, Retention, RetentionRule
 
 BOX = (0.0, 0.0, 10.0, 10.0)
-NO_SAMPLE = RetentionRule(sample_rate=0)
+NO_SAMPLE = RetentionRule(sample_rate=0, periodic_every_s=None)
 
 
 def det(cls: str, conf: float) -> Detection:
@@ -48,7 +48,7 @@ def test_about_sample_rate_of_the_discarded_frames_is_kept() -> None:
 
 def test_samples_stop_at_the_daily_cap_and_resume_a_day_later() -> None:
     now = [0.0]
-    keep = Retention(RetentionRule(sample_rate=1, max_samples_per_day=3), clock=lambda: now[0])
+    keep = Retention(RetentionRule(sample_rate=1, max_samples_per_day=3, periodic_every_s=None), clock=lambda: now[0])
     assert [keep.decide([]) for _ in range(5)] == ["sample", "sample", "sample", None, None]
     now[0] = DAY_S - 1
     assert keep.decide([]) is None
@@ -64,3 +64,27 @@ def test_the_cap_does_not_hold_back_threats() -> None:
 def test_a_rule_without_a_threshold_is_refused() -> None:
     with pytest.raises(ValueError, match="varroa"):
         RetentionRule(thresholds={"hornet": 0.45, "shb": 0.5})
+
+
+def test_an_hour_without_a_kept_frame_keeps_one_as_periodic() -> None:
+    now = [0.0]
+    keep = Retention(RetentionRule(sample_rate=0), clock=lambda: now[0])
+    assert keep.decide([]) == "periodic"  # the first frame after a start
+    now[0] = 3599
+    assert keep.decide([]) is None
+    now[0] = 3600
+    assert keep.decide([]) == "periodic"
+    assert keep.decide([]) is None  # the next hour starts now
+    now[0] = 3600 + 1800
+    assert keep.decide([det("hornet", 0.9)]) == "threat"  # any kept frame restarts the hour
+    now[0] = 3600 + 3600
+    assert keep.decide([]) is None
+    now[0] = 1800 + 2 * 3600
+    assert keep.decide([]) == "periodic"
+
+
+def test_a_threat_is_kept_as_threat_even_when_a_periodic_is_due() -> None:
+    now = [0.0]
+    keep = Retention(RetentionRule(sample_rate=0), clock=lambda: now[0])
+    now[0] = 7200
+    assert keep.decide([det("hornet", 0.9)]) == "threat"

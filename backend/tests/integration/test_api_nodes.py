@@ -60,7 +60,9 @@ def email(prefix: str) -> str:
     return f"{prefix}-{uuid4().hex[:6]}@example.com"
 
 
-async def test_register_issues_the_token_once(client: httpx.AsyncClient, engine: AsyncEngine) -> None:
+async def test_register_adds_the_node_and_nothing_to_copy(
+    client: httpx.AsyncClient, engine: AsyncEngine
+) -> None:
     ana = await add_user(engine, email("ana"))
     adm = await add_user(engine, email("adm"), "admin")
     node = f"hive-{uuid4().hex[:6]}"
@@ -71,17 +73,30 @@ async def test_register_issues_the_token_once(client: httpx.AsyncClient, engine:
     ).status_code == 422
 
     r = await client.post("/api/v1/nodes", json={"id": node}, headers=admin_auth(adm))
-    assert r.status_code == 201 and r.json()["simulated"] is False and r.json()["has_token"] is True
-    token = r.json()["device_token"]
+    assert r.status_code == 201 and r.json()["simulated"] is False and r.json()["has_token"] is False
+    assert "device_token" not in r.json()  # the node asks for it over MQTT
+    again = await client.post("/api/v1/nodes", json={"id": node}, headers=admin_auth(adm))
+    assert again.status_code == 201 and again.json()["id"] == node
+    sim = await client.post("/api/v1/nodes", json={"id": "sim-01"}, headers=admin_auth(adm))
+    assert sim.json()["simulated"] is True
+
+
+async def test_a_token_by_hand_replaces_the_old_one(client: httpx.AsyncClient, engine: AsyncEngine) -> None:
+    ana = await add_user(engine, email("ana"))
+    adm = await add_user(engine, email("adm"), "admin")
+    node = f"hive-{uuid4().hex[:6]}"
+    await client.post("/api/v1/nodes", json={"id": node}, headers=admin_auth(adm))
+    url = f"/api/v1/nodes/{node}/device-token"
+    assert (await client.post(url, headers=auth(ana))).status_code == 403
+    assert (await client.post("/api/v1/nodes/nope/device-token", headers=admin_auth(adm))).status_code == 404
+    first = (await client.post(url, headers=admin_auth(adm))).json()["device_token"]
+    second = (await client.post(url, headers=admin_auth(adm))).json()["device_token"]
     async with engine.connect() as conn:
         stored = (
             await conn.execute(text("SELECT device_token_hash FROM nodes WHERE id = :i"), {"i": node})
         ).scalar()
-    assert stored == hash_refresh_token(token) != token
-
-    assert (await client.post("/api/v1/nodes", json={"id": node}, headers=admin_auth(adm))).status_code == 409
-    sim = await client.post("/api/v1/nodes", json={"id": "sim-01"}, headers=admin_auth(adm))
-    assert sim.json()["simulated"] is True
+    assert stored == hash_refresh_token(second) != hash_refresh_token(first)
+    assert (await client.get(f"/api/v1/nodes/{node}", headers=admin_auth(adm))).json()["has_token"] is True
 
 
 async def test_register_adopts_a_node_that_spoke_mqtt_first(

@@ -57,11 +57,9 @@ export const useCreateHive = () =>
     post<{ id: string }>(`/api/v1/apiaries/${apiaryId}/hives`, body),
   );
 
-/** Creates the node, or issues a token to one that already spoke over MQTT. The token is shown once. */
+/** Creates the node (or returns it, if it already spoke over MQTT). Its image token it fetches itself. */
 export const useRegisterNode = () =>
-  useSetupMutation((id: string) =>
-    post<ApiNode & { device_token: string }>("/api/v1/nodes", { id }),
-  );
+  useSetupMutation((id: string) => post<ApiNode>("/api/v1/nodes", { id }));
 
 export const useAssignNode = () =>
   useSetupMutation(({ nodeId, hiveId }: { nodeId: string; hiveId: string }) =>

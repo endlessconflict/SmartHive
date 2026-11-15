@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   Activity,
   ArrowLeft,
-  Camera,
   ChevronRight,
   Droplets,
   Scale,
@@ -31,10 +30,9 @@ import {
   type Chart,
   type Warning,
 } from "@/data/anomalies";
-import { detections, useImageUrl, useLatestImage } from "@/data/images";
+import { HiveImage } from "@/components/HiveImage";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Loading, RequireLogin } from "@/components/RequireLogin";
-import { DetectionImage } from "@/components/DetectionImage";
 
 export const Route = createFileRoute("/colmena/$id")({
   head: () => ({
@@ -61,8 +59,6 @@ function HiveDetail() {
   const history = useHistory(id, range);
   const anomalies = useAnomalies(id, range).data ?? [];
   const warnings = useAnomalyWarnings(id).data ?? [];
-  const image = useLatestImage(id);
-  const imageUrl = useImageUrl(image.data?.id);
 
   if (isPending || error) return <Loading error={error} />;
   if (!hive) {
@@ -76,7 +72,6 @@ function HiveDetail() {
     );
   }
   const offline = hive.status === "offline";
-  const found = detections(image.data);
   const rows = history.data ?? [];
   const bandsFor = (chart: Chart) => bands(rows, anomalies, chart);
 
@@ -202,22 +197,7 @@ function HiveDetail() {
       )}
 
       <section className="mt-6 rounded-2xl bg-card p-5 ring-1 ring-border">
-        <h2 className="text-lg font-bold">Latest entrance image</h2>
-        {image.data ? (
-          <>
-            <DetectionImage src={imageUrl} alt="Hive entrance with bees" detections={found} />
-            <p className="mt-3 text-muted-foreground">
-              {found.length
-                ? `${found.length} possible pest${found.length === 1 ? "" : "s"} detected.`
-                : "No pests detected in this image."}
-            </p>
-          </>
-        ) : (
-          <div className="mt-3 flex aspect-[16/10] flex-col items-center justify-center gap-2 rounded-xl bg-muted text-muted-foreground">
-            <Camera className="size-10" />
-            <p>{image.isPending ? "Loading…" : "The node has not sent any images yet."}</p>
-          </div>
-        )}
+        <HiveImage hiveId={id} />
       </section>
     </main>
   );

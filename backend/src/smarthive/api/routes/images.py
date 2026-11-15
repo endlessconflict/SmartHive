@@ -23,7 +23,9 @@ from smarthive.thumbnails import WIDTHS, thumbnail
 
 router = APIRouter(tags=["images"])
 _bearer = HTTPBearer(auto_error=False)
-_JPEG = b"\xff\xd8\xff"
+# accepted types: the first bytes that prove it, and the stored file's extension
+_FORMATS = {"image/jpeg": (b"\xff\xd8\xff", "jpg"), "image/png": (b"\x89PNG\r\n\x1a\n", "png")}
+_MEDIA = {ext: media for media, (_magic, ext) in _FORMATS.items()}
 # data-model retention: threat and varroa pictures are evidence, the rest is routine
 _KEEP = {"threat": timedelta(days=365), "varroa": timedelta(days=365)}
 _KEEP_DEFAULT = timedelta(days=30)
@@ -66,9 +68,9 @@ async def device_node(
     return str(row.id)
 
 
-def _store(root: Path, digest: str, data: bytes) -> str:
+def _store(root: Path, digest: str, data: bytes, ext: str) -> str:
     """Write once under a content-addressed path; returns the path relative to the image volume."""
-    rel = f"{digest[:2]}/{digest[2:4]}/{digest}.jpg"
+    rel = f"{digest[:2]}/{digest[2:4]}/{digest}.{ext}"
     target = root / rel
     if not target.exists():
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -96,13 +98,14 @@ async def upload_image(
         ) from None
     if m.node_id != node:
         raise Problem(403, "The token belongs to another node")
-    if file.content_type != "image/jpeg":
-        raise Problem(415, "Only image/jpeg is accepted")
+    if file.content_type not in _FORMATS:
+        raise Problem(415, "Only image/jpeg and image/png are accepted")
+    magic, ext = _FORMATS[file.content_type]
     data = await file.read(settings.image_max_bytes + 1)
     if len(data) > settings.image_max_bytes:
         raise Problem(413, "Image too large")
-    if not data.startswith(_JPEG):
-        raise Problem(415, "The file is not a JPEG")
+    if not data.startswith(magic):
+        raise Problem(415, f"The file is not a {ext.upper()}")
     if hashlib.sha256(data).hexdigest() != m.sha256:
         raise Problem(422, "sha256 does not match the file")
 
@@ -112,7 +115,7 @@ async def upload_image(
             raise Problem(409, "image_id exists with a different hash")
         return JSONResponse({"image_id": str(m.image_id)}, status_code=200)
 
-    rel = await asyncio.to_thread(_store, Path(settings.image_dir), m.sha256, data)
+    rel = await asyncio.to_thread(_store, Path(settings.image_dir), m.sha256, data, ext)
     await conn.execute(
         text(
             "INSERT INTO images (id, node_id, hive_id, captured_at, clock_synced, reason, path, sha256, "
@@ -230,7 +233,7 @@ async def get_image(image_id: UUID, conn: Conn, user: CurrentUser) -> Image:
     return Image(**(await _visible_image(conn, user, image_id))._mapping)
 
 
-@router.get("/api/v1/images/{image_id}/file", summary="The JPEG")
+@router.get("/api/v1/images/{image_id}/file", summary="The image (JPEG or PNG; smaller copies are JPEG)")
 async def image_file(
     image_id: UUID,
     conn: Conn,
@@ -245,9 +248,11 @@ async def image_file(
     path = root / row.path
     if not path.is_file():
         raise Problem(404, "The file is gone")  # purged or the volume was not restored
+    media = _MEDIA.get(path.suffix.lstrip("."), "image/jpeg")
     if w is not None:
         try:
             path = await asyncio.to_thread(thumbnail, root, row.path, w)
         except OSError:
             raise Problem(422, "The stored file cannot be resized") from None
-    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=86400"})
+        media = "image/jpeg"
+    return FileResponse(path, media_type=media, headers={"Cache-Control": "private, max-age=86400"})

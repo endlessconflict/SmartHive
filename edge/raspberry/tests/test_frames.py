@@ -20,7 +20,7 @@ FRAME_ID = "0190f5a2-7c1e-7d43-9a1b-2f6c8e0d4b12"
 def node(tmp_path: Path):
     box = Outbox(tmp_path / "outbox.db")
     filt = FrameFilter("node-0001", tmp_path / "frames", tmp_path / "images", box,
-                       Retention(RetentionRule(sample_rate=0)))
+                       Retention(RetentionRule(sample_rate=0, periodic_every_s=None)))
     yield filt
     box.close()
 
@@ -162,7 +162,8 @@ def test_storage_reduction_on_a_test_run(tmp_path: Path) -> None:
     box.close()
 
     assert relevant and relevant <= kept.keys()
-    assert {kept[i] for i in kept.keys() - relevant} <= {"sample"}
+    assert {kept[i] for i in kept.keys() - relevant} <= {"sample", "periodic"}
+    assert list(kept.values()).count("periodic") == 1  # the first frame after the start; the run is short
     assert 0 < list(kept.values()).count("sample") <= 24
     assert filt.stats.bytes_kept / filt.stats.bytes_seen < 0.05
     assert sum(p.stat().st_size for p in (tmp_path / "images").iterdir()) == filt.stats.bytes_kept

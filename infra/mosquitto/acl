@@ -9,15 +9,20 @@ pattern write smarthive/v1/nodes/%u/summary
 pattern write smarthive/v1/nodes/%u/health
 pattern write smarthive/v1/nodes/%u/status
 pattern write smarthive/v1/nodes/%u/cmd/ack
+pattern write smarthive/v1/nodes/%u/token/req
 pattern read  smarthive/v1/nodes/%u/config
 pattern read  smarthive/v1/nodes/%u/cmd
+pattern read  smarthive/v1/nodes/%u/token
 
-# Backend services (ingest and worker): read everything the nodes send, send config and commands.
+# Backend services (ingest and worker): read everything the nodes send, send config, commands and the
+# device token a node asked for (the image-upload token, see backend/src/smarthive/ingest/device_token.py).
 user backend
 topic read  smarthive/v1/nodes/+/#
 topic write smarthive/v1/nodes/+/config
 topic write smarthive/v1/nodes/+/cmd
+topic write smarthive/v1/nodes/+/token
 
-# Dashboard: read only.
+# Dashboard: read only, everything but the device tokens.
 user dashboard
 topic read smarthive/v1/#
+topic deny smarthive/v1/nodes/+/token

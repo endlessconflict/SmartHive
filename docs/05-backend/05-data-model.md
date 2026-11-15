@@ -139,7 +139,7 @@ CREATE TABLE weather (
 
 **Deduplication** is the primary key: `INSERT ... ON CONFLICT DO NOTHING`. A batch delivered twice inserts nothing the second time.
 
-**Nodes register themselves.** The first accepted message from a node creates its `nodes` row (`is_simulated` from the `sim-` prefix of the id). The device token is issued later through the API. `status` is `unknown` until a `status` or `health` message arrives; `last_seen_at` is the arrival time of the latest message.
+**Nodes register themselves.** The first accepted message from a node creates its `nodes` row (`is_simulated` from the `sim-` prefix of the id). The image-upload device token is issued when the node asks for it over MQTT (`token/req`, see the [messaging contract](04-messaging-contract.md#device-token)). `status` is `unknown` until a `status` or `health` message arrives; `last_seen_at` is the arrival time of the latest message.
 
 **Unknown hive:** if a node sends data while not assigned to any hive, `hive_id` is NULL. The rows are kept and backfilled when the node gets assigned, so setting up a node in the field before registering it in the dashboard loses nothing.
 

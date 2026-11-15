@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Copy, Cpu, Hexagon, MapPin } from "lucide-react";
+import { Cpu, Hexagon, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loading, RequireLogin } from "@/components/RequireLogin";
@@ -340,11 +340,9 @@ function NodesSection() {
   const nodes = useNodes();
   const register = useRegisterNode();
   const [id, setId] = useState("");
-  const [copied, setCopied] = useState(false);
 
   function submit(e: FormEvent) {
     e.preventDefault();
-    setCopied(false);
     register.mutate(id.trim(), { onSuccess: () => setId("") });
   }
 
@@ -379,32 +377,16 @@ function NodesSection() {
           />
           <p className="mt-1 text-sm text-muted-foreground">
             Lowercase letters, digits and dashes. Ids starting with <code>sim-</code> are marked as
-            simulated. Registering issues the device token for image uploads; MQTT also needs a
-            certificate with the same id (<code>infra/pki/gen_certs.sh {id || "<id>"}</code>).
+            simulated. The node needs a certificate with the same id:{" "}
+            <code>infra/pki/gen_certs.sh {id || "<id>"}</code>. With it, the node gets its image
+            upload token by itself; there is nothing to copy.
           </p>
         </div>
         <Feedback error={register.error} />
         {register.data && (
-          <div role="status" className="space-y-2 rounded-xl bg-warning-soft p-4">
-            <p className="font-semibold">
-              Device token for {register.data.id}. Copy it now: it is not shown again.
-            </p>
-            <code className="block break-all rounded bg-card p-2 text-sm">
-              {register.data.device_token}
-            </code>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                void navigator.clipboard
-                  .writeText(register.data.device_token)
-                  .then(() => setCopied(true))
-              }
-            >
-              <Copy />
-              {copied ? "Copied" : "Copy"}
-            </Button>
-          </div>
+          <p role="status" className="rounded-xl bg-success-soft p-4 font-semibold">
+            {register.data.id} registered. Attach it to a hive above.
+          </p>
         )}
         <Button type="submit" disabled={register.isPending} className="min-h-12 font-bold">
           {register.isPending ? "Saving…" : "Register node"}
@@ -436,7 +418,7 @@ function NodeRow({ node }: { node: ApiNode }) {
           {node.status}
           {node.last_seen_at &&
             ` · seen ${formatDistanceToNow(new Date(node.last_seen_at), { addSuffix: true })}`}
-          {node.has_token && " · has device token"}
+          {node.has_token && " · image uploads ready"}
         </p>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2">

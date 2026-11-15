@@ -62,12 +62,17 @@ visiond leaves each analyzed frame in a tmpfs (`/run/smarthive/frames`, RAM) as 
 |---|---|---|
 | 1 | A `hornet` or `shb` at or above its class threshold | `threat` |
 | 2 | A `varroa` (Varroa-positive bee) at or above the varroa threshold | `varroa` |
-| 3 | A random `sample_rate` (default 1 %) of the frames rules 1 and 2 did not keep, at most `max_samples_per_day` (default 24) | `sample` |
-| 4 | Anything else | discarded: deleted from RAM, never written to the SD card |
+| 3 | No frame kept for `keep_periodic_image_every_min` (default 60; the hour starts at boot) | `periodic` |
+| 4 | A random `sample_rate` (default 1 %) of the frames rules 1 to 3 did not keep, at most `max_samples_per_day` (default 24) | `sample` |
+| 5 | Anything else | discarded: deleted from RAM, never written to the SD card |
 
 Bees, other insects and threats below their threshold do not keep a frame. The sample is what lets someone check what the filter throws away (false negatives) and collect real backgrounds for retraining ([ADR-0002](../adr/0002-synthetic-first-training-data.md)); it is the first thing dropped if the card fills up. The thresholds are the vision thresholds in the configuration below.
 
 A kept frame is written to `image_dir` (fsync, then the outbox row) and queued with its boxes; crops are cut from the frame with the boxes, not stored separately. The frame id becomes the `image_id`, so processing the same frame twice after a crash queues it once.
+
+### Without the camera: the mock pipeline
+
+Until camd and visiond run on the Pi, `edge/scripts/fake_node.py --images --photos <folder>` runs the same chain with your own photos as the camera (`pi_node/photo_camera.py`); no picture is generated. A photo's folder says what it shows (`hornet/`, `shb/`, `varroa/`; anything else is bees only), or a `<photo>.json` next to it gives exact boxes. Threats arrive as visits of several frames, so the node applies visiond's k-of-n rule (`pi_node/episodes.py`: hornet 3 of 10, shb 2 of 10) and queues a `threat_detected` event with the same `image_id` as the kept image. Everything after the frame (retention, SD card, outbox, upload, MQTT) is the node's real code.
 
 Measured with `edge/scripts/storage_check.py` on 1000 synthetic frames (the scene mix in `pi_node/fake_camera.py`, ~450 KB each): 440 MB analyzed, 25 frames and 10.6 MB kept (14 relevant, 11 samples), a 97.6 % reduction with no relevant frame lost. `tests/test_frames.py` checks the same in CI.
 

@@ -25,6 +25,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from pi_node import payload
+from pi_node.episodes import Episodes
 from pi_node.outbox import Outbox
 from pi_node.retention import Detection, Retention
 
@@ -58,8 +59,11 @@ def _write_durably(target: Path, data: bytes) -> None:
 
 
 class FrameFilter:
-    def __init__(self, node_id: str, frames_dir: Path, image_dir: Path, outbox: Outbox, retention: Retention) -> None:
+    def __init__(self, node_id: str, frames_dir: Path, image_dir: Path, outbox: Outbox, retention: Retention,
+                 episodes: Episodes | None = None) -> None:
+        """`episodes`: also raise threat events from the frames (mock vision; on the Pi, visiond does it)."""
         self.node_id = node_id
+        self.episodes = episodes
         self.frames_dir = frames_dir
         self.image_dir = image_dir
         self.outbox = outbox
@@ -92,14 +96,20 @@ class FrameFilter:
             return
         self.stats.seen += 1
         self.stats.bytes_seen += len(data)
+        image_id = _image_id(sidecar.stem)
+        clock_synced = bool(info.get("clock_synced", False))
         reason = self.retention.decide(objects)
         if reason is not None:
-            self._keep(sidecar.stem, data, captured_at, bool(info.get("clock_synced", False)), info, objects, reason)
+            self._keep(image_id, data, captured_at, clock_synced, info, objects, reason)
+        if self.episodes is not None:  # after the image is queued: the event names it by image_id
+            topic = payload.topic(self.node_id, "events")
+            for event in self.episodes.observe(image_id, captured_at, objects):
+                self.outbox.add(topic, event, captured_at, clock_synced)
+                log.info("threat event queued for image %s", image_id)
         self._remove(jpg, sidecar)  # the .json last: while it is there, the frame is retried
 
-    def _keep(self, stem: str, data: bytes, captured_at: datetime, clock_synced: bool, info: dict,
+    def _keep(self, image_id: str, data: bytes, captured_at: datetime, clock_synced: bool, info: dict,
               objects: list[Detection], reason: str) -> None:
-        image_id = _image_id(stem)
         sha = hashlib.sha256(data).hexdigest()
         meta = {
             "image_id": image_id,
