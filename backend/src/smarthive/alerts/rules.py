@@ -69,7 +69,7 @@ async def varroa_high(conn: Db, p: dict[str, Any], now: datetime) -> list[Findin
         await conn.execute(
             text(
                 "SELECT hive_id, sum(varroa_positive) AS pos, sum(varroa_classified) AS n "
-                "FROM vision_summaries WHERE hive_id IS NOT NULL AND window_end > CAST(:now AS timestamptz) - make_interval(hours => :h) "
+                "FROM vision_summaries WHERE hive_id IS NOT NULL AND window_end > CAST(:now AS timestamptz) - make_interval(secs => CAST(:h AS double precision) * 3600) "
                 "GROUP BY hive_id HAVING sum(varroa_classified) >= :min "
                 "AND 100.0 * sum(varroa_positive) / sum(varroa_classified) > :thr"
             ),
@@ -161,11 +161,11 @@ def _out_of_range(rule_id: str, label: str) -> Evaluate:
             await conn.execute(
                 text(
                     "SELECT hive_id, avg(value) AS mean FROM readings WHERE hive_id IS NOT NULL "
-                    "AND quantity = :q AND quality = 'ok' AND ts > CAST(:now AS timestamptz) - make_interval(hours => :h) AND ts <= CAST(:now AS timestamptz) "
+                    "AND quantity = :q AND quality = 'ok' AND ts > CAST(:now AS timestamptz) - make_interval(secs => CAST(:h AS double precision) * 3600) AND ts <= CAST(:now AS timestamptz) "
                     "AND NOT EXISTS (SELECT 1 FROM management_events m WHERE m.hive_id = readings.hive_id "
                     f"AND m.started_at <= CAST(:now AS timestamptz) AND coalesce(m.ended_at, CAST(:now AS timestamptz)) > CAST(:now AS timestamptz) - interval '{MASK_MARGIN}') "
                     "GROUP BY hive_id HAVING bool_and(value < :lo OR value > :hi) "
-                    "AND min(ts) <= CAST(:now AS timestamptz) - make_interval(hours => :h) * 0.9"
+                    "AND min(ts) <= CAST(:now AS timestamptz) - make_interval(secs => CAST(:h AS double precision) * 3600) * 0.9"
                 ),
                 {"q": p["quantity"], "h": p["hours"], "lo": p["low"], "hi": p["high"], "now": now},
             )

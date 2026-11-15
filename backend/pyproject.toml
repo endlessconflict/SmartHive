@@ -62,6 +62,7 @@ select = ["E", "F", "I", "B", "UP"]
 "src/smarthive/alerts/*" = ["E501"]
 "src/smarthive/api/routes/alerts.py" = ["E501"]
 "src/smarthive/api/routes/me.py" = ["E501"]
+"src/smarthive/demo_bootstrap.py" = ["E501"]
 "tests/**" = ["E501"]
 
 [tool.mypy]
