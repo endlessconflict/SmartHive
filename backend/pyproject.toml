@@ -61,6 +61,7 @@ select = ["E", "F", "I", "B", "UP"]
 # long SQL strings read better unbroken
 "src/smarthive/alerts/*" = ["E501"]
 "src/smarthive/api/routes/alerts.py" = ["E501"]
+"src/smarthive/api/routes/me.py" = ["E501"]
 "tests/**" = ["E501"]
 
 [tool.mypy]
